@@ -1,6 +1,6 @@
-# 🌿 Valluvam: The Kural Guru
+# 🌿 Kuralneri: The Kural Guru
 
-**Valluvam** is a sophisticated, private, and graceful interface for the *Thirukkural*. More than a digital library, it serves as an **Autonomous Moral Guide (Guru)**—an offline AI companion that interprets 2,000-year-old Tamil wisdom to navigate modern life’s complexities.
+**Kuralneri** is a sophisticated, private, and graceful interface for the *Thirukkural*. More than a digital library, it serves as an **Autonomous Moral Guide (Guru)**—an offline AI companion that interprets 2,000-year-old Tamil wisdom to navigate modern life’s complexities.
 
 **[Explore the Vision]()** • **[Design Language]()** • **[Technical Stack]()** • **[Roadmap]()**
 
@@ -8,7 +8,7 @@
 
 ## 👁️ Product Vision
 
-To provide a sanctuary for contemplation. Valluvam bridges the gap between ancient antiquity and the 21st century by utilizing **Local RAG (Retrieval-Augmented Generation)** to ensure every insight provided by the AI is anchored strictly in the 1,330 couplets of the *Thirukkural*.
+To provide a sanctuary for contemplation. Kuralneri bridges the gap between ancient antiquity and the 21st century by utilizing **Local RAG (Retrieval-Augmented Generation)** to ensure every insight provided by the AI is anchored strictly in the 1,330 couplets of the *Thirukkural*.
 
 ### Key Pillars:
 
@@ -43,7 +43,7 @@ The UI avoids the "loud" distractions of modern social media. It is designed for
 
 ### AI Inference Pipeline
 
-Valluvam runs a high-performance, completely offline inference engine:
+Kuralneri runs a high-performance, completely offline inference engine:
 
 * **Model:** `Gemma 2B IT` (Instruction Tuned), 4-bit INT4 quantization.
 * **Framework:** `Mediapipe LLM Inference API` (Flutter) leveraging XNNPACK for NPU/GPU acceleration.
