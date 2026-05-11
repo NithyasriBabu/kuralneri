@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "weekend-warrior-template",
-    "slug": "weekend-warrior-template",
+    "name": "குறள்நெறி",
+    "slug": "குறள்நெறி",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -25,6 +25,10 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-sqlite",
+      "expo-font"
+    ]
   }
 }
