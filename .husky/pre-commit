@@ -1,0 +1,8 @@
+# Load NVM
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+# Use the version defined in .nvmrc
+nvm use
+
+npx lint-staged
