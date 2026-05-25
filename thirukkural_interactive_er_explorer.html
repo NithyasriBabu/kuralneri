@@ -1,0 +1,1206 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thirukkural App - Interactive Database Schema & ER Diagram</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+      body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+      }
+      .code-font {
+        font-family: 'JetBrains Mono', monospace;
+      }
+
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.05);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(15, 23, 42, 0.2);
+        border-radius: 6px;
+      }
+      .dark-scrollbar::-webkit-scrollbar-track {
+        background: rgba(30, 41, 59, 0.5);
+      }
+      .dark-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.3);
+        border-radius: 6px;
+      }
+
+      /* Premium custom scrollbar hider for small tab groups */
+      .scrollbar-none::-webkit-scrollbar {
+        display: none;
+      }
+      .scrollbar-none {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      /* Grid background effect */
+      .diagram-grid {
+        background-size: 24px 24px;
+        background-image: radial-gradient(circle, rgba(148, 163, 184, 0.15) 1px, transparent 1px);
+      }
+      .dark .diagram-grid {
+        background-image: radial-gradient(circle, rgba(51, 65, 85, 0.4) 1px, transparent 1px);
+      }
+
+      /* Smooth transitions */
+      .interactive-transition {
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      /* Panel sliding transitions */
+      .panel-transition {
+        transition:
+          width 300ms cubic-bezier(0.4, 0, 0.2, 1),
+          border-color 300ms cubic-bezier(0.4, 0, 0.2, 1),
+          padding 300ms cubic-bezier(0.4, 0, 0.2, 1),
+          opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      /* Pulse animations for active relationships */
+      @keyframes pulse-dash {
+        to {
+          stroke-dashoffset: -20;
+        }
+      }
+      .active-connector {
+        stroke-dasharray: 6, 4;
+        animation: pulse-dash 0.8s linear infinite;
+      }
+    </style>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                50: '#f0fdf4',
+                100: '#dcfce7',
+                500: '#22c55e',
+                600: '#16a34a',
+                700: '#15803d',
+              },
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body
+    class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 h-screen w-screen flex flex-col overflow-hidden transition-colors duration-200"
+  >
+    <!-- Header Navigation -->
+    <header
+      class="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-6 py-3.5 flex items-center justify-between z-10 select-none shrink-0"
+    >
+      <div class="flex items-center space-x-3 mr-4">
+        <div
+          class="bg-gradient-to-tr from-brand-600 to-emerald-400 text-white p-2 rounded-xl shadow-md shadow-brand-500/10 shrink-0"
+        >
+          <i data-lucide="database" class="w-5.5 h-5.5"></i>
+        </div>
+        <div class="hidden sm:block">
+          <h1 class="text-md font-bold tracking-tight">Thirukkural DB Workbench</h1>
+          <p class="text-[10px] text-slate-500 dark:text-slate-400">
+            Interactive ER Diagram & Database Spec
+          </p>
+        </div>
+      </div>
+
+      <!-- Panel Toggle controls, Filters & Theme Toggle -->
+      <div class="flex items-center space-x-3 overflow-hidden">
+        <!-- Sidebar / Inspector Controls -->
+        <div
+          class="flex rounded-lg bg-slate-100 dark:bg-slate-800 p-0.5 text-xs font-medium border border-slate-200/55 dark:border-slate-700/50 shrink-0"
+        >
+          <button
+            onclick="toggleSidebar()"
+            id="btn-toggle-sidebar"
+            class="px-2 py-1.5 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all flex items-center space-x-1"
+            title="Toggle Left Sidebar"
+          >
+            <i data-lucide="sidebar" class="w-4 h-4"></i>
+            <span class="hidden md:inline">Sidebar</span>
+          </button>
+          <button
+            onclick="toggleInspector()"
+            id="btn-toggle-inspector"
+            class="px-2 py-1.5 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all flex items-center space-x-1"
+            title="Toggle Right Inspector"
+          >
+            <i data-lucide="sidebar-right" class="w-4 h-4"></i>
+            <span class="hidden md:inline">Inspector</span>
+          </button>
+        </div>
+
+        <!-- Table Filters (Horizontally Scrollable on squished screens) -->
+        <div
+          class="flex rounded-lg bg-slate-100 dark:bg-slate-800 p-0.5 text-xs font-medium overflow-x-auto scrollbar-none flex-nowrap whitespace-nowrap max-w-[140px] xs:max-w-[200px] sm:max-w-none"
+        >
+          <button
+            onclick="setFilter('all')"
+            id="btn-filter-all"
+            class="px-2.5 py-1.5 rounded-md bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white transition-all"
+          >
+            All
+          </button>
+          <button
+            onclick="setFilter('core')"
+            id="btn-filter-core"
+            class="px-2.5 py-1.5 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all"
+          >
+            Core
+          </button>
+          <button
+            onclick="setFilter('extensions')"
+            id="btn-filter-extensions"
+            class="px-2.5 py-1.5 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all"
+          >
+            Extensions
+          </button>
+          <button
+            onclick="setFilter('chat')"
+            id="btn-filter-chat"
+            class="px-2.5 py-1.5 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all"
+          >
+            Guru
+          </button>
+        </div>
+
+        <button
+          onclick="toggleDarkMode()"
+          class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 transition-colors shrink-0"
+        >
+          <i data-lucide="sun" class="w-4.5 h-4.5 dark:hidden"></i>
+          <i data-lucide="moon" class="w-4.5 h-4.5 hidden dark:block"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 flex min-h-0 overflow-hidden relative w-full">
+      <!-- Sidebar - Search & Quick Specs (Dismissible) -->
+      <aside
+        id="db-sidebar"
+        class="w-80 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col z-20 shrink-0 panel-transition overflow-hidden"
+      >
+        <div class="w-80 flex flex-col h-full shrink-0">
+          <!-- Search -->
+          <div
+            class="p-4 border-b border-slate-100 dark:border-slate-800/60 flex items-center justify-between"
+          >
+            <div class="relative flex-1 mr-2">
+              <span
+                class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400"
+              >
+                <i data-lucide="search" class="w-4 h-4"></i>
+              </span>
+              <input
+                type="text"
+                id="db-search"
+                oninput="handleSearch(this.value)"
+                placeholder="Search table specs..."
+                class="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all"
+              />
+            </div>
+            <button
+              onclick="toggleSidebar()"
+              class="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600"
+              title="Collapse Sidebar"
+            >
+              <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <!-- List of tables -->
+          <div class="flex-1 overflow-y-auto p-4 space-y-3 dark-scrollbar" id="table-sidebar-list">
+            <!-- Javascript will inject table list items here dynamically -->
+          </div>
+
+          <!-- Quick stats bar -->
+          <div
+            class="p-4 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500 flex justify-between items-center select-none"
+          >
+            <span>9 Entities Defined</span>
+            <span
+              class="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 font-medium"
+              >Fully Normalized</span
+            >
+          </div>
+        </div>
+      </aside>
+
+      <!-- Dynamic Visualization Canvas with Scrollable Fixes -->
+      <section
+        class="flex-1 h-full w-full relative bg-slate-100 dark:bg-slate-950/40 diagram-grid overflow-auto p-12 select-none flex items-start justify-start dark-scrollbar"
+        id="canvas-container"
+      >
+        <!-- Sleek Edge Panels Trigger buttons when collapsed -->
+        <button
+          id="edge-trigger-left"
+          onclick="toggleSidebar()"
+          class="absolute left-2 top-1/2 -translate-y-1/2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-brand-500 dark:hover:border-brand-500 p-2 rounded-xl shadow-lg hover:scale-110 active:scale-95 transition-all text-slate-600 dark:text-slate-300 hover:text-brand-500 z-30 hidden"
+        >
+          <i data-lucide="chevron-right" class="w-5 h-5"></i>
+        </button>
+        <button
+          id="edge-trigger-right"
+          onclick="toggleInspector()"
+          class="absolute right-2 top-1/2 -translate-y-1/2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-brand-500 dark:hover:border-brand-500 p-2 rounded-xl shadow-lg hover:scale-110 active:scale-95 transition-all text-slate-600 dark:text-slate-300 hover:text-brand-500 z-30 hidden"
+        >
+          <i data-lucide="chevron-left" class="w-5 h-5"></i>
+        </button>
+
+        <!-- Scrollable Layout Wrapper - Crucial dimensions matched with layout values -->
+        <div class="relative w-[1160px] h-[960px] shrink-0 m-auto" id="nodes-workspace-wrapper">
+          <!-- Interactive Connecting Lines SVG Layer -->
+          <svg
+            id="relationships-svg"
+            class="absolute inset-0 w-full h-full pointer-events-none z-0"
+          ></svg>
+
+          <!-- Table Nodes Playground Container -->
+          <div class="absolute inset-0 z-10" id="nodes-workspace">
+            <!-- Javascript will inject table elements dynamically with specific visual absolute coordinates -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Inspector Drawer & Code Generator Side Panel (Dismissible) -->
+      <aside
+        id="db-inspector"
+        class="w-96 border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col z-20 shrink-0 panel-transition overflow-hidden"
+      >
+        <div class="w-96 flex flex-col h-full shrink-0">
+          <!-- Selector Tabs (Scrollable tab group if drawer is squeezed) -->
+          <div class="flex border-b border-slate-200 dark:border-slate-800 relative select-none">
+            <div class="flex-1 flex overflow-x-auto scrollbar-none flex-nowrap whitespace-nowrap">
+              <button
+                onclick="setInspectorTab('details')"
+                id="tab-btn-details"
+                class="flex-1 px-4 py-3 text-sm font-semibold border-b-2 border-brand-500 text-brand-600 dark:text-brand-400"
+              >
+                Inspector
+              </button>
+              <button
+                onclick="setInspectorTab('sql')"
+                id="tab-btn-sql"
+                class="flex-1 px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+              >
+                SQLite DDL
+              </button>
+              <button
+                onclick="setInspectorTab('mermaid')"
+                id="tab-btn-mermaid"
+                class="flex-1 px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+              >
+                Mermaid
+              </button>
+            </div>
+            <button
+              onclick="toggleInspector()"
+              class="p-3 text-slate-400 hover:text-slate-600 transition-colors shrink-0"
+              title="Collapse Inspector"
+            >
+              <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <!-- Panel Contents -->
+          <div class="flex-1 overflow-y-auto p-6 dark-scrollbar" id="inspector-content">
+            <!-- Inspector details content dynamically updated here -->
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- Interactive Data Store & Scripts -->
+    <script>
+      // Database specification representation
+      const databaseSchema = {
+        tables: {
+          SECTIONS: {
+            id: 'SECTIONS',
+            title: 'sections',
+            group: 'core',
+            purpose:
+              'Represents the three grand traditional divisions of the Kurals (Aram, Porul, Inbam).',
+            x: 40,
+            y: 30,
+            columns: [
+              {
+                name: 'id',
+                type: 'INTEGER (PK)',
+                key: 'PK',
+                desc: '1 = Aram, 2 = Porul, 3 = Inbam',
+              },
+              {
+                name: 'name_tamil',
+                type: 'TEXT',
+                key: null,
+                desc: 'Original Tamil Section Header',
+              },
+              {
+                name: 'name_english',
+                type: 'TEXT',
+                key: null,
+                desc: 'Standardized English Translation',
+              },
+            ],
+            indexes: ['PRIMARY KEY (id)'],
+          },
+          IYALS: {
+            id: 'IYALS',
+            title: 'iyals',
+            group: 'core',
+            purpose:
+              'Represents sub-sections of moral/philosophical groupings within each Section (e.g., Domestic Virtue, Asceticism).',
+            x: 420,
+            y: 30,
+            columns: [
+              {
+                name: 'id',
+                type: 'INTEGER (PK)',
+                key: 'PK',
+                desc: 'Auto-increment ID for the sub-section',
+              },
+              {
+                name: 'section_id',
+                type: 'INTEGER (FK)',
+                key: 'FK',
+                desc: 'References sections.id',
+              },
+              { name: 'name_tamil', type: 'TEXT', key: null, desc: 'Tamil sub-section name' },
+              {
+                name: 'name_english',
+                type: 'TEXT',
+                key: null,
+                desc: 'English translation of sub-section',
+              },
+            ],
+            indexes: ['PRIMARY KEY (id)', 'CREATE INDEX idx_iyals_section ON iyals(section_id)'],
+            relations: [{ from: 'section_id', toTable: 'SECTIONS', toCol: 'id' }],
+          },
+          CHAPTERS: {
+            id: 'CHAPTERS',
+            title: 'chapters',
+            group: 'core',
+            purpose: 'The 133 distinct chapters (Athigarams) containing exactly 10 Kurals each.',
+            x: 800,
+            y: 30,
+            columns: [
+              { name: 'id', type: 'INTEGER (PK)', key: 'PK', desc: 'Unique chapter ID (1 to 133)' },
+              { name: 'iyal_id', type: 'INTEGER (FK)', key: 'FK', desc: 'References iyals.id' },
+              {
+                name: 'name_tamil',
+                type: 'TEXT',
+                key: null,
+                desc: 'Chapter name in Tamil (e.g., கடவுள் வாழ்த்து)',
+              },
+              {
+                name: 'name_english',
+                type: 'TEXT',
+                key: null,
+                desc: 'English transliteration of the chapter',
+              },
+            ],
+            indexes: ['PRIMARY KEY (id)', 'CREATE INDEX idx_chapters_iyal ON chapters(iyal_id)'],
+            relations: [{ from: 'iyal_id', toTable: 'IYALS', toCol: 'id' }],
+          },
+          KURALS: {
+            id: 'KURALS',
+            title: 'kurals',
+            group: 'core',
+            purpose:
+              'Stores the core immutable two-line Tamil couplets. The base of the entire application.',
+            x: 420,
+            y: 335,
+            columns: [
+              {
+                name: 'id',
+                type: 'INTEGER (PK)',
+                key: 'PK',
+                desc: 'Kural reference ID (1 to 1330)',
+              },
+              {
+                name: 'chapter_id',
+                type: 'INTEGER (FK)',
+                key: 'FK',
+                desc: 'References chapters.id',
+              },
+              {
+                name: 'tamil_text',
+                type: 'TEXT',
+                key: null,
+                desc: 'Standard complete 2-line couplet with traditional spacing',
+              },
+              {
+                name: 'split_tamil_text',
+                type: 'TEXT',
+                key: null,
+                desc: 'Grammatically segmented words (Seers) for word-by-word UI',
+              },
+            ],
+            indexes: ['PRIMARY KEY (id)', 'CREATE INDEX idx_kurals_chapter ON kurals(chapter_id)'],
+            relations: [{ from: 'chapter_id', toTable: 'CHAPTERS', toCol: 'id' }],
+          },
+          TRANSLATIONS: {
+            id: 'TRANSLATIONS',
+            title: 'translations',
+            group: 'extensions',
+            purpose:
+              'Maintains a multi-author database of interpretations, verse translations, and modern prose meanings.',
+            x: 40,
+            y: 335,
+            columns: [
+              { name: 'id', type: 'INTEGER (PK)', key: 'PK', desc: 'Auto-increment ID' },
+              { name: 'kural_id', type: 'INTEGER (FK)', key: 'FK', desc: 'References kurals.id' },
+              {
+                name: 'lang_code',
+                type: 'TEXT',
+                desc: "ISO language code (e.g., 'en', 'hi', 'ta_modern')",
+              },
+              {
+                name: 'author',
+                type: 'TEXT',
+                desc: "Translator/Commentator Name (e.g., 'G.U. Pope')",
+              },
+              { name: 'type', type: 'TEXT', desc: "'verse' or 'explanation'" },
+              {
+                name: 'explanation',
+                type: 'TEXT',
+                desc: 'The translation or contextual commentary',
+              },
+            ],
+            indexes: [
+              'PRIMARY KEY (id)',
+              'CREATE INDEX idx_translations_lookup ON translations(kural_id, lang_code, author)',
+            ],
+            relations: [{ from: 'kural_id', toTable: 'KURALS', toCol: 'id' }],
+          },
+          EMBEDDINGS: {
+            id: 'EMBEDDINGS',
+            title: 'embeddings',
+            group: 'extensions',
+            purpose:
+              'Vector representation storage allowing semantically advanced multi-language retrieval by the Guru.',
+            x: 800,
+            y: 335,
+            columns: [
+              {
+                name: 'kural_id',
+                type: 'INTEGER (FK, PK)',
+                key: 'PK_FK',
+                desc: 'References kurals.id',
+              },
+              {
+                name: 'vector',
+                type: 'F32_BLOB',
+                desc: 'Binary array of floating-point embeddings',
+              },
+              {
+                name: 'source_lang',
+                type: 'TEXT',
+                desc: 'Source text identifier used for generating vector mapping',
+              },
+            ],
+            indexes: ['PRIMARY KEY (kural_id)', 'FOREIGN KEY (kural_id) REFERENCES kurals(id)'],
+            relations: [{ from: 'kural_id', toTable: 'KURALS', toCol: 'id' }],
+          },
+          CHAT_SESSIONS: {
+            id: 'CHAT_SESSIONS',
+            title: 'chat_sessions',
+            group: 'chat',
+            purpose:
+              'Maintains independent user threads with the AI Guru, tracking active context state.',
+            x: 40,
+            y: 650,
+            columns: [
+              { name: 'session_id', type: 'TEXT (PK)', key: 'PK', desc: 'Unique String UUID' },
+              { name: 'created_at', type: 'DATETIME', desc: 'Session creation date and time' },
+              {
+                name: 'last_active',
+                type: 'DATETIME',
+                desc: 'Updated on every message to manage cleanup',
+              },
+            ],
+            indexes: ['PRIMARY KEY (session_id)'],
+          },
+          CHAT_MESSAGES: {
+            id: 'CHAT_MESSAGES',
+            title: 'chat_messages',
+            group: 'chat',
+            purpose: 'Stores sequence records of conversation turns between the user and Guru.',
+            x: 420,
+            y: 650,
+            columns: [
+              { name: 'id', type: 'INTEGER (PK)', key: 'PK', desc: 'Auto-increment key' },
+              {
+                name: 'session_id',
+                type: 'TEXT (FK)',
+                key: 'FK',
+                desc: 'References chat_sessions.session_id',
+              },
+              { name: 'role', type: 'TEXT', desc: "'user' or 'guru'" },
+              { name: 'content', type: 'TEXT', desc: 'Raw text content of dialogue' },
+              { name: 'timestamp', type: 'DATETIME', desc: 'Message generation time' },
+            ],
+            indexes: [
+              'PRIMARY KEY (id)',
+              'CREATE INDEX idx_chat_msg_session ON chat_messages(session_id)',
+            ],
+            relations: [{ from: 'session_id', toTable: 'CHAT_SESSIONS', toCol: 'session_id' }],
+          },
+          CHAT_CITATIONS: {
+            id: 'CHAT_CITATIONS',
+            title: 'chat_citations',
+            group: 'chat',
+            purpose:
+              'Resolves many-to-many linkages where Kural references are quoted or analyzed by the Guru.',
+            x: 800,
+            y: 650,
+            columns: [
+              {
+                name: 'message_id',
+                type: 'INTEGER (FK, PK)',
+                key: 'PK_FK',
+                desc: 'References chat_messages.id',
+              },
+              {
+                name: 'kural_id',
+                type: 'INTEGER (FK, PK)',
+                key: 'PK_FK',
+                desc: 'References kurals.id',
+              },
+            ],
+            indexes: [
+              'PRIMARY KEY (message_id, kural_id)',
+              'CREATE INDEX idx_citations_kural ON chat_citations(kural_id)',
+            ],
+            relations: [
+              { from: 'message_id', toTable: 'CHAT_MESSAGES', toCol: 'id' },
+              { from: 'kural_id', toTable: 'KURALS', toCol: 'id' },
+            ],
+          },
+        },
+      };
+
+      // State variables
+      let selectedTableId = 'KURALS';
+      let activeTab = 'details';
+      let hoverTableId = null;
+      let searchQuery = '';
+      let currentFilter = 'all';
+
+      // Panel states (Responsive default)
+      let isSidebarOpen = true;
+      let isInspectorOpen = true;
+
+      // Dark mode setup
+      function toggleDarkMode() {
+        document.documentElement.classList.toggle('dark');
+        setTimeout(drawConnections, 50); // Redraw canvas lines with correct colors
+      }
+
+      // Initialize App on DOM load
+      window.addEventListener('DOMContentLoaded', () => {
+        lucide.createIcons();
+        renderTableNodes();
+        renderSidebar();
+        selectTable(selectedTableId);
+
+        // Re-render lines on window resize
+        window.addEventListener('resize', drawConnections);
+
+        // Set up initial active indicator styles for toggle states
+        syncToggleControlStyles();
+      });
+
+      // Sidebar display toggle
+      function toggleSidebar() {
+        isSidebarOpen = !isSidebarOpen;
+        const sidebar = document.getElementById('db-sidebar');
+        const leftTrigger = document.getElementById('edge-trigger-left');
+
+        if (isSidebarOpen) {
+          sidebar.classList.remove('w-0', 'border-r-0', 'opacity-0');
+          sidebar.classList.add('w-80', 'border-r', 'opacity-100');
+          leftTrigger.classList.add('hidden');
+        } else {
+          sidebar.classList.remove('w-80', 'border-r', 'opacity-100');
+          sidebar.classList.add('w-0', 'border-r-0', 'opacity-0');
+          leftTrigger.classList.remove('hidden');
+        }
+
+        syncToggleControlStyles();
+        animateLineRedraws();
+      }
+
+      // Inspector panel display toggle
+      function toggleInspector() {
+        isInspectorOpen = !isInspectorOpen;
+        const inspector = document.getElementById('db-inspector');
+        const rightTrigger = document.getElementById('edge-trigger-right');
+
+        if (isInspectorOpen) {
+          inspector.classList.remove('w-0', 'border-l-0', 'opacity-0');
+          inspector.classList.add('w-96', 'border-l', 'opacity-100');
+          rightTrigger.classList.add('hidden');
+        } else {
+          inspector.classList.remove('w-96', 'border-l', 'opacity-100');
+          inspector.classList.add('w-0', 'border-l-0', 'opacity-0');
+          rightTrigger.classList.remove('hidden');
+        }
+
+        syncToggleControlStyles();
+        animateLineRedraws();
+      }
+
+      // Keep active states synced on header control elements
+      function syncToggleControlStyles() {
+        const btnSidebar = document.getElementById('btn-toggle-sidebar');
+        const btnInspector = document.getElementById('btn-toggle-inspector');
+
+        if (isSidebarOpen) {
+          btnSidebar.className =
+            'px-2.5 py-1.5 rounded-md bg-white dark:bg-slate-700 shadow-sm text-brand-600 dark:text-brand-400 font-bold transition-all flex items-center space-x-1';
+        } else {
+          btnSidebar.className =
+            'px-2.5 py-1.5 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all flex items-center space-x-1';
+        }
+
+        if (isInspectorOpen) {
+          btnInspector.className =
+            'px-2.5 py-1.5 rounded-md bg-white dark:bg-slate-700 shadow-sm text-brand-600 dark:text-brand-400 font-bold transition-all flex items-center space-x-1';
+        } else {
+          btnInspector.className =
+            'px-2.5 py-1.5 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all flex items-center space-x-1';
+        }
+      }
+
+      // High frequency frame animation to smoothly redraw connections during sidebar panel collapse/expands
+      function animateLineRedraws() {
+        const startTime = performance.now();
+        const duration = 300; // Matches standard transition slide lengths
+
+        function frame(timestamp) {
+          const elapsed = timestamp - startTime;
+          drawConnections();
+          if (elapsed < duration) {
+            requestAnimationFrame(frame);
+          }
+        }
+        requestAnimationFrame(frame);
+      }
+
+      // Toggle filters
+      function setFilter(filterType) {
+        currentFilter = filterType;
+
+        // Style active buttons
+        ['all', 'core', 'extensions', 'chat'].forEach((f) => {
+          const btn = document.getElementById(`btn-filter-${f}`);
+          if (f === filterType) {
+            btn.className =
+              'px-3 py-1.5 rounded-md bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white transition-all';
+          } else {
+            btn.className =
+              'px-3 py-1.5 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all';
+          }
+        });
+
+        renderTableNodes();
+        setTimeout(drawConnections, 50);
+      }
+
+      // Live table search handler
+      function handleSearch(val) {
+        searchQuery = val.toLowerCase();
+        renderTableNodes();
+        renderSidebar();
+        setTimeout(drawConnections, 50);
+      }
+
+      // Render visual table cards inside layout workspace
+      function renderTableNodes() {
+        const container = document.getElementById('nodes-workspace');
+        container.innerHTML = '';
+
+        Object.values(databaseSchema.tables).forEach((table) => {
+          // Check filters
+          if (currentFilter !== 'all' && table.group !== currentFilter) return;
+
+          // Check search
+          const matchesSearch =
+            table.title.toLowerCase().includes(searchQuery) ||
+            table.columns.some((c) => c.name.toLowerCase().includes(searchQuery));
+
+          if (searchQuery && !matchesSearch) return;
+
+          const isSelected = selectedTableId === table.id;
+          const isHovered = hoverTableId === table.id;
+
+          // Color theme matches structural modules
+          let accentColor = 'from-emerald-500 to-teal-500';
+          let shadowColor = 'rgba(16, 185, 129, 0.15)';
+          if (table.group === 'extensions') {
+            accentColor = 'from-indigo-500 to-violet-500';
+            shadowColor = 'rgba(99, 102, 241, 0.15)';
+          } else if (table.group === 'chat') {
+            accentColor = 'from-amber-500 to-orange-500';
+            shadowColor = 'rgba(245, 158, 11, 0.15)';
+          }
+
+          // Node wrapper element
+          const node = document.createElement('div');
+          node.id = `node-${table.id}`;
+          node.className = `absolute w-72 rounded-xl bg-white dark:bg-slate-900 border-2 interactive-transition shadow-lg z-10 cursor-pointer overflow-hidden
+                    ${isSelected ? 'border-slate-800 dark:border-white scale-[1.03] ring-4 ring-slate-800/10 dark:ring-white/10' : 'border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-600 hover:scale-[1.01]'}`;
+
+          // Position placing inside playground
+          node.style.left = `${table.x}px`;
+          node.style.top = `${table.y}px`;
+          if (isSelected) {
+            node.style.boxShadow = `0 20px 25px -5px ${shadowColor}, 0 8px 10px -6px ${shadowColor}`;
+          }
+
+          // Attach click & hover events
+          node.addEventListener('click', () => selectTable(table.id));
+          node.addEventListener('mouseenter', () => {
+            hoverTableId = table.id;
+            drawConnections();
+          });
+          node.addEventListener('mouseleave', () => {
+            hoverTableId = null;
+            drawConnections();
+          });
+
+          // Content inside visual table card
+          let colListHtml = '';
+          table.columns.forEach((col) => {
+            const isColSearched = searchQuery && col.name.toLowerCase().includes(searchQuery);
+            colListHtml += `
+                        <div class="flex items-center justify-between py-2 px-3 text-xs border-b border-slate-50 dark:border-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors ${isColSearched ? 'bg-yellow-50 dark:bg-yellow-950/20' : ''}">
+                            <div class="flex items-center space-x-1.5 truncate">
+                                ${col.key === 'PK' ? '<span class="text-amber-500 font-bold select-none text-[10px]">🔑</span>' : ''}
+                                ${col.key === 'FK' ? '<span class="text-blue-500 font-bold select-none text-[10px]">🔗</span>' : ''}
+                                ${col.key === 'PK_FK' ? '<span class="text-violet-500 font-bold select-none text-[10px]">🗝️</span>' : ''}
+                                ${!col.key ? '<span class="w-2.5"></span>' : ''}
+                                <span class="font-medium truncate ${col.key ? 'text-slate-900 dark:text-slate-200' : 'text-slate-600 dark:text-slate-400'}">${col.name}</span>
+                            </div>
+                            <span class="text-[10px] code-font text-slate-400 dark:text-slate-500 ml-2 font-semibold shrink-0 uppercase">${col.type}</span>
+                        </div>
+                    `;
+          });
+
+          node.innerHTML = `
+                    <!-- Header -->
+                    <div class="bg-gradient-to-r ${accentColor} h-1.5 w-full"></div>
+                    <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs uppercase px-1.5 py-0.5 rounded font-extrabold ${table.group === 'core' ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400' : table.group === 'extensions' ? 'bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-400' : 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-400'}">
+                                ${table.group}
+                            </span>
+                            <span class="font-bold text-sm tracking-wide text-slate-900 dark:text-white code-font">${table.title}</span>
+                        </div>
+                        <span class="text-slate-300 dark:text-slate-700 hover:text-slate-500">
+                            <i data-lucide="info" class="w-4 h-4"></i>
+                        </span>
+                    </div>
+                    <!-- Column Container -->
+                    <div class="py-1">
+                        ${colListHtml}
+                    </div>
+                `;
+
+          container.appendChild(node);
+        });
+
+        // Re-instantiate icons inside elements
+        lucide.createIcons();
+      }
+
+      // Render left menu sidebar entries
+      function renderSidebar() {
+        const list = document.getElementById('table-sidebar-list');
+        list.innerHTML = '';
+
+        Object.values(databaseSchema.tables).forEach((table) => {
+          const isSelected = selectedTableId === table.id;
+          const matchesSearch =
+            table.title.toLowerCase().includes(searchQuery) ||
+            table.columns.some((c) => c.name.toLowerCase().includes(searchQuery));
+
+          if (searchQuery && !matchesSearch) return;
+
+          let badgeColor = 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400';
+          if (table.group === 'extensions')
+            badgeColor = 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400';
+          if (table.group === 'chat')
+            badgeColor = 'bg-amber-500/10 text-amber-600 dark:text-amber-400';
+
+          const item = document.createElement('button');
+          item.className = `w-full text-left p-3 rounded-xl border transition-all flex items-start justify-between
+                    ${
+                      isSelected
+                        ? 'border-slate-800 bg-slate-800 text-white shadow-md shadow-slate-900/10 dark:border-slate-700 dark:bg-slate-800'
+                        : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800/40 text-slate-700 dark:text-slate-300'
+                    }`;
+
+          item.onclick = () => {
+            selectTable(table.id);
+            // On mobile layout, close sidebar after making a selection
+            if (window.innerWidth < 1024 && isSidebarOpen) {
+              toggleSidebar();
+            }
+          };
+          item.innerHTML = `
+                    <div class="truncate mr-2">
+                        <div class="flex items-center space-x-1.5">
+                            <span class="font-bold text-sm code-font">${table.title}</span>
+                        </div>
+                        <p class="text-xs truncate ${isSelected ? 'text-slate-300' : 'text-slate-400'} mt-1">${table.purpose}</p>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded shrink-0 ${badgeColor}">
+                        ${table.columns.length} cols
+                    </span>
+                `;
+          list.appendChild(item);
+        });
+      }
+
+      // Draw schema key relation lines on canvas layer (Simplified Local Coordinate calculations!)
+      function drawConnections() {
+        const svg = document.getElementById('relationships-svg');
+        svg.innerHTML = '';
+
+        const isDark = document.documentElement.classList.contains('dark');
+        const defaultLineColor = isDark ? 'rgba(71, 85, 105, 0.4)' : 'rgba(203, 213, 225, 0.8)';
+        const activeLineColor = isDark ? '#34d399' : '#059669';
+        const hoverLineColor = isDark ? '#a78bfa' : '#6366f1';
+
+        Object.values(databaseSchema.tables).forEach((table) => {
+          // Confirm source card exists
+          const sourceNode = document.getElementById(`node-${table.id}`);
+          if (!sourceNode) return;
+
+          if (table.relations) {
+            table.relations.forEach((rel) => {
+              const destTable = databaseSchema.tables[rel.toTable];
+              const destNode = document.getElementById(`node-${destTable.id}`);
+              if (!destNode) return;
+
+              // Because SVG lives in the exact same container, anchor points match table visual layouts perfectly!
+              const sX = table.x + 144; // Center of 288px (w-72) table card
+              const sY = table.y + 70; // Core header offset
+              const dX = destTable.x + 144;
+              const dY = destTable.y + 70;
+
+              // Determine relation priority highlights
+              const isMainActive = selectedTableId === table.id || selectedTableId === destTable.id;
+              const isHoverActive = hoverTableId === table.id || hoverTableId === destTable.id;
+
+              let color = defaultLineColor;
+              let strokeWidth = 1.5;
+              let isActive = false;
+
+              if (isHoverActive) {
+                color = hoverLineColor;
+                strokeWidth = 2.5;
+                isActive = true;
+              } else if (isMainActive) {
+                color = activeLineColor;
+                strokeWidth = 2.5;
+                isActive = true;
+              }
+
+              // Generate clean cubic Bezier curves paths
+              const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+              let dPath = '';
+
+              const yDiff = Math.abs(sY - dY);
+              const xDiff = Math.abs(sX - dX);
+
+              if (xDiff > yDiff) {
+                const controlDist = Math.min(200, xDiff * 0.5);
+                dPath = `M ${sX} ${sY} C ${sX + (dX > sX ? controlDist : -controlDist)} ${sY}, ${dX + (dX > sX ? -controlDist : controlDist)} ${dY}, ${dX} ${dY}`;
+              } else {
+                const controlDist = Math.min(200, yDiff * 0.5);
+                dPath = `M ${sX} ${sY} C ${sX} ${sY + (dY > sY ? controlDist : -controlDist)}, ${dX} ${dY + (dY > sY ? -controlDist : controlDist)}, ${dX} ${dY}`;
+              }
+
+              path.setAttribute('d', dPath);
+              path.setAttribute('fill', 'none');
+              path.setAttribute('stroke', color);
+              path.setAttribute('stroke-width', strokeWidth);
+
+              if (isActive) {
+                path.setAttribute('class', 'active-connector');
+              }
+
+              svg.appendChild(path);
+            });
+          }
+        });
+      }
+
+      // Set actively focused table node
+      function selectTable(id) {
+        selectedTableId = id;
+        renderTableNodes();
+        renderSidebar();
+        setTimeout(drawConnections, 50);
+
+        // AUTO-OPEN WORKBENCH FIX: Automatically restore Inspector Drawer panel if it was collapsed
+        if (!isInspectorOpen) {
+          toggleInspector();
+        }
+
+        // Populate inspector data
+        updateInspector();
+      }
+
+      // Handle Side Panel Drawer Navigation
+      function setInspectorTab(tab) {
+        activeTab = tab;
+
+        const btnDetails = document.getElementById('tab-btn-details');
+        const btnSql = document.getElementById('tab-btn-sql');
+        const btnMermaid = document.getElementById('tab-btn-mermaid');
+
+        [btnDetails, btnSql, btnMermaid].forEach((btn) => {
+          btn.className =
+            'flex-1 px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200';
+        });
+
+        if (tab === 'details')
+          btnDetails.className =
+            'flex-1 px-4 py-3 text-sm font-semibold border-b-2 border-brand-500 text-brand-600 dark:text-brand-400';
+        if (tab === 'sql')
+          btnSql.className =
+            'flex-1 px-4 py-3 text-sm font-semibold border-b-2 border-brand-500 text-brand-600 dark:text-brand-400';
+        if (tab === 'mermaid')
+          btnMermaid.className =
+            'flex-1 px-4 py-3 text-sm font-semibold border-b-2 border-brand-500 text-brand-600 dark:text-brand-400';
+
+        updateInspector();
+      }
+
+      // Dynamically populate side content based on active selections
+      function updateInspector() {
+        const container = document.getElementById('inspector-content');
+        const table = databaseSchema.tables[selectedTableId];
+
+        if (!table) {
+          container.innerHTML =
+            '<div class="text-slate-400 text-center py-12">Select a table to inspect specs.</div>';
+          return;
+        }
+
+        if (activeTab === 'details') {
+          let columnsHtml = '';
+          table.columns.forEach((col) => {
+            let keyIcon = '';
+            if (col.key === 'PK') keyIcon = '<span class="text-amber-500 text-sm">🔑</span>';
+            if (col.key === 'FK') keyIcon = '<span class="text-blue-500 text-sm">🔗</span>';
+            if (col.key === 'PK_FK') keyIcon = '<span class="text-violet-500 text-sm">🗝️</span>';
+
+            columnsHtml += `
+                        <div class="py-3 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between">
+                            <div>
+                                <div class="flex items-center space-x-1.5">
+                                    ${keyIcon}
+                                    <span class="font-bold text-sm code-font text-slate-900 dark:text-white">${col.name}</span>
+                                </div>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">${col.desc}</p>
+                            </div>
+                            <span class="text-[10px] code-font font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 uppercase shrink-0">${col.type}</span>
+                        </div>
+                    `;
+          });
+
+          let indexesHtml = '';
+          table.indexes.forEach((idx) => {
+            indexesHtml += `
+                        <div class="py-2.5 px-3 bg-slate-50 dark:bg-slate-950/40 rounded-lg border border-slate-150 dark:border-slate-850 text-xs code-font text-slate-600 dark:text-slate-400">
+                            ${idx}
+                        </div>
+                    `;
+          });
+
+          container.innerHTML = `
+                    <div class="space-y-6">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider text-brand-500">${table.group} Table</span>
+                            <h2 class="text-2xl font-black text-slate-900 dark:text-white mt-1 code-font">${table.title}</h2>
+                            <p class="text-sm text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">${table.purpose}</p>
+                        </div>
+
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900 dark:text-slate-200 mb-2.5 flex items-center space-x-1.5">
+                                <i data-lucide="columns" class="w-4 h-4 text-slate-400"></i>
+                                <span>Columns & Relationships</span>
+                            </h3>
+                            <div class="space-y-1">
+                                ${columnsHtml}
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900 dark:text-slate-200 mb-2.5 flex items-center space-x-1.5">
+                                <i data-lucide="shield-alert" class="w-4 h-4 text-slate-400"></i>
+                                <span>Indices & Constraints</span>
+                            </h3>
+                            <div class="space-y-2">
+                                ${indexesHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+          lucide.createIcons();
+        } else if (activeTab === 'sql') {
+          const sqlText = generateTableSQL(table);
+          container.innerHTML = `
+                    <div class="space-y-4 h-full flex flex-col">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900 dark:text-slate-200">SQLite CREATE TABLE</h3>
+                            <p class="text-xs text-slate-500 mt-1">Copy SQL DDL script to construct this structure instantly in your app.</p>
+                        </div>
+                        <div class="relative flex-1">
+                            <pre class="bg-slate-950 text-slate-100 p-4 rounded-xl text-xs code-font overflow-auto h-[480px] border border-slate-800 dark-scrollbar" id="sql-block">${sqlText}</pre>
+                            <button onclick="copyToClipboard('sql-block')" class="absolute top-3 right-3 p-2 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700/50 transition-colors">
+                                <i data-lucide="copy" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+          lucide.createIcons();
+        } else if (activeTab === 'mermaid') {
+          const mermaidText = generateMermaidText();
+          container.innerHTML = `
+                    <div class="space-y-4 h-full flex flex-col">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900 dark:text-slate-200">Mermaid Code Block</h3>
+                            <p class="text-xs text-slate-500 mt-1">Perfect for documentation, readmes, and rendering visual diagrams in Markdown.</p>
+                        </div>
+                        <div class="relative flex-1">
+                            <pre class="bg-slate-950 text-slate-100 p-4 rounded-xl text-xs code-font overflow-auto h-[480px] border border-slate-800 dark-scrollbar" id="mermaid-block">${mermaidText}</pre>
+                            <button onclick="copyToClipboard('mermaid-block')" class="absolute top-3 right-3 p-2 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700/50 transition-colors">
+                                <i data-lucide="copy" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+          lucide.createIcons();
+        }
+      }
+
+      // Generate SQLite syntax code dynamically
+      function generateTableSQL(table) {
+        let sql = `CREATE TABLE ${table.title} (\n`;
+
+        // Build columns
+        const colsSql = table.columns.map((col) => {
+          let colStr = `    ${col.name} `;
+          let rawType = col.type.split(' (')[0];
+          colStr += rawType;
+
+          if (col.key === 'PK') colStr += ' PRIMARY KEY';
+          if (col.key === 'PK' && rawType === 'INTEGER') colStr += ' AUTOINCREMENT';
+
+          return colStr;
+        });
+
+        // Add foreign key relations
+        if (table.relations) {
+          table.relations.forEach((rel) => {
+            const target = databaseSchema.tables[rel.toTable];
+            colsSql.push(`    FOREIGN KEY(${rel.from}) REFERENCES ${target.title}(${rel.toCol})`);
+          });
+        }
+
+        sql += colsSql.join(',\n') + '\n);';
+
+        // Add indices
+        const uniqueIndices = table.indexes.filter((idx) => idx.startsWith('CREATE'));
+        if (uniqueIndices.length > 0) {
+          sql += '\n\n' + uniqueIndices.join(';\n') + ';';
+        }
+
+        return sql;
+      }
+
+      // Generate complete Mermaid ER markdown string
+      function generateMermaidText() {
+        let m = 'erDiagram\n';
+
+        // Draw connections first
+        Object.values(databaseSchema.tables).forEach((table) => {
+          if (table.relations) {
+            table.relations.forEach((rel) => {
+              const target = databaseSchema.tables[rel.toTable];
+              m += `    ${target.title.toUpperCase()} ||--|{ ${table.title.toUpperCase()} : "references"\n`;
+            });
+          }
+        });
+
+        m += '\n';
+
+        // Declare tables and fields
+        Object.values(databaseSchema.tables).forEach((table) => {
+          m += `    ${table.title.toUpperCase()} {\n`;
+          table.columns.forEach((col) => {
+            let keyType = '';
+            if (col.key === 'PK') keyType = 'PK';
+            if (col.key === 'FK') keyType = 'FK';
+            if (col.key === 'PK_FK') keyType = 'PK, FK';
+
+            let sanitizedType = col.type.split(' ')[0].toLowerCase();
+            m += `        ${sanitizedType} ${col.name} ${keyType}\n`;
+          });
+          m += '    }\n\n';
+        });
+
+        return m;
+      }
+
+      // Utility: Copy block text to clipboard
+      function copyToClipboard(elementId) {
+        const text = document.getElementById(elementId).innerText;
+
+        // Safe fallbacks to copy
+        const dummy = document.createElement('textarea');
+        document.body.appendChild(dummy);
+        dummy.value = text;
+        dummy.select();
+        document.execCommand('copy');
+        document.body.removeChild(dummy);
+
+        // Toast animation trigger
+        const btn = event.currentTarget;
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>';
+        lucide.createIcons();
+
+        setTimeout(() => {
+          btn.innerHTML = originalHTML;
+          lucide.createIcons();
+        }, 1500);
+      }
+    </script>
+  </body>
+</html>
