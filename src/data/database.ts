@@ -1,8 +1,8 @@
 import { Platform } from 'react-native';
 import * as SQLite from 'expo-sqlite';
 
-import detailData from '../../api/detail.json';
-import thirukkuralData from '../../api/thirukkural.json';
+import detailData from 'api/detail.json';
+import thirukkuralData from 'api/thirukkural.json';
 
 const DB_NAME = 'kuralneri.db';
 

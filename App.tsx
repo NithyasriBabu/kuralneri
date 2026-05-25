@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, FlatList, ActivityIndicator, SafeAreaView } from 'react-native';
-import { setupDatabase } from './src/db/database';
 
 import {
   useFonts,
@@ -8,7 +7,9 @@ import {
   MuktaMalar_700Bold,
 } from '@expo-google-fonts/mukta-malar';
 import { Inter_400Regular } from '@expo-google-fonts/inter';
-import thirukkuralData from './api/thirukkural.json';
+
+import { setupDatabase } from 'src/data/database';
+import thirukkuralData from 'api/thirukkural.json';
 
 export default function App() {
   const [dbReady, setDbReady] = useState(false);
