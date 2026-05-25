@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, FlatList, ActivityIndicator, SafeAreaView } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 
 import {
   useFonts,
@@ -9,7 +9,7 @@ import {
 import { Inter_400Regular } from '@expo-google-fonts/inter';
 
 import { setupDatabase } from 'src/data/database';
-import thirukkuralData from 'api/thirukkural.json';
+import KuralListScreen from 'src/views/KuralListView';
 
 export default function App() {
   const [dbReady, setDbReady] = useState(false);
@@ -63,23 +63,7 @@ export default function App() {
 
   if (!fontsLoaded) return null;
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>குறள்நெறி</Text>
-      <FlatList
-        data={thirukkuralData}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.kuralNumber}>{item.id}</Text>
-            <Text style={styles.tamilText}>{item.line1}</Text>
-            <Text style={styles.tamilText}>{item.line2}</Text>
-            <Text style={styles.translationText}>{item.translation}</Text>
-          </View>
-        )}
-      />
-    </SafeAreaView>
-  );
+  return <KuralListScreen />;
 }
 
 const styles = StyleSheet.create({
