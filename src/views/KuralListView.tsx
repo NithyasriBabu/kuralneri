@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { useKuralFeed } from 'src/hooks/useKuralFeed';
 import KuralCard from 'src/components/KuralCard';
@@ -17,6 +18,8 @@ export default function KuralListView() {
   const [kuralsPerPage, setKuralsPerPage] = useState<number>(10);
   const limitOptions = [10, 20, 30, 50, 100];
 
+  const { width } = useWindowDimensions();
+
   const {
     kurals,
     loading,
@@ -24,12 +27,20 @@ export default function KuralListView() {
     hasMore,
     totalPages,
     visiblePageNumbers,
-    nextPage,
-    prevPage,
+    kuralFrom,
+    kuralTo,
     goToPage,
-  } = useKuralFeed(kuralsPerPage);
+  } = useKuralFeed(kuralsPerPage, width);
 
   const listRef = useRef<FlatList>(null);
+
+  const getGridConfig = () => {
+    if (width > 1024) return { columns: 3, wrapperStyle: styles.gridColumnThird };
+    if (width > 600) return { columns: 2, wrapperStyle: styles.gridColumnHalf };
+    return { columns: 1, wrapperStyle: styles.gridColumnFull };
+  };
+
+  const { columns, wrapperStyle } = getGridConfig();
 
   const handlePageJump = (targetPage: number) => {
     goToPage(targetPage);
@@ -46,8 +57,14 @@ export default function KuralListView() {
         <FlatList
           ref={listRef}
           data={kurals}
+          key={`grid-${columns}`}
+          numColumns={columns}
           keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => <KuralCard kural={item} />}
+          renderItem={({ item }) => (
+            <View style={[styles.cardContainerWrapper, wrapperStyle]}>
+              <KuralCard kural={item} />
+            </View>
+          )}
           contentContainerStyle={styles.listPadding}
         />
       )}
@@ -92,16 +109,21 @@ export default function KuralListView() {
         </View>
 
         <View style={styles.metaRow}>
-          {/* Column 1: Centered Page Counter Context */}
           <View style={styles.metaColumnLeft}>
-            <Text style={styles.pageIndicator}>
+            <Text style={styles.metaText}>
+              Kurals {kuralFrom} - {kuralTo}
+            </Text>
+          </View>
+          <View style={styles.metaColumnCenter}>
+            <Text style={styles.metaText}>
               Page {page} of {totalPages}
             </Text>
           </View>
-
-          {/* Column 2: Centered Inline Button Badges Cluster */}
           <View style={styles.metaColumnRight}>
             <View style={styles.badgeCluster}>
+              <Text style={styles.limitTitleText}>
+                {width > 520 ? 'Kurals per page:' : 'Per page:'}
+              </Text>
               {limitOptions.map((opt) => (
                 <TouchableOpacity
                   key={opt}
@@ -136,12 +158,25 @@ const styles = StyleSheet.create({
     fontFamily: 'MuktaMalar_700Bold',
     color: '#344E41',
     marginTop: 15,
-    marginBottom: 15,
+    marginBottom: 5,
     textAlign: 'center',
   },
   listPadding: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     paddingBottom: 165,
+  },
+  cardContainerWrapper: {
+    paddingHorizontal: 8,
+    marginVertical: 4,
+  },
+  gridColumnFull: {
+    flex: 1,
+  },
+  gridColumnHalf: {
+    flex: 0.5,
+  },
+  gridColumnThird: {
+    flex: 0.333,
   },
   centeredLoader: {
     flex: 1,
@@ -149,7 +184,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   paginationContainer: {
-    backgroundColor: '#344E41', // Deep forest canvas
+    backgroundColor: '#344E41',
     position: 'absolute',
     bottom: 0,
     left: 0,
@@ -222,24 +257,29 @@ const styles = StyleSheet.create({
     color: '#344E41',
     fontWeight: 'bold',
   },
+  // 🎯 RECONSTRUCTED TRIPLE-COLUMN SPATIAL LAYOUT
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     marginTop: 6,
   },
   metaColumnLeft: {
     flex: 1,
-    alignItems: 'flex-start', // Anchors the counter naturally on the left half layout boundary
+    alignItems: 'flex-start', // Push telemetry strings to left margin edge
+  },
+  metaColumnCenter: {
+    flex: 1,
+    alignItems: 'center', // Center page status context dead-middle
   },
   metaColumnRight: {
     flex: 1,
-    alignItems: 'flex-end', // Anchors the selection blocks cleanly on the right half layout boundary
+    alignItems: 'flex-end', // Flush badges structure to right edge margin
   },
-  pageIndicator: {
+  metaText: {
     fontFamily: 'Inter_400Regular',
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#DAD7CD',
   },
@@ -247,28 +287,35 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  limitTitleText: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#DAD7CD',
+    marginRight: 6,
+  },
   limitBadge: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
     paddingVertical: 4,
     borderRadius: 6,
-    backgroundColor: 'transparent', // Seamless blending into the pagination container
+    backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#4A6153', // Subtle internal framework framing lines
-    marginLeft: 6,
-    minWidth: 32,
+    borderColor: '#4A6153',
+    marginLeft: 4,
+    minWidth: 30,
     alignItems: 'center',
   },
   limitBadgeActive: {
-    backgroundColor: '#A3B18A', // High contrast active fill color
+    backgroundColor: '#A3B18A',
     borderColor: '#A3B18A',
   },
   limitBadgeText: {
     fontFamily: 'Inter_400Regular',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 'bold',
-    color: '#DAD7CD', // Earthy text tone
+    color: '#DAD7CD',
   },
   limitBadgeTextActive: {
-    color: '#344E41', // Flipped theme contrast for active row elements
+    color: '#344E41',
   },
 });

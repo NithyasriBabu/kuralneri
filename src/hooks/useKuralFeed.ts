@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { getPaginatedKurals, getKuralsCount } from 'src/data/services';
 import { KuralRecord } from 'src/types/database.types';
 
-export function useKuralFeed(userLimit: number = 30) {
+export function useKuralFeed(userLimit: number = 30, screenWidth: number = 375) {
   const [kurals, setKurals] = useState<KuralRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
@@ -23,15 +23,19 @@ export function useKuralFeed(userLimit: number = 30) {
     return Math.ceil(totalRecords / userLimit);
   }, [totalRecords, userLimit]);
 
-  // 🎯 NEW: Generate a smart 7-page sliding window centered around the active page
   const visiblePageNumbers = useMemo(() => {
     const pages: number[] = [];
-    const maxVisible = 7; // Size of your sliding window
+
+    let maxVisible = 3;
+    if (screenWidth > 1024) {
+      maxVisible = 7;
+    } else if (screenWidth > 600) {
+      maxVisible = 5;
+    }
 
     let startPage = Math.max(1, page - Math.floor(maxVisible / 2));
     let endPage = startPage + maxVisible - 1;
 
-    // Adjust boundaries if we are near the end pages
     if (endPage > totalPages) {
       endPage = totalPages;
       startPage = Math.max(1, endPage - maxVisible + 1);
@@ -41,7 +45,7 @@ export function useKuralFeed(userLimit: number = 30) {
       pages.push(i);
     }
     return pages;
-  }, [page, totalPages]);
+  }, [page, totalPages, screenWidth]);
 
   const fetchPageData = useCallback(
     async (targetPage: number) => {
@@ -58,10 +62,31 @@ export function useKuralFeed(userLimit: number = 30) {
     [userLimit, totalPages],
   );
 
-  // Reset back to page 1 seamlessly if the user swaps their limit settings
   useEffect(() => {
-    fetchPageData(1);
+    if (page === 1 && kurals.length === 0) {
+      fetchPageData(1);
+      return;
+    }
+
+    if (totalRecords === 0) return;
+
+    const currentStartingKural = (page - 1) * (kurals.length || userLimit) + 1;
+    const targetPage = Math.ceil(currentStartingKural / userLimit);
+    const safePage = Math.min(targetPage, Math.ceil(totalRecords / userLimit));
+
+    fetchPageData(safePage || 1);
+
+    // We intentionally watch userLimit to handle configuration updates safely
   }, [userLimit]);
+
+  const kuralRange = useMemo(() => {
+    if (totalRecords === 0) return { from: 0, to: 0 };
+
+    const from = (page - 1) * userLimit + 1;
+    const to = Math.min(page * userLimit, totalRecords);
+
+    return { from, to };
+  }, [page, userLimit, totalRecords]);
 
   return {
     kurals,
@@ -69,7 +94,9 @@ export function useKuralFeed(userLimit: number = 30) {
     page,
     hasMore: page < totalPages,
     totalPages,
-    visiblePageNumbers, // 👈 Exposes only the 7 centered window options
+    visiblePageNumbers,
+    kuralFrom: kuralRange.from,
+    kuralTo: kuralRange.to,
     nextPage: () => fetchPageData(page + 1),
     prevPage: () => fetchPageData(page - 1),
     goToPage: (pageNumber: number) => fetchPageData(pageNumber),
