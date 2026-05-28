@@ -39,18 +39,6 @@ export const commonStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
   },
-  clearButton: {
-    marginLeft: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: '#e74c3c',
-    borderRadius: 8,
-  },
-  clearButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 13,
-  },
   dropdownContainer: {
     gap: 8,
   },
@@ -141,6 +129,64 @@ export const commonStyles = StyleSheet.create({
   },
   disabledLabel: {
     color: '#a0aec0',
+  },
+  accordionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    backgroundColor: '#eaeaea',
+  },
+  accordionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  accordionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#2c3e50',
+  },
+  filterBadge: {
+    backgroundColor: '#344e41',
+    borderRadius: 10,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+  },
+  filterBadgeText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  accordionRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  chevronIcon: {
+    fontSize: 12,
+    color: '#7f8c8d',
+  },
+  collapsibleContent: {
+    padding: 16,
+    gap: 16,
+  },
+  clearButton: {
+    marginLeft: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 8,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  clearButtonText: {
+    color: '#64748b',
+    fontWeight: '600',
+    fontSize: 13,
   },
 });
 
