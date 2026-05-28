@@ -12,6 +12,8 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { useKuralFeed } from 'src/hooks/useKuralFeed';
+
+import { FilterHeader } from 'src/components/FilterHeader';
 import KuralCard from 'src/components/KuralCard';
 
 export default function KuralListView() {
@@ -26,13 +28,34 @@ export default function KuralListView() {
     page,
     hasMore,
     totalPages,
+    totalRecords,
+
+    // Filtering parameters
+    searchQuery,
+    setSearchQuery,
+    selectedPaal,
+    selectPaal,
+    paalOptions,
+    selectedIyal,
+    selectIyal,
+    iyalOptions,
+    selectedAdhigaram,
+    selectAdhigaram,
+    adhigaramOptions,
+    clearAllFilters,
+
+    // Pagination callbacks
+    nextPage,
+    prevPage,
+    goToPage,
     visiblePageNumbers,
     kuralFrom,
     kuralTo,
-    goToPage,
   } = useKuralFeed(kuralsPerPage, width);
 
   const listRef = useRef<FlatList>(null);
+  const hasActiveFilters =
+    searchQuery.trim().length > 0 || selectedPaal > 0 || selectedIyal > 0 || selectedAdhigaram > 0;
 
   const getGridConfig = () => {
     if (width > 1024) return { columns: 3, wrapperStyle: styles.gridColumnThird };
@@ -49,6 +72,23 @@ export default function KuralListView() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <FilterHeader
+        screenWidth={width}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        selectedPaal={selectedPaal}
+        selectPaal={selectPaal}
+        selectedIyal={selectedIyal}
+        selectIyal={selectIyal}
+        selectedAdhigaram={selectedAdhigaram}
+        selectAdhigaram={selectAdhigaram}
+        paalOptions={paalOptions}
+        iyalOptions={iyalOptions}
+        adhigaramOptions={adhigaramOptions}
+        clearAllFilters={clearAllFilters}
+        totalRecords={totalRecords}
+      />
+
       {loading ? (
         <View style={styles.centeredLoader}>
           <ActivityIndicator size="large" color="#344E41" />
@@ -110,9 +150,11 @@ export default function KuralListView() {
 
         <View style={styles.metaRow}>
           <View style={styles.metaColumnLeft}>
-            <Text style={styles.metaText}>
-              Kurals {kuralFrom} - {kuralTo}
-            </Text>
+            {!hasActiveFilters && (
+              <Text style={styles.metaText}>
+                Kurals {kuralFrom} - {kuralTo}
+              </Text>
+            )}
           </View>
           <View style={styles.metaColumnCenter}>
             <Text style={styles.metaText}>
