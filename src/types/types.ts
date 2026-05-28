@@ -49,3 +49,17 @@ export type Taxonomy = {
   iyals: IyalRecord[];
   adhigarams: AdhigaramRecord[];
 };
+
+export enum TabType {
+  Home = 'HOME',
+  Explore = 'EXPLORE',
+  Favorites = 'FAVORITES',
+  Learn = 'LEARN',
+  Guru = 'GURU',
+}
+
+export interface TabConfig {
+  id: TabType;
+  label: string;
+  icon: string;
+}

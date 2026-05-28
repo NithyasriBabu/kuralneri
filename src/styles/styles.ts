@@ -176,3 +176,61 @@ export const kuralCardStyles = StyleSheet.create({
     fontStyle: 'italic',
   },
 });
+
+export const navStyles = StyleSheet.create({
+  // Global Shell Bar Settings (Dark Forest Green)
+  navbarContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#344E41',
+    width: '100%',
+    height: 64,
+  },
+
+  // Placement Overrides
+  topPlacement: {
+    borderBottomWidth: 2,
+    borderColor: '#2A3F34',
+  },
+  bottomPlacement: {
+    borderTopWidth: 2,
+    borderColor: '#2A3F34',
+    height: 76,
+    paddingBottom: 12,
+  },
+  tabButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100%',
+    backgroundColor: 'transparent',
+  },
+
+  activeTabButton: {
+    backgroundColor: '#A3B18A',
+    borderBottomWidth: 4,
+    borderBottomColor: '#344E41',
+  },
+  tabText: {
+    color: '#FAF9F6',
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    opacity: 0.7,
+  },
+  activeTabText: {
+    color: '#344E41',
+    fontWeight: '800',
+    opacity: 1,
+  },
+  canvasWrapper: {
+    flex: 1,
+    backgroundColor: '#FAF9F6',
+    width: '100%',
+  },
+  fullWidthColumn: {
+    width: '100%',
+    flex: 1,
+  },
+});

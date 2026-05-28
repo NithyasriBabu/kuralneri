@@ -1,11 +1,11 @@
 import React, { useRef, useState, useEffect } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   StyleSheet,
   View,
   FlatList,
   ActivityIndicator,
   Text,
-  SafeAreaView,
   TouchableOpacity,
   ScrollView,
   Platform,
@@ -80,7 +80,7 @@ export default function KuralListView() {
   }, [totalRecords]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right', 'bottom']}>
       <FilterHeader
         screenWidth={width}
         searchQuery={searchQuery}

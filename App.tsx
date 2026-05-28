@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 
 import {
@@ -9,7 +10,7 @@ import {
 import { Inter_400Regular } from '@expo-google-fonts/inter';
 
 import { setupDatabase } from 'src/data/database';
-import KuralListScreen from 'src/views/KuralListView';
+import TabNavigator from 'src/views/Navigator';
 
 export default function App() {
   const [dbReady, setDbReady] = useState(false);
@@ -63,7 +64,11 @@ export default function App() {
 
   if (!fontsLoaded) return null;
 
-  return <KuralListScreen />;
+  return (
+    <SafeAreaProvider>
+      <TabNavigator />
+    </SafeAreaProvider>
+  );
 }
 
 const styles = StyleSheet.create({
