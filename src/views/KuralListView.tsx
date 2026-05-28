@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -18,7 +18,8 @@ import KuralCard from 'src/components/KuralCard';
 
 export default function KuralListView() {
   const [kuralsPerPage, setKuralsPerPage] = useState<number>(10);
-  const limitOptions = [10, 20, 30, 50, 100];
+  const DEFAULT_LIMIT_OPTIONS = [10, 20, 30, 50, 100];
+  const [limitOptions, setLimitOptions] = useState<number[]>(DEFAULT_LIMIT_OPTIONS);
 
   const { width } = useWindowDimensions();
 
@@ -69,6 +70,14 @@ export default function KuralListView() {
     goToPage(targetPage);
     listRef.current?.scrollToOffset({ offset: 0, animated: true });
   };
+
+  useEffect(() => {
+    if (!totalRecords || totalRecords == 0) {
+      setLimitOptions([]);
+    } else {
+      setLimitOptions(DEFAULT_LIMIT_OPTIONS.filter((opt) => opt <= totalRecords));
+    }
+  }, [totalRecords]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -162,27 +171,29 @@ export default function KuralListView() {
             </Text>
           </View>
           <View style={styles.metaColumnRight}>
-            <View style={styles.badgeCluster}>
-              <Text style={styles.limitTitleText}>
-                {width > 520 ? 'Kurals per page:' : 'Per page:'}
-              </Text>
-              {limitOptions.map((opt) => (
-                <TouchableOpacity
-                  key={opt}
-                  style={[styles.limitBadge, kuralsPerPage === opt && styles.limitBadgeActive]}
-                  onPress={() => setKuralsPerPage(opt)}
-                >
-                  <Text
-                    style={[
-                      styles.limitBadgeText,
-                      kuralsPerPage === opt && styles.limitBadgeTextActive,
-                    ]}
+            {limitOptions.length > 0 && (
+              <View style={styles.badgeCluster}>
+                <Text style={styles.limitTitleText}>
+                  {width > 520 ? 'Kurals per page:' : 'Per page:'}
+                </Text>
+                {limitOptions.map((opt) => (
+                  <TouchableOpacity
+                    key={opt}
+                    style={[styles.limitBadge, kuralsPerPage === opt && styles.limitBadgeActive]}
+                    onPress={() => setKuralsPerPage(opt)}
                   >
-                    {opt}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+                    <Text
+                      style={[
+                        styles.limitBadgeText,
+                        kuralsPerPage === opt && styles.limitBadgeTextActive,
+                      ]}
+                    >
+                      {opt}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
           </View>
         </View>
       </View>
