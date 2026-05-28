@@ -21,6 +21,37 @@ export const PAGINATED_KURALS = (whereClause: string) => `
   `;
 
 /**
+ * Get Kural by kural_id (one row per author note when notes exist)
+ */
+export const KURAL_BY_ID = `
+  SELECT 
+    k.id,
+    k.text,
+    k.line1,
+    k.line2,
+    k.translation,
+    k.couplet,
+    k.explanation,
+    k.transliteration1,
+    k.transliteration2,
+    a.name AS adhikaram_name,
+    i.name AS iyal_name,
+    p.name AS paal_name,
+    n.text AS note_text,
+    au.id AS author_id,
+    au.name AS author_name,
+    au.short_code AS author_code
+  FROM kurals k
+    JOIN adhikarams a ON k.adhikaram_id = a.id
+    JOIN iyals i ON a.iyal_id = i.id
+    JOIN paals p ON i.paal_id = p.id
+    LEFT JOIN notes n ON k.id = n.kural_id
+    LEFT JOIN authors au ON n.author_id = au.id
+  WHERE k.id = ?
+  ORDER BY au.id ASC;
+`;
+
+/**
  * Counts match subsets for total page calculations
  */
 export const KURALS_COUNT = (whereClause: string) => `

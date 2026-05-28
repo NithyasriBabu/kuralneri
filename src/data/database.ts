@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import * as SQLite from 'expo-sqlite';
 
+import { runWebDbTask } from 'src/data/webDbQueue';
 import detailData from 'api/detail.json';
 import thirukkuralData from 'api/thirukkural.json';
 
@@ -205,32 +206,34 @@ async function parseAndSeedDataset(execute: ExecRunner, fetchAll: FetchRunner, o
 export const setupDatabase = async (onLog: LogCallback) => {
   try {
     if (Platform.OS === 'web') {
-      const targetDb = await db;
+      await runWebDbTask(async () => {
+        const targetDb = await db;
 
-      console.log('databasePath:', targetDb.databasePath);
-      console.log('default dir:', SQLite.defaultDatabaseDirectory);
+        console.log('databasePath:', targetDb.databasePath);
+        console.log('default dir:', SQLite.defaultDatabaseDirectory);
 
-      // Initialize core tables
-      await targetDb.execAsync(DATABASE_SCHEMA_SQL);
+        // Initialize core tables
+        await targetDb.execAsync(DATABASE_SCHEMA_SQL);
 
-      // Utilize shared helper with async context wrapper
-      const isSeeded = await isDatabaseAlreadySeeded(
-        async (sql) => await targetDb.getFirstAsync<any>(sql),
-      );
-      if (isSeeded) {
-        onLog('✨ Database fully synchronized.');
-        return;
-      }
-
-      onLog('🌐 Web sandbox environment verified. Opening transaction channels...');
-      await targetDb.withTransactionAsync(async () => {
-        await parseAndSeedDataset(
-          async (sql, params) => (await targetDb.runAsync(sql, params || [])).lastInsertRowId,
-          async (sql) => await targetDb.getAllAsync<any>(sql),
-          onLog,
+        // Utilize shared helper with async context wrapper
+        const isSeeded = await isDatabaseAlreadySeeded(
+          async (sql) => await targetDb.getFirstAsync<any>(sql),
         );
+        if (isSeeded) {
+          onLog('✨ Database fully synchronized.');
+          return;
+        }
+
+        onLog('🌐 Web sandbox environment verified. Opening transaction channels...');
+        await targetDb.withTransactionAsync(async () => {
+          await parseAndSeedDataset(
+            async (sql, params) => (await targetDb.runAsync(sql, params || [])).lastInsertRowId,
+            async (sql) => await targetDb.getAllAsync<any>(sql),
+            onLog,
+          );
+        });
+        if (__DEV__) await exportDatabaseToFile(targetDb);
       });
-      if (__DEV__) await exportDatabaseToFile(targetDb);
     } else {
       const targetDb = db as SQLite.SQLiteDatabase;
 

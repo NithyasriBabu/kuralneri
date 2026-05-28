@@ -10,6 +10,15 @@ export interface KuralRecord {
   transliteration2: string;
   adhikaram_name: string;
   paal_name: string;
+  iyal_name: string;
+  notes?: AuthorNote[];
+}
+
+export interface AuthorNote {
+  author_id: number;
+  author_name: string;
+  author_code: string;
+  note_text: string;
 }
 
 export interface PaalRecord {

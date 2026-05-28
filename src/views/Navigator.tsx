@@ -6,6 +6,7 @@ import { TabConfig, TabType } from 'src/types/types';
 import { navStyles } from 'src/styles/styles';
 
 import KuralListView from 'src/views/KuralListView';
+import KuralOfTheDayView from 'src/views/KuralOfTheDayView';
 
 const TABS: TabConfig[] = [
   { id: TabType.Home, label: 'Home', icon: '🏠' },
@@ -19,7 +20,7 @@ export default function TabNavigator() {
   const { width } = useWindowDimensions();
   const isWidescreen = width > 768;
 
-  const [activeTab, setActiveTab] = useState<TabType>(TabType.Explore);
+  const [activeTab, setActiveTab] = useState<TabType>(TabType.Home);
 
   useEffect(() => {
     if (Platform.OS !== 'web') return;
@@ -55,7 +56,7 @@ export default function TabNavigator() {
   const renderActiveScreen = () => {
     switch (activeTab) {
       case TabType.Home:
-        return <Text>Home</Text>;
+        return <KuralOfTheDayView />;
       case TabType.Explore:
         return <KuralListView />;
       case TabType.Favorites:
@@ -65,7 +66,7 @@ export default function TabNavigator() {
       case TabType.Guru:
         return <Text>Guru</Text>;
       default:
-        return <KuralListView />;
+        return <KuralOfTheDayView />;
     }
   };
 

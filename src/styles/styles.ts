@@ -221,6 +221,38 @@ export const kuralCardStyles = StyleSheet.create({
     marginTop: 10,
     fontStyle: 'italic',
   },
+  commentaryWrapper: {
+    marginTop: 16,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#DAD7CD',
+    marginBottom: 12,
+  },
+  commentaryHeader: {
+    fontSize: 14,
+    fontFamily: 'MuktaMalar-Bold',
+    color: '#344E41',
+    marginBottom: 8,
+  },
+  noteBlock: {
+    marginBottom: 12,
+    backgroundColor: '#F3F2EC',
+    padding: 10,
+    borderRadius: 6,
+  },
+  authorBadge: {
+    fontSize: 12,
+    fontFamily: 'MuktaMalar-Bold',
+    color: '#344E41',
+    marginBottom: 4,
+  },
+  noteText: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontFamily: 'Inter',
+    color: '#4A6153',
+  },
 });
 
 export const navStyles = StyleSheet.create({

@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 import * as SQLite from 'expo-sqlite';
 
 import { db } from 'src/data/database';
+import { runWebDbTask } from 'src/data/webDbQueue';
 import {
   KuralRecord,
   PaalRecord,
@@ -9,30 +10,95 @@ import {
   AdhigaramRecord,
   KuralFilters,
   Taxonomy,
+  AuthorNote,
 } from 'src/types/types';
 
-// Change your query import to this:
-import { PAGINATED_KURALS, KURALS_COUNT, PAALS, IYALS, ADHIGARAMS } from 'src/data/queries';
+import {
+  KURAL_BY_ID,
+  PAGINATED_KURALS,
+  KURALS_COUNT,
+  PAALS,
+  IYALS,
+  ADHIGARAMS,
+} from 'src/data/queries';
 
 let taxonomy: Taxonomy | null = null;
+
+type KuralByIdRow = {
+  id: number;
+  text: string;
+  line1: string;
+  line2: string;
+  translation: string;
+  couplet: string;
+  explanation: string;
+  transliteration1: string;
+  transliteration2: string;
+  adhikaram_name: string;
+  iyal_name: string;
+  paal_name: string;
+  note_text: string | null;
+  author_id: number | null;
+  author_name: string | null;
+  author_code: string | null;
+};
+
+function assembleKuralFromRows(rows: KuralByIdRow[]): KuralRecord | null {
+  if (!rows.length) return null;
+
+  const head = rows[0];
+  const notes: AuthorNote[] = [];
+  const seenAuthorIds = new Set<number>();
+
+  for (const row of rows) {
+    if (row.author_id == null || !row.note_text || seenAuthorIds.has(row.author_id)) {
+      continue;
+    }
+    seenAuthorIds.add(row.author_id);
+    notes.push({
+      author_id: row.author_id,
+      author_name: row.author_name ?? '',
+      author_code: row.author_code ?? '',
+      note_text: row.note_text,
+    });
+  }
+
+  return {
+    id: head.id,
+    text: head.text,
+    translation: head.translation,
+    couplet: head.couplet,
+    explanation: head.explanation,
+    line1: head.line1,
+    line2: head.line2,
+    transliteration1: head.transliteration1,
+    transliteration2: head.transliteration2,
+    adhikaram_name: head.adhikaram_name,
+    iyal_name: head.iyal_name,
+    paal_name: head.paal_name,
+    notes: notes.length > 0 ? notes : undefined,
+  };
+}
 
 /**
  * 🛠️ Abstract cross-platform execution redundancy away completely.
  * Safely routes execution to async engines on web and sync engines on mobile.
+ * Web OPFS access is serialized via runWebDbTask to avoid concurrent handle errors.
  */
 async function executeSelect<T>(querySQL: string, args: any[] = []): Promise<T[]> {
-  try {
-    if (Platform.OS === 'web') {
-      const targetDb = await db;
-      return await targetDb.getAllAsync<T>(querySQL, args);
-    } else {
+  return runWebDbTask(async () => {
+    try {
+      if (Platform.OS === 'web') {
+        const targetDb = await db;
+        return await targetDb.getAllAsync<T>(querySQL, args);
+      }
       const targetDb = db as SQLite.SQLiteDatabase;
       return targetDb.getAllSync<T>(querySQL, args);
+    } catch (error) {
+      console.error(`❌ DB Execution Failed for Query: "${querySQL.substring(0, 50)}..."`, error);
+      return [];
     }
-  } catch (error) {
-    console.error(`❌ DB Execution Failed for Query: "${querySQL.substring(0, 50)}..."`, error);
-    return [];
-  }
+  });
 }
 
 function isActiveId(id?: number): boolean {
@@ -78,6 +144,11 @@ function buildFilterClause(filters?: KuralFilters): { whereClause: string; args:
   const whereClause = clauses.length > 0 ? `WHERE ${clauses.join(' AND ')}` : '';
   return { whereClause, args };
 }
+
+export const getKuralById = async (id: number): Promise<KuralRecord | null> => {
+  const rows = await executeSelect<KuralByIdRow>(KURAL_BY_ID, [id]);
+  return assembleKuralFromRows(rows);
+};
 
 /**
  * Universal Data Fetcher: Retrieves a chunk of Kurals
