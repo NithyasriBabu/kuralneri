@@ -1,25 +1,28 @@
 import React, { useState } from 'react';
-import { View, TextInput, Text, TouchableOpacity } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-
-import { commonStyles as styles } from 'src/styles/styles';
+import { View, TouchableOpacity } from 'react-native';
+import { useTheme } from 'src/theme/ThemeContextProvider';
 import { PaalRecord, IyalRecord, AdhigaramRecord } from 'src/types/types';
 
+// Atomic Common Components UI imports
+import { KuralText } from 'src/components/common/KuralText';
+import { KuralInput } from 'src/components/common/KuralInput';
+import { KuralDropdown } from 'src/components/common/KuralDropdown';
+import { KuralButton } from 'src/components/common/KuralButton';
+
 interface FilterHeaderProps {
-  screenWidth: number;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
 
   selectedPaal: number;
-  selectPaal: (value: unknown) => void;
+  selectPaal: (value: any, index: number) => void;
   paalOptions: PaalRecord[];
 
   selectedIyal: number;
-  selectIyal: (value: unknown) => void;
+  selectIyal: (value: any, index: number) => void;
   iyalOptions: IyalRecord[];
 
   selectedAdhigaram: number;
-  selectAdhigaram: (value: unknown) => void;
+  selectAdhigaram: (value: any, index: number) => void;
   adhigaramOptions: AdhigaramRecord[];
 
   clearAllFilters: () => void;
@@ -27,7 +30,6 @@ interface FilterHeaderProps {
 }
 
 export function FilterHeader({
-  screenWidth,
   searchQuery,
   setSearchQuery,
 
@@ -46,14 +48,16 @@ export function FilterHeader({
   clearAllFilters,
   totalRecords,
 }: FilterHeaderProps) {
-  const isWidescreen = screenWidth > 768;
+  // Query our single-source-of-truth style engine
+  const { theme, globalStyles, componentStyles } = useTheme();
+
+  const isWidescreen = theme.layout.isWideScreen;
   const [isExpanded, setIsExpanded] = useState(isWidescreen);
 
   const hasActiveFilters =
     searchQuery.trim().length > 0 || selectedPaal > 0 || selectedIyal > 0 || selectedAdhigaram > 0;
   const hasSearchQuery = searchQuery.trim().length > 0;
 
-  // Calculate dynamic count for badges safely (React Native crashes if raw booleans are rendered as text strings)
   const activeFilterCount = [
     searchQuery.trim().length > 0,
     selectedPaal > 0,
@@ -61,121 +65,119 @@ export function FilterHeader({
     selectedAdhigaram > 0,
   ].filter(Boolean).length;
 
+  // Format dataset arrays explicitly into the structured DropdownItem[] contracts
+  const mappedPaalOptions = paalOptions.map((p) => ({
+    label: `${p.name} (${p.translation})`,
+    value: p.id,
+  }));
+
+  const mappedIyalOptions = iyalOptions.map((i) => ({
+    label: `${i.name} (${i.translation})`,
+    value: i.id,
+  }));
+
+  const mappedAdhigaramOptions = adhigaramOptions.map((a) => ({
+    label: `${a.id}. ${a.name} (${a.translation})`,
+    value: a.id,
+  }));
+
   return (
-    <View style={styles.container}>
+    <View style={globalStyles.container}>
+      {/* Accordion Expansion Trigger Bar */}
       <TouchableOpacity
-        style={styles.accordionHeader}
+        style={componentStyles.accordionHeader}
         onPress={() => setIsExpanded(!isExpanded)}
         activeOpacity={0.7}
       >
-        <View style={styles.accordionLeft}>
-          <Text style={styles.accordionTitle}>
+        <View style={componentStyles.accordionLeft}>
+          <KuralText variant="bodyNormal" style={componentStyles.accordionTitle}>
             {hasActiveFilters ? 'Search & Filters Active' : 'Search & Filter Verses'}
-          </Text>
+          </KuralText>
           {Boolean(hasActiveFilters) && (
-            <View style={styles.filterBadge}>
-              <Text style={styles.filterBadgeText}>{activeFilterCount}</Text>
+            <View style={componentStyles.filterBadge}>
+              <KuralText variant="caption" style={componentStyles.filterBadgeText}>
+                {activeFilterCount}
+              </KuralText>
             </View>
           )}
         </View>
 
-        <View style={styles.accordionRight}>
-          <Text style={styles.counterText}>Found {totalRecords}</Text>
-          <Text style={styles.chevronIcon}>{isExpanded ? '▲' : '▼'}</Text>
+        <View style={componentStyles.accordionRight}>
+          <KuralText variant="caption" style={componentStyles.counterText}>
+            Found {totalRecords}
+          </KuralText>
+          <KuralText variant="caption" style={componentStyles.chevronIcon}>
+            {isExpanded ? '▲' : '▼'}
+          </KuralText>
         </View>
       </TouchableOpacity>
+
+      {/* Main Collapsible Filter Tray Box Section */}
       {Boolean(isExpanded) && (
-        <View style={styles.collapsibleContent}>
-          <View style={[styles.dropdownContainer, isWidescreen ? styles.row : styles.column]}>
-            {/* 🔍 Search Input Bar */}
-            <View style={[styles.fieldGroup, isWidescreen && styles.flexItem]}>
-              <Text style={[styles.label, hasSearchQuery && styles.disabledLabel]}>Search</Text>
-
-              <View style={styles.searchContainer}>
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="Search Kurals by text, meaning, or ID (1-1330)..."
-                  placeholderTextColor="#888"
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                />
-              </View>
-            </View>
-            {/* Tier 1: Paal Selector */}
-            <View style={[styles.fieldGroup, isWidescreen && styles.flexItem]}>
-              <Text style={[styles.label, hasSearchQuery && styles.disabledLabel]}>
-                Section (பால் / Paal)
-              </Text>
-              <View style={styles.pickerWrapper}>
-                <Picker
-                  selectedValue={selectedPaal}
-                  onValueChange={selectPaal}
-                  enabled={!hasSearchQuery}
-                  style={styles.picker}
-                >
-                  <Picker.Item label="All Sections" value={0} />
-                  {paalOptions.map((paal) => (
-                    <Picker.Item
-                      key={paal.id}
-                      label={`${paal.name} (${paal.translation})`}
-                      value={paal.id}
-                    />
-                  ))}
-                </Picker>
-              </View>
+        <View style={componentStyles.collapsibleContent}>
+          <View
+            style={[
+              globalStyles.dropdownContainer,
+              isWidescreen ? globalStyles.row : globalStyles.column,
+            ]}
+          >
+            {/* 🔍 Search Input Sub-Block */}
+            <View style={[globalStyles.fieldGroup, isWidescreen && globalStyles.flexItem]}>
+              <KuralText
+                variant="caption"
+                style={[globalStyles.fieldLabel, hasSearchQuery && globalStyles.disabledLabel]}
+              >
+                Search
+              </KuralText>
+              <KuralInput
+                placeholder="Search Kurals by text, meaning, or ID (1-1330)..."
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                onClear={() => setSearchQuery('')}
+              />
             </View>
 
-            {/* Tier 2: Iyal Selector */}
-            <View style={[styles.fieldGroup, isWidescreen && styles.flexItem]}>
-              <Text style={[styles.label, hasSearchQuery && styles.disabledLabel]}>
-                Sub-section (இயல் / Iyal)
-              </Text>
-              <View style={[styles.pickerWrapper]}>
-                <Picker
-                  selectedValue={selectedIyal}
-                  onValueChange={selectIyal}
-                  enabled={!hasSearchQuery}
-                  style={styles.picker}
-                >
-                  <Picker.Item label="All Sub-sections" value={0} />
-                  {iyalOptions.map((iyal) => (
-                    <Picker.Item
-                      key={iyal.id}
-                      label={`${iyal.name} (${iyal.translation})`}
-                      value={iyal.id}
-                    />
-                  ))}
-                </Picker>
-              </View>
-            </View>
+            {/* Tier 1: Section Selector (Paal) */}
+            <KuralDropdown
+              label="Section (பால் / Paal)"
+              placeholder="All Sections"
+              items={mappedPaalOptions}
+              selectedValue={selectedPaal}
+              onValueChange={(val) => selectPaal(val, 0)}
+              disabled={hasSearchQuery}
+              containerStyle={isWidescreen ? globalStyles.flexItem : undefined}
+            />
 
-            {/* Tier 3: Adhigaram Selector */}
-            <View style={[styles.fieldGroup, isWidescreen && styles.flexItem]}>
-              <Text style={[styles.label, hasSearchQuery && styles.disabledLabel]}>
-                Chapter (அதிகாரம் / Adhigaram)
-              </Text>
-              <View style={[styles.pickerWrapper]}>
-                <Picker
-                  selectedValue={selectedAdhigaram}
-                  onValueChange={selectAdhigaram}
-                  enabled={!hasSearchQuery}
-                  style={styles.picker}
-                >
-                  <Picker.Item label="All Chapters" value={0} />
-                  {adhigaramOptions.map((adhigaram) => (
-                    <Picker.Item
-                      key={adhigaram.id}
-                      label={`${adhigaram.id}. ${adhigaram.name} (${adhigaram.translation})`}
-                      value={adhigaram.id}
-                    />
-                  ))}
-                </Picker>
-              </View>
-            </View>
+            {/* Tier 2: Sub-section Selector (Iyal) */}
+            <KuralDropdown
+              label="Sub-section (இயல் / Iyal)"
+              placeholder="All Sub-sections"
+              items={mappedIyalOptions}
+              selectedValue={selectedIyal}
+              onValueChange={(val) => selectIyal(val, 0)}
+              disabled={hasSearchQuery}
+              containerStyle={isWidescreen ? globalStyles.flexItem : undefined}
+            />
+
+            {/* Tier 3: Chapter Selector (Adhigaram) */}
+            <KuralDropdown
+              label="Chapter (அதிகாரம் / Adhigaram)"
+              placeholder="All Chapters"
+              items={mappedAdhigaramOptions}
+              selectedValue={selectedAdhigaram}
+              onValueChange={(val) => selectAdhigaram(val, 0)}
+              disabled={hasSearchQuery}
+              containerStyle={isWidescreen ? globalStyles.flexItem : undefined}
+            />
+
+            {/* Clear Filters Action Trigger */}
             {Boolean(hasActiveFilters) && (
-              <TouchableOpacity style={styles.clearButton} onPress={clearAllFilters}>
-                <Text style={styles.clearButtonText}>Clear All Filters</Text>
-              </TouchableOpacity>
+              <KuralButton
+                title="Clear All Filters"
+                variant="secondary"
+                onPress={clearAllFilters}
+                style={isWidescreen ? { marginTop: 22 } : { marginTop: 8 }}
+              />
             )}
           </View>
         </View>

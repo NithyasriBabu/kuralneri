@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, View, StyleSheet } from 'react-native';
 
 import {
   useFonts,
@@ -11,59 +11,86 @@ import { Inter_400Regular } from '@expo-google-fonts/inter';
 
 import { setupDatabase } from 'src/data/database';
 import TabNavigator from 'src/views/Navigator';
+import { ThemeProvider, useTheme } from 'src/theme/ThemeContextProvider';
+import { KuralText } from 'src/components/common/KuralText';
 
-export default function App() {
+// --------------------------------------------------------------------------
+// INNER ROOT: Consumes the Theme Context directly for loaders and errors
+// --------------------------------------------------------------------------
+function AppContent() {
   const [dbReady, setDbReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [logMessage, setLogMessage] = useState('Booting Kuralneri engine...');
 
-  let [fontsLoaded] = useFonts({ MuktaMalar_400Regular, MuktaMalar_700Bold, Inter_400Regular });
+  const { theme, componentStyles } = useTheme();
+
+  let [fontsLoaded] = useFonts({
+    'MuktaMalar-Regular': MuktaMalar_400Regular,
+    'MuktaMalar-Bold': MuktaMalar_700Bold,
+    'Inter-Regular': Inter_400Regular,
+  });
 
   useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
     async function initApp() {
       try {
         await setupDatabase((msg) => {
-          setLogMessage(msg); // Keeps your UI spinner text updated
-
-          // 1. Standard log (intercepted by Metro if connection is active)
+          setLogMessage(msg);
           console.log(`[DB SYSTEM]: ${msg}`);
-
-          // 2. FORCED TERMINAL STREAM: Metro config captures table logs
-          // explicitly when passed through console.info or console.warn
           console.info(`>>> Command Line Sync: ${msg}`);
         });
 
-        // Short delay so the user can visually confirm completion
-        setTimeout(() => setDbReady(true), 600);
-
-        // setDbReady(true);
+        // Small semantic delay for smooth asset caching completion
+        timeoutId = setTimeout(() => setDbReady(true), 600);
       } catch (err) {
         setError('Could not load database layers.');
       }
     }
 
     initApp();
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, []);
 
-  if (!dbReady) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#16a34a" />
-        <Text style={{ marginTop: 8 }}>Configuring Kuralneri Database...</Text>
-      </View>
-    );
-  }
-
+  // 1. Fatal Boot Crash Handler View
   if (error) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center' }}>
-        <Text>{error}</Text>
+      <View
+        style={[
+          componentStyles.kuralOfTheDayCentered,
+          { backgroundColor: theme.colors.background },
+        ]}
+      >
+        <KuralText variant="bodyLarge" style={componentStyles.kuralOfTheDayErrorText}>
+          {error}
+        </KuralText>
       </View>
     );
   }
 
-  if (!fontsLoaded) return null;
+  // 2. App Engine Bootstrapper Initialization view
+  if (!dbReady || !fontsLoaded) {
+    return (
+      <View
+        style={[
+          componentStyles.kuralOfTheDayCentered,
+          { backgroundColor: theme.colors.background },
+        ]}
+      >
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        {fontsLoaded && (
+          <KuralText variant="bodyNormal" style={styles.loadingText}>
+            {logMessage}
+          </KuralText>
+        )}
+      </View>
+    );
+  }
 
+  // 3. Main Operational App Thread Launch
   return (
     <SafeAreaProvider>
       <TabNavigator />
@@ -71,34 +98,21 @@ export default function App() {
   );
 }
 
+// --------------------------------------------------------------------------
+// APEX CONTAINER: Mounts the Theme Context Provider first
+// --------------------------------------------------------------------------
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
+}
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#DAD7CD', padding: 20 },
-  header: {
-    fontSize: 28,
-    fontFamily: 'MuktaMalar_700Bold',
-    color: '#344E41',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  card: {
-    backgroundColor: '#A3B18A',
-    padding: 20,
-    borderRadius: 12,
-    marginBottom: 15,
-    elevation: 2,
-  },
-  kuralNumber: { color: '#3A5A40', fontWeight: 'bold', marginBottom: 5 },
-  tamilText: {
-    fontFamily: 'MuktaMalar_400Regular',
-    fontSize: 18,
-    color: '#344E41',
-    lineHeight: 26,
-  },
-  translationText: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 14,
-    color: '#344E41',
-    marginTop: 10,
-    fontStyle: 'italic',
+  loadingText: {
+    marginTop: 12,
+    fontWeight: '500',
+    opacity: 0.8,
   },
 });

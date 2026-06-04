@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, TouchableOpacity, Platform, useWindowDimensions } from 'react-native';
+import { View, TouchableOpacity, Platform, useWindowDimensions } from 'react-native';
 
+import { useTheme } from 'src/theme/ThemeContextProvider';
 import { TabConfig, TabType } from 'src/types/types';
-import { navStyles } from 'src/styles/styles';
+import { KuralText } from 'src/components/common/KuralText';
+import { FeaturePlaceholder } from 'src/components/common/FeaturePlaceholder';
 
 import KuralListView from 'src/views/KuralListView';
 import KuralOfTheDayView from 'src/views/KuralOfTheDayView';
@@ -19,6 +21,7 @@ const TABS: TabConfig[] = [
 export default function TabNavigator() {
   const { width } = useWindowDimensions();
   const isWidescreen = width > 768;
+  const { componentStyles } = useTheme();
 
   const [activeTab, setActiveTab] = useState<TabType>(TabType.Home);
 
@@ -60,11 +63,32 @@ export default function TabNavigator() {
       case TabType.Explore:
         return <KuralListView />;
       case TabType.Favorites:
-        return <Text>Fav</Text>;
+        return (
+          <FeaturePlaceholder
+            icon="❤️"
+            title="Favorites"
+            subtitle="Saved Verses"
+            body="This tab will hold the kurals you want to revisit, annotate, or keep close as personal anchors."
+          />
+        );
       case TabType.Learn:
-        return <Text>Learn</Text>;
+        return (
+          <FeaturePlaceholder
+            icon="📈"
+            title="Learn"
+            subtitle="Study Path"
+            body="This area is reserved for future learning tools like topic tags, patterns, and guided study flows."
+          />
+        );
       case TabType.Guru:
-        return <Text>Guru</Text>;
+        return (
+          <FeaturePlaceholder
+            icon="🤖"
+            title="Guru"
+            subtitle="Commentary Companion"
+            body="The guided interpreter experience will live here once the reasoning and retrieval layers are connected."
+          />
+        );
       default:
         return <KuralOfTheDayView />;
     }
@@ -77,33 +101,40 @@ export default function TabNavigator() {
         <TouchableOpacity
           key={tab.id}
           activeOpacity={1}
-          style={[navStyles.tabButton, isActive && navStyles.activeTabButton]}
+          style={[componentStyles.navTabButton, isActive && componentStyles.navTabButtonActive]}
           onPress={() => handleTabPress(tab.id)}
         >
-          <Text style={{ fontSize: 16, opacity: isActive ? 1 : 0.7 }}>{tab.icon}</Text>
-          <Text style={[navStyles.tabText, isActive && navStyles.activeTabText]}>{tab.label}</Text>
+          <KuralText
+            variant="bodyNormal"
+            style={[componentStyles.navTabIcon, { opacity: isActive ? 1 : 0.7 }]}
+          >
+            {tab.icon}
+          </KuralText>
+          <KuralText
+            variant="caption"
+            style={[componentStyles.navTabText, isActive && componentStyles.navTabTextActive]}
+          >
+            {tab.label}
+          </KuralText>
         </TouchableOpacity>
       );
     });
   };
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: '#344E41' }}
-      edges={['top', 'left', 'right', 'bottom']}
-    >
+    <SafeAreaView style={componentStyles.navShell} edges={['top', 'left', 'right', 'bottom']}>
       {isWidescreen && (
-        <View style={[navStyles.navbarContainer, navStyles.topPlacement]}>
+        <View style={[componentStyles.navNavbarContainer, componentStyles.navTopPlacement]}>
           {renderNavigationLinks()}
         </View>
       )}
 
-      <View style={navStyles.canvasWrapper}>
-        <View style={navStyles.fullWidthColumn}>{renderActiveScreen()}</View>
+      <View style={componentStyles.navCanvasWrapper}>
+        <View style={componentStyles.navFullWidthColumn}>{renderActiveScreen()}</View>
       </View>
 
       {!isWidescreen && (
-        <View style={[navStyles.navbarContainer, navStyles.bottomPlacement]}>
+        <View style={[componentStyles.navNavbarContainer, componentStyles.navBottomPlacement]}>
           {renderNavigationLinks()}
         </View>
       )}

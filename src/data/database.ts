@@ -70,6 +70,12 @@ const DATABASE_SCHEMA_SQL: string = `
       FOREIGN KEY (kural_id) REFERENCES kurals (id) ON DELETE CASCADE,
       FOREIGN KEY (author_id) REFERENCES authors (id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS favorites (
+      kural_id INTEGER PRIMARY KEY,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (kural_id) REFERENCES kurals (id) ON DELETE CASCADE
+    );
   `;
 
 const AUTHOR_PRESETS = [

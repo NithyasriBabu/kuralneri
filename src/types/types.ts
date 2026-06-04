@@ -12,6 +12,7 @@ export interface KuralRecord {
   paal_name: string;
   iyal_name: string;
   notes?: AuthorNote[];
+  is_favorite?: boolean;
 }
 
 export interface AuthorNote {
