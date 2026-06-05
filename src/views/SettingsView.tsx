@@ -125,25 +125,46 @@ function SegmentedControl<T extends string>({
 
 // ─── color swatch picker ─────────────────────────────────────────────────────
 
-const BG_PRESETS = [
-  '', // theme default
-  '#F7F3EB',
-  '#1A1A2E',
+const BG_PRESETS_DARK = [
+  '',
+  '#0D1210',
   '#0D1B2A',
-  '#FFF8F0',
+  '#1A1A2E',
   '#1C1C1C',
-  '#2C3E50',
+  '#12181B',
+  '#1A1209',
+  '#0F1923',
+];
+const BG_PRESETS_LIGHT = [
+  '',
+  '#F7F3EB',
+  '#FFF8F0',
   '#FAF0E6',
+  '#F5F0FF',
+  '#E8F5E9',
+  '#FFF9C4',
+  '#FDECEA',
 ];
 
-const FG_PRESETS = [
-  '', // theme default
-  '#1F2D26',
+const FG_PRESETS_DARK = [
+  '',
   '#F3F0E8',
   '#FFFFFF',
-  '#2C2C2C',
   '#E8D5B7',
   '#C8D3C0',
+  '#D4E8D0',
+  '#FFE0B2',
+  '#B3E5FC',
+];
+const FG_PRESETS_LIGHT = [
+  '',
+  '#1F2D26',
+  '#2C2C2C',
+  '#3E2723',
+  '#1A237E',
+  '#1B5E20',
+  '#4A148C',
+  '#212121',
 ];
 
 function ColorSwatches({
@@ -268,11 +289,15 @@ function LangToggleRow({ toggleKey }: { toggleKey: LangToggleKey }) {
 // ─── main view ───────────────────────────────────────────────────────────────
 
 export default function SettingsView() {
-  const { theme, setThemeMode } = useTheme();
+  const { theme, componentStyles, setThemeMode } = useTheme();
   const { settings, updateSettings, resetSettings } = useSettings();
 
   const [nameInput, setNameInput] = useState(settings.userName);
   const [confirmReset, setConfirmReset] = useState<'none' | 'bookmarks' | 'all'>('none');
+
+  const isDark = theme.dark;
+  const backgroundColors = isDark ? BG_PRESETS_DARK : BG_PRESETS_LIGHT;
+  const foregroundColors = isDark ? FG_PRESETS_DARK : FG_PRESETS_LIGHT;
 
   const AUTHORS = [
     { label: 'All Authors', value: '' },
@@ -467,7 +492,7 @@ export default function SettingsView() {
             options={THEME_OPTIONS}
             selected={settings.themeMode}
             onSelect={(v) => {
-              updateSettings({ themeMode: v });
+              updateSettings({ themeMode: v, customBackground: '', customForeground: '' });
               setThemeMode(v);
             }}
           />
@@ -571,7 +596,7 @@ export default function SettingsView() {
         >
           <RowLabel label="Background color" sub="Swipe to default (circle with 'def')" />
           <ColorSwatches
-            presets={BG_PRESETS}
+            presets={backgroundColors}
             selected={settings.customBackground}
             onSelect={(v) => updateSettings({ customBackground: v })}
             defaultLabel="def"
@@ -581,7 +606,7 @@ export default function SettingsView() {
         <View style={{ paddingVertical: 10 }}>
           <RowLabel label="Text color" sub="Applies to primary text" />
           <ColorSwatches
-            presets={FG_PRESETS}
+            presets={foregroundColors}
             selected={settings.customForeground}
             onSelect={(v) => updateSettings({ customForeground: v })}
             defaultLabel="def"
