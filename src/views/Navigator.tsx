@@ -9,13 +9,14 @@ import { FeaturePlaceholder } from 'src/components/common/FeaturePlaceholder';
 import { ThemeToggle } from 'src/components/common/ThemeToggle';
 
 import KuralListView from 'src/views/KuralListView';
+import BookmarksView from 'src/views/BookmarksView';
 import KuralOfTheDayView from 'src/views/KuralOfTheDayView';
 import KuralDetailView from 'src/views/KuralDetailView';
 
 const TABS: TabConfig[] = [
   { id: TabType.Home, label: 'Home', icon: '🏠' },
   { id: TabType.Explore, label: 'Explore', icon: '🔍' },
-  { id: TabType.Favorites, label: 'Favorites', icon: '❤️' },
+  { id: TabType.Bookmarks, label: 'Bookmarks', icon: '🔖' },
   { id: TabType.Learn, label: 'Learn', icon: '📈' },
   { id: TabType.Guru, label: 'Guru', icon: '🤖' },
 ];
@@ -111,15 +112,8 @@ export default function TabNavigator() {
         return <KuralOfTheDayView />;
       case TabType.Explore:
         return <KuralListView onKuralPress={handleKuralPress} />;
-      case TabType.Favorites:
-        return (
-          <FeaturePlaceholder
-            icon="❤️"
-            title="Favorites"
-            subtitle="Saved Verses"
-            body="This tab will hold the kurals you want to revisit, annotate, or keep close as personal anchors."
-          />
-        );
+      case TabType.Bookmarks:
+        return <BookmarksView onKuralPress={handleKuralPress} />;
       case TabType.Learn:
         return (
           <FeaturePlaceholder

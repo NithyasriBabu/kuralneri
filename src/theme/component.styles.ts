@@ -7,6 +7,7 @@ export const createComponentStyles = (theme: AppTheme) => {
        KURAL CARD COMPONENT SURFACE
        ========================================================================== */
     kuralCard: {
+      position: 'relative',
       backgroundColor: theme.colors.interactive.card.default,
       padding: 20,
       borderRadius: theme.layout.borderRadius.large,
@@ -20,8 +21,38 @@ export const createComponentStyles = (theme: AppTheme) => {
       shadowOpacity: 0.1,
       shadowRadius: 2,
     } as ViewStyle,
-    kuralCardInteractive: {
-      overflow: 'hidden',
+    kuralCardPressable: {
+      gap: 10,
+      paddingRight: 42,
+    } as ViewStyle,
+    kuralCardHeaderRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'flex-start',
+    } as ViewStyle,
+    kuralCardHeaderText: {
+      flex: 1,
+      paddingRight: 8,
+    } as ViewStyle,
+    kuralCardBookmarkButton: {
+      position: 'absolute',
+      top: 12,
+      right: 12,
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: theme.colors.surfaceElevated,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+    } as ViewStyle,
+    kuralCardBookmarkButtonActive: {
+      backgroundColor: theme.colors.accent,
+      borderColor: theme.colors.accent,
+    } as ViewStyle,
+    kuralCardBookmarkButtonDisabled: {
+      opacity: 0.5,
     } as ViewStyle,
     kuralCardNumber: {
       color: theme.colors.textSecondary,

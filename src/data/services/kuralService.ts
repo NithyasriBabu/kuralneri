@@ -17,6 +17,11 @@ import {
   KURAL_BY_ID,
   PAGINATED_KURALS,
   KURALS_COUNT,
+  BOOKMARK_KURALS,
+  BOOKMARKS_COUNT,
+  BOOKMARK_PAALS,
+  BOOKMARK_IYALS,
+  BOOKMARK_ADHIGARAMS,
   PAALS,
   IYALS,
   ADHIGARAMS,
@@ -37,10 +42,33 @@ type KuralByIdRow = {
   adhikaram_name: string;
   iyal_name: string;
   paal_name: string;
+  adhikaram_id: number;
+  iyal_id: number;
+  paal_id: number;
   note_text: string | null;
   author_id: number | null;
   author_name: string | null;
   author_code: string | null;
+  is_bookmarked: number | null;
+};
+
+type BookmarkKuralRow = {
+  id: number;
+  text: string;
+  line1: string;
+  line2: string;
+  translation: string;
+  couplet: string;
+  explanation: string;
+  transliteration1: string;
+  transliteration2: string;
+  adhikaram_name: string;
+  iyal_name: string;
+  paal_name: string;
+  adhikaram_id: number;
+  iyal_id: number;
+  paal_id: number;
+  is_bookmarked: number;
 };
 
 function assembleKuralFromRows(rows: KuralByIdRow[]): KuralRecord | null {
@@ -76,7 +104,32 @@ function assembleKuralFromRows(rows: KuralByIdRow[]): KuralRecord | null {
     adhikaram_name: head.adhikaram_name,
     iyal_name: head.iyal_name,
     paal_name: head.paal_name,
+    adhikaram_id: head.adhikaram_id,
+    iyal_id: head.iyal_id,
+    paal_id: head.paal_id,
+    is_bookmarked: Boolean(head.is_bookmarked),
     notes: notes.length > 0 ? notes : undefined,
+  };
+}
+
+function assembleBookmarkKural(row: BookmarkKuralRow): KuralRecord {
+  return {
+    id: row.id,
+    text: row.text,
+    translation: row.translation,
+    couplet: row.couplet,
+    explanation: row.explanation,
+    line1: row.line1,
+    line2: row.line2,
+    transliteration1: row.transliteration1,
+    transliteration2: row.transliteration2,
+    adhikaram_name: row.adhikaram_name,
+    iyal_name: row.iyal_name,
+    paal_name: row.paal_name,
+    adhikaram_id: row.adhikaram_id,
+    iyal_id: row.iyal_id,
+    paal_id: row.paal_id,
+    is_bookmarked: Boolean(row.is_bookmarked),
   };
 }
 
@@ -97,6 +150,22 @@ async function executeSelect<T>(querySQL: string, args: any[] = []): Promise<T[]
     } catch (error) {
       console.error(`❌ DB Execution Failed for Query: "${querySQL.substring(0, 50)}..."`, error);
       return [];
+    }
+  });
+}
+
+async function executeRun(querySQL: string, args: any[] = []): Promise<void> {
+  await runWebDbTask(async () => {
+    try {
+      if (Platform.OS === 'web') {
+        const targetDb = await db;
+        await targetDb.runAsync(querySQL, args);
+        return;
+      }
+      const targetDb = db as SQLite.SQLiteDatabase;
+      targetDb.runSync(querySQL, args);
+    } catch (error) {
+      console.error(`❌ DB Write Failed for Query: "${querySQL.substring(0, 50)}..."`, error);
     }
   });
 }
@@ -149,6 +218,73 @@ export const getKuralById = async (id: number): Promise<KuralRecord | null> => {
   const rows = await executeSelect<KuralByIdRow>(KURAL_BY_ID, [id]);
   return assembleKuralFromRows(rows);
 };
+
+export async function getBookmarkKurals(
+  limit: number = 10,
+  offset: number = 0,
+  filters?: KuralFilters,
+): Promise<KuralRecord[]> {
+  const { whereClause, args } = buildFilterClause(filters);
+  const rows = await executeSelect<BookmarkKuralRow>(BOOKMARK_KURALS(whereClause), [
+    ...args,
+    limit,
+    offset,
+  ]);
+  return rows.map(assembleBookmarkKural);
+}
+
+export async function getBookmarksCount(filters?: KuralFilters): Promise<number> {
+  const { whereClause, args } = buildFilterClause(filters);
+  const results = await executeSelect<{ count: number }>(BOOKMARKS_COUNT(whereClause), args);
+  return results[0]?.count ?? 0;
+}
+
+export async function getBookmarkPaalOptions(): Promise<PaalRecord[]> {
+  return executeSelect<PaalRecord>(BOOKMARK_PAALS);
+}
+
+export async function getBookmarkIyalOptions(paalId = 0): Promise<IyalRecord[]> {
+  if (paalId > 0) {
+    return executeSelect<IyalRecord>(BOOKMARK_IYALS('WHERE p.id = ?'), [paalId]);
+  }
+  return executeSelect<IyalRecord>(BOOKMARK_IYALS(''));
+}
+
+export async function getBookmarkAdhigaramOptions(
+  paalId = 0,
+  iyalId = 0,
+): Promise<AdhigaramRecord[]> {
+  if (iyalId > 0) {
+    return executeSelect<AdhigaramRecord>(BOOKMARK_ADHIGARAMS('WHERE i.id = ?'), [iyalId]);
+  }
+  if (paalId > 0) {
+    return executeSelect<AdhigaramRecord>(BOOKMARK_ADHIGARAMS('WHERE p.id = ?'), [paalId]);
+  }
+  return executeSelect<AdhigaramRecord>(BOOKMARK_ADHIGARAMS(''));
+}
+
+export async function isKuralBookmarked(id: number): Promise<boolean> {
+  const rows = await executeSelect<{ found: number }>(
+    'SELECT 1 as found FROM bookmarks WHERE kural_id = ? LIMIT 1;',
+    [id],
+  );
+  return rows.length > 0;
+}
+
+export async function setKuralBookmarkStatus(id: number, bookmarked: boolean): Promise<boolean> {
+  if (bookmarked) {
+    await executeRun('INSERT OR IGNORE INTO bookmarks (kural_id) VALUES (?);', [id]);
+    return true;
+  }
+
+  await executeRun('DELETE FROM bookmarks WHERE kural_id = ?;', [id]);
+  return false;
+}
+
+export async function toggleKuralBookmark(id: number): Promise<boolean> {
+  const next = !(await isKuralBookmarked(id));
+  return setKuralBookmarkStatus(id, next);
+}
 
 /**
  * Universal Data Fetcher: Retrieves a chunk of Kurals

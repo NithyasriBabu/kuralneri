@@ -199,6 +199,14 @@ export function useKuralFeed(userLimit: number = 30, screenWidth: number = 375) 
     return { from, to };
   }, [page, userLimit, totalRecords]);
 
+  const updateKuralBookmarkStatus = useCallback((kuralId: number, isBookmarked: boolean) => {
+    setKurals((current) =>
+      current.map((kural) =>
+        kural.id === kuralId ? { ...kural, is_bookmarked: isBookmarked } : kural,
+      ),
+    );
+  }, []);
+
   return {
     kurals,
     loading,
@@ -227,5 +235,6 @@ export function useKuralFeed(userLimit: number = 30, screenWidth: number = 375) 
     nextPage: () => fetchPageData(page + 1),
     prevPage: () => fetchPageData(page - 1),
     goToPage: (pageNumber: number) => fetchPageData(pageNumber),
+    updateKuralBookmarkStatus,
   };
 }

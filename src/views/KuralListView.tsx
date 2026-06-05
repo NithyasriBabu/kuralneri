@@ -13,6 +13,7 @@ import { useKuralFeed } from 'src/hooks/useKuralFeed';
 
 import { FilterHeader } from 'src/components/FilterHeader';
 import KuralCard from 'src/components/KuralCard';
+import { setKuralBookmarkStatus } from 'src/data/services';
 import { useTheme } from 'src/theme/ThemeContextProvider';
 
 interface KuralListViewProps {
@@ -48,6 +49,7 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
     selectAdhigaram,
     adhigaramOptions,
     clearAllFilters,
+    updateKuralBookmarkStatus,
 
     // Pagination callbacks
     nextPage,
@@ -120,6 +122,10 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
               <KuralCard
                 kural={item}
                 onPress={onKuralPress ? () => onKuralPress(item.id) : undefined}
+                onBookmarkToggle={async (nextBookmarked) => {
+                  const next = await setKuralBookmarkStatus(item.id, nextBookmarked);
+                  updateKuralBookmarkStatus(item.id, next);
+                }}
               />
             </View>
           )}

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
-import { getKuralById } from 'src/data/services';
+import { getKuralById, setKuralBookmarkStatus } from 'src/data/services';
 import KuralCard from 'src/components/KuralCard';
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { KuralRecord } from 'src/types/types';
@@ -16,6 +16,7 @@ export default function KuralDetailView({ kuralId, onBack }: KuralDetailViewProp
   const [kural, setKural] = useState<KuralRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [savingBookmark, setSavingBookmark] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -47,6 +48,17 @@ export default function KuralDetailView({ kuralId, onBack }: KuralDetailViewProp
       isMounted = false;
     };
   }, [kuralId]);
+
+  const handleBookmarkToggle = async (nextBookmarked: boolean) => {
+    if (!kural) return;
+    try {
+      setSavingBookmark(true);
+      const next = await setKuralBookmarkStatus(kural.id, nextBookmarked);
+      setKural({ ...kural, is_bookmarked: next });
+    } finally {
+      setSavingBookmark(false);
+    }
+  };
 
   return (
     <ScrollView
@@ -97,7 +109,12 @@ export default function KuralDetailView({ kuralId, onBack }: KuralDetailViewProp
 
       {!loading && !error && kural && (
         <View style={componentStyles.kuralOfTheDayFeedWrapper}>
-          <KuralCard kural={kural} showComments />
+          <KuralCard
+            kural={kural}
+            showComments
+            onBookmarkToggle={handleBookmarkToggle}
+            bookmarkLoading={savingBookmark}
+          />
         </View>
       )}
     </ScrollView>

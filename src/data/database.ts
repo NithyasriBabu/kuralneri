@@ -71,7 +71,7 @@ const DATABASE_SCHEMA_SQL: string = `
       FOREIGN KEY (author_id) REFERENCES authors (id) ON DELETE CASCADE
     );
 
-    CREATE TABLE IF NOT EXISTS favorites (
+    CREATE TABLE IF NOT EXISTS bookmarks (
       kural_id INTEGER PRIMARY KEY,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (kural_id) REFERENCES kurals (id) ON DELETE CASCADE
@@ -104,6 +104,21 @@ type LogCallback = (message: string) => void;
 async function isDatabaseAlreadySeeded(fetchFirst: SingleFetchRunner): Promise<boolean> {
   const res = await fetchFirst('SELECT COUNT(*) as count FROM paals;');
   return !!(res && res.count > 0);
+}
+
+async function migrateFavoritesToBookmarks(
+  fetchFirst: SingleFetchRunner,
+  execute: ExecRunner,
+): Promise<void> {
+  const legacyTable = await fetchFirst(
+    "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'favorites' LIMIT 1;",
+  );
+  if (!legacyTable) return;
+
+  await execute(
+    'INSERT OR IGNORE INTO bookmarks (kural_id, created_at) SELECT kural_id, created_at FROM favorites;',
+  );
+  await execute('DROP TABLE IF EXISTS favorites;');
 }
 
 /**
@@ -225,6 +240,10 @@ export const setupDatabase = async (onLog: LogCallback) => {
 
         // Initialize core tables
         await targetDb.execAsync(DATABASE_SCHEMA_SQL);
+        await migrateFavoritesToBookmarks(
+          async (sql) => await targetDb.getFirstAsync<any>(sql),
+          async (sql, params) => (await targetDb.runAsync(sql, params || [])).changes,
+        );
 
         // Utilize shared helper with async context wrapper
         const isSeeded = await isDatabaseAlreadySeeded(
@@ -250,6 +269,10 @@ export const setupDatabase = async (onLog: LogCallback) => {
 
       // Initialize core tables
       targetDb.execSync(DATABASE_SCHEMA_SQL);
+      await migrateFavoritesToBookmarks(
+        (sql) => targetDb.getFirstSync<any>(sql),
+        (sql, params) => targetDb.runSync(sql, params || []).changes,
+      );
 
       // Utilize shared helper with sync context wrapper
       const isSeeded = await isDatabaseAlreadySeeded((sql) => targetDb.getFirstSync<any>(sql));

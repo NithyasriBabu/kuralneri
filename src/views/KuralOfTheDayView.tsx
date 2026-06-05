@@ -1,12 +1,25 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import { useKuralOfTheDay } from 'src/hooks/useKuralOfTheDay';
+import { setKuralBookmarkStatus } from 'src/data/services';
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import KuralCard from 'src/components/KuralCard';
+import { KuralRecord } from 'src/types/types';
 
 export default function KuralOfTheDayView() {
   const { kural, loading, error } = useKuralOfTheDay();
   const { theme, componentStyles } = useTheme();
+  const [displayKural, setDisplayKural] = useState<KuralRecord | null>(null);
+
+  useEffect(() => {
+    setDisplayKural(kural);
+  }, [kural]);
+
+  const handleBookmarkToggle = async (nextBookmarked: boolean) => {
+    if (!displayKural) return;
+    const next = await setKuralBookmarkStatus(displayKural.id, nextBookmarked);
+    setDisplayKural({ ...displayKural, is_bookmarked: next });
+  };
 
   return (
     <ScrollView
@@ -31,9 +44,13 @@ export default function KuralOfTheDayView() {
         </View>
       )}
 
-      {!loading && !error && kural && (
+      {!loading && !error && displayKural && (
         <View style={componentStyles.kuralOfTheDayFeedWrapper}>
-          <KuralCard kural={kural} showComments={true} />
+          <KuralCard
+            kural={displayKural}
+            showComments={true}
+            onBookmarkToggle={handleBookmarkToggle}
+          />
         </View>
       )}
     </ScrollView>

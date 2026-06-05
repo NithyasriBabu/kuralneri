@@ -1,5 +1,8 @@
 export interface KuralRecord {
   id: number;
+  paal_id?: number;
+  iyal_id?: number;
+  adhikaram_id?: number;
   text: string;
   translation: string;
   couplet: string;
@@ -12,7 +15,7 @@ export interface KuralRecord {
   paal_name: string;
   iyal_name: string;
   notes?: AuthorNote[];
-  is_favorite?: boolean;
+  is_bookmarked?: boolean;
 }
 
 export interface AuthorNote {
@@ -63,7 +66,7 @@ export type Taxonomy = {
 export enum TabType {
   Home = 'HOME',
   Explore = 'EXPLORE',
-  Favorites = 'FAVORITES',
+  Bookmarks = 'BOOKMARKS',
   Learn = 'LEARN',
   Guru = 'GURU',
 }
