@@ -1,4 +1,3 @@
-// src/context/ThemeContext.tsx
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useColorScheme, useWindowDimensions } from 'react-native';
 
@@ -9,10 +8,33 @@ import { createGlobalStyles } from 'src/theme/global.styles';
 import { createComponentStyles } from 'src/theme/component.styles';
 import { loadThemeMode, saveThemeMode } from 'src/data/services/themePreferences';
 
+// Settings integration — optional, may not be mounted yet
+import {
+  FONT_SIZE_MULTIPLIERS,
+  TAMIL_FONT_FAMILIES,
+  FontSizeScale,
+  TamilFont,
+} from 'src/types/settings';
+
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 const WIDE_SCREEN_BREAKPOINT = 768;
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface ThemeProviderProps {
+  children: React.ReactNode;
+  /** Injected by SettingsProvider bridge — avoids a circular dep */
+  fontSizeScale?: FontSizeScale;
+  tamilFont?: TamilFont;
+  customBackground?: string;
+  customForeground?: string;
+}
+
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({
+  children,
+  fontSizeScale = 'medium',
+  tamilFont = 'MuktaMalar',
+  customBackground = '',
+  customForeground = '',
+}) => {
   const { width } = useWindowDimensions();
   const colorScheme = useColorScheme();
   const isWideScreen = width >= WIDE_SCREEN_BREAKPOINT;
@@ -21,26 +43,49 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   useEffect(() => {
     let cancelled = false;
-
     (async () => {
       const savedMode = await loadThemeMode();
       if (cancelled) return;
-
       setThemeModeState(savedMode);
     })();
-
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const resolvedThemeMode = themeMode ?? systemThemeMode;
+  const resolvedThemeMode: ThemeMode =
+    themeMode === 'system' || themeMode === null ? systemThemeMode : themeMode;
+
   const baseTheme = resolvedThemeMode === 'dark' ? DarkEarthyTheme : EarthyTheme;
 
   const contextValue = useMemo<ThemeContextType>(() => {
+    const sizeMult = FONT_SIZE_MULTIPLIERS[fontSizeScale];
+    const tamilFontFamily = TAMIL_FONT_FAMILIES[tamilFont];
+
+    const scaledSizes = {
+      h1: Math.round(24 * sizeMult),
+      h2: Math.round(20 * sizeMult),
+      bodyLarge: Math.round(18 * sizeMult),
+      bodyNormal: Math.round(15 * sizeMult),
+      caption: Math.round(12 * sizeMult),
+    };
+
     const responsiveTheme: AppTheme = {
       ...baseTheme,
       isWideScreen,
+      colors: {
+        ...baseTheme.colors,
+        background: customBackground || baseTheme.colors.background,
+        textPrimary: customForeground || baseTheme.colors.textPrimary,
+      },
+      typography: {
+        ...baseTheme.typography,
+        fonts: {
+          ...baseTheme.typography.fonts,
+          tamil: tamilFontFamily,
+        },
+        sizes: scaledSizes,
+      },
       layout: {
         ...baseTheme.layout,
         isWideScreen,
@@ -50,7 +95,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       },
     };
 
-    // 2. Feed the combined responsive tokens directly into style generation layers
     return {
       theme: responsiveTheme,
       globalStyles: createGlobalStyles(responsiveTheme),
@@ -66,7 +110,15 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         void saveThemeMode(nextMode);
       },
     };
-  }, [baseTheme, isWideScreen, resolvedThemeMode]);
+  }, [
+    baseTheme,
+    isWideScreen,
+    resolvedThemeMode,
+    fontSizeScale,
+    tamilFont,
+    customBackground,
+    customForeground,
+  ]);
 
   return <ThemeContext.Provider value={contextValue}>{children}</ThemeContext.Provider>;
 };

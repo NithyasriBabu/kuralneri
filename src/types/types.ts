@@ -69,6 +69,7 @@ export enum TabType {
   Bookmarks = 'BOOKMARKS',
   Learn = 'LEARN',
   Guru = 'GURU',
+  Settings = 'SETTINGS',
 }
 
 export interface TabConfig {

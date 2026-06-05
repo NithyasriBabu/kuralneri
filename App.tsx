@@ -12,17 +12,18 @@ import { Inter_400Regular } from '@expo-google-fonts/inter';
 import { setupDatabase } from 'src/data/database';
 import TabNavigator from 'src/views/Navigator';
 import { ThemeProvider, useTheme } from 'src/theme/ThemeContextProvider';
+import { SettingsProvider, useSettings } from 'src/context/SettingsContext';
+
 import { KuralText } from 'src/components/common/KuralText';
 
 // --------------------------------------------------------------------------
-// INNER ROOT: Consumes the Theme Context directly for loaders and errors
+// BRIDGE: reads settings and passes display tokens down into ThemeProvider
 // --------------------------------------------------------------------------
-function AppContent() {
+function ThemedApp() {
+  const { settings, settingsReady } = useSettings();
   const [dbReady, setDbReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [logMessage, setLogMessage] = useState('Booting Kuralneri engine...');
-
-  const { theme, componentStyles } = useTheme();
 
   let [fontsLoaded] = useFonts({
     'MuktaMalar-Regular': MuktaMalar_400Regular,
@@ -38,24 +39,51 @@ function AppContent() {
         await setupDatabase((msg) => {
           setLogMessage(msg);
           console.log(`[DB SYSTEM]: ${msg}`);
-          console.info(`>>> Command Line Sync: ${msg}`);
         });
-
-        // Small semantic delay for smooth asset caching completion
         timeoutId = setTimeout(() => setDbReady(true), 600);
-      } catch (err) {
+      } catch {
         setError('Could not load database layers.');
       }
     }
 
     initApp();
-
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
     };
   }, []);
 
-  // 1. Fatal Boot Crash Handler View
+  return (
+    <ThemeProvider
+      fontSizeScale={settings.fontSizeScale}
+      tamilFont={settings.tamilFont}
+      customBackground={settings.customBackground}
+      customForeground={settings.customForeground}
+    >
+      <AppContent
+        dbReady={dbReady}
+        fontsLoaded={fontsLoaded}
+        settingsReady={settingsReady}
+        error={error}
+        logMessage={logMessage}
+      />
+    </ThemeProvider>
+  );
+}
+
+// --------------------------------------------------------------------------
+// INNER ROOT: renders loader / error / app
+// --------------------------------------------------------------------------
+interface AppContentProps {
+  dbReady: boolean;
+  fontsLoaded: boolean;
+  settingsReady: boolean;
+  error: string | null;
+  logMessage: string;
+}
+
+function AppContent({ dbReady, fontsLoaded, settingsReady, error, logMessage }: AppContentProps) {
+  const { theme, componentStyles } = useTheme();
+
   if (error) {
     return (
       <View
@@ -71,8 +99,7 @@ function AppContent() {
     );
   }
 
-  // 2. App Engine Bootstrapper Initialization view
-  if (!dbReady || !fontsLoaded) {
+  if (!dbReady || !fontsLoaded || !settingsReady) {
     return (
       <View
         style={[
@@ -90,7 +117,6 @@ function AppContent() {
     );
   }
 
-  // 3. Main Operational App Thread Launch
   return (
     <SafeAreaProvider>
       <TabNavigator />
@@ -99,13 +125,13 @@ function AppContent() {
 }
 
 // --------------------------------------------------------------------------
-// APEX CONTAINER: Mounts the Theme Context Provider first
+// APEX: SettingsProvider first so ThemedApp can read settings
 // --------------------------------------------------------------------------
 export default function App() {
   return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
+    <SettingsProvider>
+      <ThemedApp />
+    </SettingsProvider>
   );
 }
 

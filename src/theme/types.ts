@@ -1,7 +1,6 @@
 import { createGlobalStyles } from 'src/theme/global.styles';
 import { createComponentStyles } from 'src/theme/component.styles';
 
-// 1. Define the exact shape of your compiled stylesheets
 type GlobalStylesType = ReturnType<typeof createGlobalStyles>;
 type ComponentStylesType = ReturnType<typeof createComponentStyles>;
 
@@ -14,7 +13,8 @@ export interface ThemeContextType {
   toggleThemeMode: () => void;
 }
 
-export type ThemeMode = 'light' | 'dark';
+/** 'system' follows OS preference and is saved to DB */
+export type ThemeMode = 'light' | 'dark' | 'system';
 
 export interface ColorState {
   default: string;

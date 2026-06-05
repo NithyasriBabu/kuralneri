@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, TouchableOpacity, Platform, useWindowDimensions } from 'react-native';
 
 import { useTheme } from 'src/theme/ThemeContextProvider';
+import { useSettings } from 'src/context/SettingsContext';
 import { TabConfig, TabType } from 'src/types/types';
 import { KuralText } from 'src/components/common/KuralText';
 import { FeaturePlaceholder } from 'src/components/common/FeaturePlaceholder';
@@ -12,6 +13,7 @@ import KuralListView from 'src/views/KuralListView';
 import BookmarksView from 'src/views/BookmarksView';
 import KuralOfTheDayView from 'src/views/KuralOfTheDayView';
 import KuralDetailView from 'src/views/KuralDetailView';
+import SettingsView from 'src/views/SettingsView';
 
 const TABS: TabConfig[] = [
   { id: TabType.Home, label: 'Home', icon: '🏠' },
@@ -19,6 +21,7 @@ const TABS: TabConfig[] = [
   { id: TabType.Bookmarks, label: 'Bookmarks', icon: '🔖' },
   { id: TabType.Learn, label: 'Learn', icon: '📈' },
   { id: TabType.Guru, label: 'Guru', icon: '🤖' },
+  { id: TabType.Settings, label: 'Settings', icon: '⚙' },
 ];
 
 type RouteState = { kind: 'tab'; tabId: TabType } | { kind: 'kural'; kuralId: number };
@@ -31,9 +34,7 @@ function parsePath(pathname: string): RouteState {
 
   if (segments[0]?.toUpperCase() === 'KURAL' && segments[1]) {
     const kuralId = Number(segments[1]);
-    if (Number.isFinite(kuralId) && kuralId > 0) {
-      return { kind: 'kural', kuralId };
-    }
+    if (Number.isFinite(kuralId) && kuralId > 0) return { kind: 'kural', kuralId };
   }
 
   const candidate = segments[0]?.toUpperCase() as TabType | undefined;
@@ -44,10 +45,47 @@ function parsePath(pathname: string): RouteState {
   return { kind: 'tab', tabId: DEFAULT_TAB };
 }
 
+// ─── greeting banner ─────────────────────────────────────────────────────────
+
+function GreetingBanner() {
+  const { settings } = useSettings();
+  const { theme } = useTheme();
+
+  if (!settings.userName) return null;
+
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'காலை வணக்கம்' : hour < 17 ? 'மதிய வணக்கம்' : 'மாலை வணக்கம்';
+  const greetingEn = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+
+  return (
+    <View
+      style={{
+        paddingHorizontal: theme.layout.screenPadding,
+        paddingTop: 10,
+        paddingBottom: 4,
+      }}
+    >
+      <KuralText
+        isTamil
+        variant="bodyNormal"
+        style={{ color: theme.colors.primary, fontWeight: '700' }}
+      >
+        {greeting}, {settings.userName}!
+      </KuralText>
+      <KuralText variant="caption" style={{ color: theme.colors.textSecondary }}>
+        {greetingEn}, {settings.userName}!
+      </KuralText>
+    </View>
+  );
+}
+
+// ─── navigator ───────────────────────────────────────────────────────────────
+
 export default function TabNavigator() {
   const { width } = useWindowDimensions();
   const isWidescreen = width > 768;
   const { componentStyles } = useTheme();
+  const { settings } = useSettings();
 
   const initialRoute: RouteState =
     Platform.OS === 'web' && typeof window !== 'undefined'
@@ -62,28 +100,23 @@ export default function TabNavigator() {
   useEffect(() => {
     if (Platform.OS !== 'web') return;
 
-    // 1. Read initial browser path on cold boot and hydrate the in-app route state.
-    const initialRoute = parsePath(window.location.pathname);
-    setRouteState(initialRoute);
-    setActiveTab(initialRoute.kind === 'kural' ? TabType.Explore : initialRoute.tabId);
+    const initial = parsePath(window.location.pathname);
+    setRouteState(initial);
+    setActiveTab(initial.kind === 'kural' ? TabType.Explore : initial.tabId);
 
-    // 2. Handle browser Back/Forward arrow buttons
     const handlePopState = () => {
-      const nextRoute = parsePath(window.location.pathname);
-      setRouteState(nextRoute);
-      setActiveTab(nextRoute.kind === 'kural' ? TabType.Explore : nextRoute.tabId);
+      const next = parsePath(window.location.pathname);
+      setRouteState(next);
+      setActiveTab(next.kind === 'kural' ? TabType.Explore : next.tabId);
     };
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Handler for changing tabs
   const handleTabPress = (tabId: TabType) => {
     setActiveTab(tabId);
     setRouteState({ kind: 'tab', tabId });
-
-    // Update web address URL bar without forcing a hard page reload
     if (Platform.OS === 'web') {
       window.history.pushState(null, '', `/${tabId}`);
     }
@@ -92,15 +125,12 @@ export default function TabNavigator() {
   const handleKuralPress = (kuralId: number) => {
     setActiveTab(TabType.Explore);
     setRouteState({ kind: 'kural', kuralId });
-
     if (Platform.OS === 'web') {
       window.history.pushState(null, '', `/KURAL/${kuralId}`);
     }
   };
 
-  const handleDetailBack = () => {
-    handleTabPress(TabType.Explore);
-  };
+  const handleDetailBack = () => handleTabPress(TabType.Explore);
 
   const renderActiveScreen = () => {
     if (routeState.kind === 'kural') {
@@ -109,7 +139,12 @@ export default function TabNavigator() {
 
     switch (activeTab) {
       case TabType.Home:
-        return <KuralOfTheDayView />;
+        return (
+          <View style={{ flex: 1 }}>
+            <GreetingBanner />
+            <KuralOfTheDayView />
+          </View>
+        );
       case TabType.Explore:
         return <KuralListView onKuralPress={handleKuralPress} />;
       case TabType.Bookmarks:
@@ -120,7 +155,7 @@ export default function TabNavigator() {
             icon="📈"
             title="Learn"
             subtitle="Study Path"
-            body="This area is reserved for future learning tools like topic tags, patterns, and guided study flows."
+            body="Reserved for learning tools like topic tags, patterns, and guided study flows."
           />
         );
       case TabType.Guru:
@@ -132,9 +167,19 @@ export default function TabNavigator() {
             body="The guided interpreter experience will live here once the reasoning and retrieval layers are connected."
           />
         );
+      case TabType.Settings:
+        return <SettingsView />;
       default:
         return <KuralOfTheDayView />;
     }
+  };
+
+  // Resolve nav label based on langToggles.navLabels
+  const getTabLabel = (tab: TabConfig): string => {
+    const toggle = settings.langToggles.navLabels;
+    if (toggle.english) return tab.label;
+    // tamil-only: we don't have Tamil tab labels in the type yet, fall back to label
+    return tab.label;
   };
 
   const renderNavigationLinks = () => {
@@ -157,7 +202,7 @@ export default function TabNavigator() {
             variant="caption"
             style={[componentStyles.navTabText, isActive && componentStyles.navTabTextActive]}
           >
-            {tab.label}
+            {getTabLabel(tab)}
           </KuralText>
         </TouchableOpacity>
       );
