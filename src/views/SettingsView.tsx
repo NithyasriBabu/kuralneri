@@ -20,6 +20,8 @@ import {
   TamilFont,
   FontSizeScale,
   ThemeMode,
+  EnglishFont,
+  ENGLISH_FONT_FAMILIES,
 } from 'src/types/settings';
 import { clearAllBookmarks } from 'src/data/services/settingsService';
 
@@ -266,7 +268,7 @@ function LangToggleRow({ toggleKey }: { toggleKey: LangToggleKey }) {
 // ─── main view ───────────────────────────────────────────────────────────────
 
 export default function SettingsView() {
-  const { theme, componentStyles } = useTheme();
+  const { theme, setThemeMode } = useTheme();
   const { settings, updateSettings, resetSettings } = useSettings();
 
   const [nameInput, setNameInput] = useState(settings.userName);
@@ -295,7 +297,14 @@ export default function SettingsView() {
   const TAMIL_FONT_OPTIONS: { label: string; value: TamilFont }[] = [
     { label: 'Mukta Malar', value: 'MuktaMalar' },
     { label: 'Latha', value: 'Latha' },
-    { label: 'Vijaya', value: 'Vijaya' },
+    { label: 'Catamaran', value: 'Catamaran' },
+    { label: 'Arima Madurai', value: 'ArimaMadurai' },
+  ];
+
+  const ENGLISH_FONT_OPTIONS: { label: string; value: EnglishFont }[] = [
+    { label: 'Inter', value: 'Inter' },
+    { label: 'Merriweather', value: 'Merriweather' },
+    { label: 'Source Serif', value: 'SourceSerif' },
   ];
 
   const LANG_TOGGLE_KEYS: LangToggleKey[] = [
@@ -457,7 +466,10 @@ export default function SettingsView() {
           <SegmentedControl
             options={THEME_OPTIONS}
             selected={settings.themeMode}
-            onSelect={(v) => updateSettings({ themeMode: v })}
+            onSelect={(v) => {
+              updateSettings({ themeMode: v });
+              setThemeMode(v);
+            }}
           />
         </View>
 
@@ -503,6 +515,46 @@ export default function SettingsView() {
                     }}
                   >
                     {opt.label} — குறள்
+                  </KuralText>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        <View
+          style={{
+            paddingVertical: 10,
+            borderBottomWidth: 1,
+            borderBottomColor: theme.colors.surface,
+          }}
+        >
+          <RowLabel label="English font" sub="Affects all English text rendering" />
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
+            {ENGLISH_FONT_OPTIONS.map((opt) => {
+              const active = opt.value === settings.englishFont;
+              return (
+                <TouchableOpacity
+                  key={opt.value}
+                  onPress={() => updateSettings({ englishFont: opt.value })}
+                  style={{
+                    paddingHorizontal: 14,
+                    paddingVertical: 10,
+                    borderRadius: theme.layout.borderRadius.medium,
+                    backgroundColor: active ? theme.colors.accent : theme.colors.surface,
+                    borderWidth: 1,
+                    borderColor: active ? theme.colors.primary : theme.colors.border,
+                  }}
+                >
+                  <KuralText
+                    variant="bodyNormal"
+                    style={{
+                      color: active ? theme.colors.primary : theme.colors.textPrimary,
+                      fontWeight: active ? '700' : '400',
+                      fontFamily: ENGLISH_FONT_FAMILIES[opt.value],
+                    }}
+                  >
+                    The quick brown fox — {opt.label}
                   </KuralText>
                 </TouchableOpacity>
               );

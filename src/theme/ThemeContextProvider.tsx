@@ -8,12 +8,16 @@ import { createGlobalStyles } from 'src/theme/global.styles';
 import { createComponentStyles } from 'src/theme/component.styles';
 import { loadThemeMode, saveThemeMode } from 'src/data/services/themePreferences';
 
+import { useSettings } from 'src/context/SettingsContext';
+
 // Settings integration — optional, may not be mounted yet
 import {
   FONT_SIZE_MULTIPLIERS,
   TAMIL_FONT_FAMILIES,
+  ENGLISH_FONT_FAMILIES,
   FontSizeScale,
   TamilFont,
+  EnglishFont,
 } from 'src/types/settings';
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -24,17 +28,21 @@ interface ThemeProviderProps {
   /** Injected by SettingsProvider bridge — avoids a circular dep */
   fontSizeScale?: FontSizeScale;
   tamilFont?: TamilFont;
+  englishFont?: EnglishFont;
   customBackground?: string;
   customForeground?: string;
 }
 
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({
-  children,
-  fontSizeScale = 'medium',
-  tamilFont = 'MuktaMalar',
-  customBackground = '',
-  customForeground = '',
-}) => {
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
+  const { settings } = useSettings();
+  const {
+    fontSizeScale,
+    tamilFont,
+    englishFont,
+    customBackground,
+    customForeground,
+    themeMode: settingsThemeMode,
+  } = settings;
   const { width } = useWindowDimensions();
   const colorScheme = useColorScheme();
   const isWideScreen = width >= WIDE_SCREEN_BREAKPOINT;
@@ -61,6 +69,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   const contextValue = useMemo<ThemeContextType>(() => {
     const sizeMult = FONT_SIZE_MULTIPLIERS[fontSizeScale];
     const tamilFontFamily = TAMIL_FONT_FAMILIES[tamilFont];
+    const englishFontFamily = ENGLISH_FONT_FAMILIES[englishFont];
 
     const scaledSizes = {
       h1: Math.round(24 * sizeMult),
@@ -83,6 +92,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
         fonts: {
           ...baseTheme.typography.fonts,
           tamil: tamilFontFamily,
+          english: englishFontFamily,
         },
         sizes: scaledSizes,
       },
@@ -116,6 +126,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     resolvedThemeMode,
     fontSizeScale,
     tamilFont,
+    englishFont,
     customBackground,
     customForeground,
   ]);

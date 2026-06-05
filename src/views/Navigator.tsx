@@ -7,7 +7,6 @@ import { useSettings } from 'src/context/SettingsContext';
 import { TabConfig, TabType } from 'src/types/types';
 import { KuralText } from 'src/components/common/KuralText';
 import { FeaturePlaceholder } from 'src/components/common/FeaturePlaceholder';
-import { ThemeToggle } from 'src/components/common/ThemeToggle';
 
 import KuralListView from 'src/views/KuralListView';
 import BookmarksView from 'src/views/BookmarksView';
@@ -211,10 +210,6 @@ export default function TabNavigator() {
 
   return (
     <SafeAreaView style={componentStyles.navShell} edges={['top', 'left', 'right', 'bottom']}>
-      <View style={componentStyles.navToggleDock}>
-        <ThemeToggle />
-      </View>
-
       {isWidescreen && (
         <View style={[componentStyles.navNavbarContainer, componentStyles.navTopPlacement]}>
           {renderNavigationLinks()}

@@ -4,7 +4,9 @@
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
-export type TamilFont = 'MuktaMalar' | 'Latha' | 'Vijaya';
+export type TamilFont = 'MuktaMalar' | 'Latha' | 'Catamaran' | 'ArimaMadurai';
+
+export type EnglishFont = 'Inter' | 'Merriweather' | 'SourceSerif';
 
 export type FontSizeScale = 'small' | 'medium' | 'large' | 'xlarge';
 
@@ -29,6 +31,7 @@ export interface AppSettings {
   preferredAuthorCode: string; // 'mv' | 'sp' | 'mk' | '' (all)
   themeMode: ThemeMode;
   tamilFont: TamilFont;
+  englishFont: EnglishFont;
   fontSizeScale: FontSizeScale;
   /** Custom background color override — empty string = use theme default */
   customBackground: string;
@@ -50,6 +53,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   preferredAuthorCode: '',
   themeMode: 'system',
   tamilFont: 'MuktaMalar',
+  englishFont: 'Inter',
   fontSizeScale: 'medium',
   customBackground: '',
   customForeground: '',
@@ -66,7 +70,14 @@ export const FONT_SIZE_MULTIPLIERS: Record<FontSizeScale, number> = {
 export const TAMIL_FONT_FAMILIES: Record<TamilFont, string> = {
   MuktaMalar: 'MuktaMalar-Regular',
   Latha: 'Latha',
-  Vijaya: 'Vijaya',
+  Catamaran: 'Catamaran-Regular',
+  ArimaMadurai: 'ArimaMadurai-Regular',
+};
+
+export const ENGLISH_FONT_FAMILIES: Record<EnglishFont, string> = {
+  Inter: 'Inter-Regular',
+  Merriweather: 'Merriweather-Regular',
+  SourceSerif: 'SourceSerif-Regular',
 };
 
 export const LANG_TOGGLE_LABELS: Record<LangToggleKey, { tamil: string; english: string }> = {

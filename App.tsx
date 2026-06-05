@@ -7,7 +7,12 @@ import {
   MuktaMalar_400Regular,
   MuktaMalar_700Bold,
 } from '@expo-google-fonts/mukta-malar';
+import { Catamaran_400Regular, Catamaran_700Bold } from '@expo-google-fonts/catamaran';
+import { ArimaMadurai_400Regular, ArimaMadurai_700Bold } from '@expo-google-fonts/arima-madurai';
+
 import { Inter_400Regular } from '@expo-google-fonts/inter';
+import { Merriweather_400Regular } from '@expo-google-fonts/merriweather';
+import { SourceSerifPro_400Regular } from '@expo-google-fonts/source-serif-pro';
 
 import { setupDatabase } from 'src/data/database';
 import TabNavigator from 'src/views/Navigator';
@@ -28,7 +33,14 @@ function ThemedApp() {
   let [fontsLoaded] = useFonts({
     'MuktaMalar-Regular': MuktaMalar_400Regular,
     'MuktaMalar-Bold': MuktaMalar_700Bold,
+    'Catamaran-Regular': Catamaran_400Regular,
+    'Catamaran-Bold': Catamaran_700Bold,
+    'ArimaMadurai-Regular': ArimaMadurai_400Regular,
+    'ArimaMadurai-Bold': ArimaMadurai_700Bold,
     'Inter-Regular': Inter_400Regular,
+    'Merriweather-Regular': Merriweather_400Regular,
+    'SourceSerif-Regular': SourceSerifPro_400Regular,
+    'SourceSerif-Bold': SourceSerifPro_400Regular,
   });
 
   useEffect(() => {
@@ -53,12 +65,7 @@ function ThemedApp() {
   }, []);
 
   return (
-    <ThemeProvider
-      fontSizeScale={settings.fontSizeScale}
-      tamilFont={settings.tamilFont}
-      customBackground={settings.customBackground}
-      customForeground={settings.customForeground}
-    >
+    <ThemeProvider>
       <AppContent
         dbReady={dbReady}
         fontsLoaded={fontsLoaded}
