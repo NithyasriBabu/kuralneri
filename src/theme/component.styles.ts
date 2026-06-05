@@ -211,6 +211,43 @@ export const createComponentStyles = (theme: AppTheme) => {
       textAlign: 'center',
       marginTop: 14,
     } as TextStyle,
+    themeToggleButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      alignSelf: 'flex-end',
+      backgroundColor: theme.colors.surfaceElevated,
+      borderRadius: theme.layout.borderRadius.large,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.08,
+      shadowRadius: 2,
+      elevation: 2,
+    } as ViewStyle,
+    themeToggleIcon: {
+      fontSize: 14,
+      color: theme.colors.primary,
+    } as TextStyle,
+    themeToggleTextGroup: {
+      flexDirection: 'column',
+    } as ViewStyle,
+    themeToggleLabel: {
+      fontFamily: theme.typography.fonts.english,
+      fontSize: theme.typography.sizes.caption - 1,
+      color: theme.colors.textSecondary,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    } as TextStyle,
+    themeToggleValue: {
+      fontFamily: theme.typography.fonts.english,
+      fontSize: theme.typography.sizes.bodyNormal - 1,
+      color: theme.colors.textPrimary,
+      fontWeight: '700',
+    } as TextStyle,
 
     /* ==========================================================================
        KURAL LIST VIEW / PAGINATION RIBBON
@@ -242,7 +279,7 @@ export const createComponentStyles = (theme: AppTheme) => {
       alignItems: 'center',
     } as ViewStyle,
     kuralListPaginationContainer: {
-      backgroundColor: theme.colors.primary,
+      backgroundColor: theme.colors.background,
       position: 'absolute',
       bottom: 0,
       left: 0,
@@ -279,7 +316,7 @@ export const createComponentStyles = (theme: AppTheme) => {
       opacity: 0.3,
     } as ViewStyle,
     kuralListStepperButtonText: {
-      color: theme.colors.primary,
+      color: theme.colors.textPrimary,
       fontSize: 22,
       fontWeight: 'bold',
       textAlign: 'center',
@@ -307,12 +344,12 @@ export const createComponentStyles = (theme: AppTheme) => {
     } as ViewStyle,
     kuralListNumberText: {
       fontFamily: theme.typography.fonts.english,
-      color: theme.colors.accent,
+      color: theme.colors.textPrimary,
       fontSize: theme.typography.sizes.caption + 2,
       fontWeight: '600',
     } as TextStyle,
     kuralListNumberTextActive: {
-      color: theme.colors.primary,
+      color: theme.colors.textPrimary,
       fontWeight: 'bold',
     } as TextStyle,
     kuralListMetaRow: {
@@ -338,7 +375,7 @@ export const createComponentStyles = (theme: AppTheme) => {
       fontFamily: theme.typography.fonts.english,
       fontSize: theme.typography.sizes.bodyNormal - 1,
       fontWeight: 'bold',
-      color: theme.dark ? theme.colors.textPrimary : theme.colors.surfaceElevated,
+      color: theme.colors.textPrimary,
     } as TextStyle,
     kuralListBadgeCluster: {
       flexDirection: 'row',
@@ -348,7 +385,7 @@ export const createComponentStyles = (theme: AppTheme) => {
       fontFamily: theme.typography.fonts.english,
       fontSize: theme.typography.sizes.bodyNormal - 2,
       fontWeight: 'bold',
-      color: theme.dark ? theme.colors.textPrimary : theme.colors.surfaceElevated,
+      color: theme.colors.textPrimary,
       marginRight: 6,
     } as TextStyle,
     kuralListLimitBadge: {
@@ -370,10 +407,10 @@ export const createComponentStyles = (theme: AppTheme) => {
       fontFamily: theme.typography.fonts.english,
       fontSize: theme.typography.sizes.caption - 1,
       fontWeight: 'bold',
-      color: theme.dark ? theme.colors.textPrimary : theme.colors.surfaceElevated,
+      color: theme.colors.textPrimary,
     } as TextStyle,
     kuralListLimitBadgeTextActive: {
-      color: theme.dark ? theme.colors.background : theme.colors.primary,
+      color: theme.colors.textPrimary,
     } as TextStyle,
 
     /* ==========================================================================
@@ -425,7 +462,7 @@ export const createComponentStyles = (theme: AppTheme) => {
     } as ViewStyle,
     navNavbarContainer: {
       flexDirection: 'row',
-      backgroundColor: theme.dark ? theme.colors.surfaceElevated : theme.colors.primary,
+      backgroundColor: theme.colors.background,
       width: '100%',
       height: 64,
     } as ViewStyle,
@@ -442,7 +479,7 @@ export const createComponentStyles = (theme: AppTheme) => {
     navTabIcon: {
       fontSize: 16,
       opacity: 0.7,
-      color: theme.dark ? theme.colors.textPrimary : theme.colors.surfaceElevated,
+      color: theme.colors.textPrimary,
     } as TextStyle,
     navTabButton: {
       flex: 1,
@@ -457,7 +494,7 @@ export const createComponentStyles = (theme: AppTheme) => {
       borderBottomColor: theme.colors.primary,
     } as ViewStyle,
     navTabText: {
-      color: theme.dark ? theme.colors.textPrimary : theme.colors.surfaceElevated,
+      color: theme.colors.textPrimary,
       fontSize: theme.typography.sizes.caption,
       fontWeight: '600',
       marginTop: 4,
@@ -466,7 +503,7 @@ export const createComponentStyles = (theme: AppTheme) => {
       opacity: 0.7,
     } as TextStyle,
     navTabTextActive: {
-      color: theme.dark ? theme.colors.background : theme.colors.primary,
+      color: theme.colors.textPrimary,
       fontWeight: '800',
       opacity: 1,
     } as TextStyle,
@@ -479,12 +516,18 @@ export const createComponentStyles = (theme: AppTheme) => {
       width: '100%',
       flex: 1,
     } as ViewStyle,
+    navToggleDock: {
+      position: 'absolute',
+      top: 12,
+      right: 12,
+      zIndex: 20,
+    } as ViewStyle,
 
     /* ==========================================================================
        FEED PAGINATION & COMPACT TELEMETRY RIBBON
        ========================================================================== */
     ribbonContainer: {
-      backgroundColor: theme.dark ? theme.colors.surfaceElevated : theme.colors.primary,
+      backgroundColor: theme.colors.background,
       position: 'absolute',
       bottom: 0,
       left: 0,
@@ -516,7 +559,7 @@ export const createComponentStyles = (theme: AppTheme) => {
       opacity: 0.3,
     } as ViewStyle,
     ribbonStepText: {
-      color: theme.dark ? theme.colors.background : theme.colors.primary,
+      color: theme.colors.textPrimary,
       fontSize: 22,
       fontWeight: 'bold',
       lineHeight: Platform.OS === 'ios' ? 24 : 28,
@@ -534,12 +577,12 @@ export const createComponentStyles = (theme: AppTheme) => {
     } as ViewStyle,
     ribbonNumberText: {
       fontFamily: theme.typography.fonts.english,
-      color: theme.colors.accent,
+      color: theme.colors.textPrimary,
       fontSize: 14,
       fontWeight: '600',
     } as TextStyle,
     ribbonNumberTextActive: {
-      color: theme.dark ? theme.colors.background : theme.colors.primary,
+      color: theme.colors.textPrimary,
       fontWeight: 'bold',
     } as TextStyle,
 

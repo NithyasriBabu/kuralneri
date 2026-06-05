@@ -30,12 +30,16 @@ export const KuralDropdown: React.FC<KuralDropdownProps> = ({
   containerStyle,
 }) => {
   const { theme, globalStyles } = useTheme();
+  const pickerTextColor = theme.colors.textPrimary;
+  const pickerBackgroundColor = theme.colors.surfaceElevated;
 
   const webStyles = {
     outlineStyle: 'none',
     borderWidth: 0,
     cursor: 'pointer',
     paddingRight: 10,
+    color: pickerTextColor,
+    backgroundColor: pickerBackgroundColor,
   };
 
   const renderItems = React.useMemo(() => {
@@ -64,7 +68,17 @@ export const KuralDropdown: React.FC<KuralDropdownProps> = ({
           selectedValue={selectedValue}
           onValueChange={onValueChange}
           enabled={!disabled}
-          style={[globalStyles.pickerPrimitive, Platform.OS === 'web' && (webStyles as any)]}
+          style={[
+            globalStyles.pickerPrimitive,
+            { color: pickerTextColor, backgroundColor: pickerBackgroundColor },
+            Platform.OS === 'web' && (webStyles as any),
+          ]}
+          itemStyle={{
+            color: pickerTextColor,
+            fontFamily: /[\u0B80-\u0BFF]/.test(label || '')
+              ? theme.typography.fonts.tamil
+              : theme.typography.fonts.english,
+          }}
           dropdownIconColor={disabled ? theme.colors.disabledText : theme.colors.primary}
           mode="dropdown"
         >
@@ -73,7 +87,7 @@ export const KuralDropdown: React.FC<KuralDropdownProps> = ({
               key={`${item.value}-${index}`}
               label={item.label}
               value={item.value}
-              color={item.value === '' ? theme.colors.disabledText : theme.colors.textPrimary}
+              color={item.value === '' ? theme.colors.disabledText : pickerTextColor}
               style={{
                 fontSize: theme.typography.sizes.bodyNormal,
                 fontFamily: /[\u0B80-\u0BFF]/.test(item.label)

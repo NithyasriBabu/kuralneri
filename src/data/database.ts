@@ -76,6 +76,11 @@ const DATABASE_SCHEMA_SQL: string = `
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (kural_id) REFERENCES kurals (id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS app_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
   `;
 
 const AUTHOR_PRESETS = [

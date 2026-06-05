@@ -1,12 +1,13 @@
 // src/context/ThemeContext.tsx
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useColorScheme, useWindowDimensions } from 'react-native';
 
-import { AppTheme, ThemeContextType } from 'src/theme/types';
+import { AppTheme, ThemeContextType, ThemeMode } from 'src/theme/types';
 import { DarkEarthyTheme, EarthyTheme } from 'src/theme/styles';
 
 import { createGlobalStyles } from 'src/theme/global.styles';
 import { createComponentStyles } from 'src/theme/component.styles';
+import { loadThemeMode, saveThemeMode } from 'src/data/services/themePreferences';
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 const WIDE_SCREEN_BREAKPOINT = 768;
@@ -15,7 +16,26 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const { width } = useWindowDimensions();
   const colorScheme = useColorScheme();
   const isWideScreen = width >= WIDE_SCREEN_BREAKPOINT;
-  const baseTheme = colorScheme === 'dark' ? DarkEarthyTheme : EarthyTheme;
+  const systemThemeMode: ThemeMode = colorScheme === 'dark' ? 'dark' : 'light';
+  const [themeMode, setThemeModeState] = useState<ThemeMode | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      const savedMode = await loadThemeMode();
+      if (cancelled) return;
+
+      setThemeModeState(savedMode);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const resolvedThemeMode = themeMode ?? systemThemeMode;
+  const baseTheme = resolvedThemeMode === 'dark' ? DarkEarthyTheme : EarthyTheme;
 
   const contextValue = useMemo<ThemeContextType>(() => {
     const responsiveTheme: AppTheme = {
@@ -35,8 +55,18 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       theme: responsiveTheme,
       globalStyles: createGlobalStyles(responsiveTheme),
       componentStyles: createComponentStyles(responsiveTheme),
+      themeMode: resolvedThemeMode,
+      setThemeMode: (mode: ThemeMode) => {
+        setThemeModeState(mode);
+        void saveThemeMode(mode);
+      },
+      toggleThemeMode: () => {
+        const nextMode = resolvedThemeMode === 'dark' ? 'light' : 'dark';
+        setThemeModeState(nextMode);
+        void saveThemeMode(nextMode);
+      },
     };
-  }, [baseTheme, isWideScreen]);
+  }, [baseTheme, isWideScreen, resolvedThemeMode]);
 
   return <ThemeContext.Provider value={contextValue}>{children}</ThemeContext.Provider>;
 };

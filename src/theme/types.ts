@@ -9,7 +9,12 @@ export interface ThemeContextType {
   theme: AppTheme;
   globalStyles: GlobalStylesType;
   componentStyles: ComponentStylesType;
+  themeMode: ThemeMode;
+  setThemeMode: (mode: ThemeMode) => void;
+  toggleThemeMode: () => void;
 }
+
+export type ThemeMode = 'light' | 'dark';
 
 export interface ColorState {
   default: string;
