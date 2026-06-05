@@ -15,7 +15,11 @@ import { FilterHeader } from 'src/components/FilterHeader';
 import KuralCard from 'src/components/KuralCard';
 import { useTheme } from 'src/theme/ThemeContextProvider';
 
-export default function KuralListView() {
+interface KuralListViewProps {
+  onKuralPress?: (kuralId: number) => void;
+}
+
+export default function KuralListView({ onKuralPress }: KuralListViewProps) {
   const [kuralsPerPage, setKuralsPerPage] = useState<number>(10);
   const DEFAULT_LIMIT_OPTIONS = [10, 20, 30, 50, 100];
   const [limitOptions, setLimitOptions] = useState<number[]>(DEFAULT_LIMIT_OPTIONS);
@@ -113,7 +117,10 @@ export default function KuralListView() {
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
             <View style={[componentStyles.kuralListCardWrapper, wrapperStyle]}>
-              <KuralCard kural={item} />
+              <KuralCard
+                kural={item}
+                onPress={onKuralPress ? () => onKuralPress(item.id) : undefined}
+              />
             </View>
           )}
           contentContainerStyle={componentStyles.kuralListPadding}

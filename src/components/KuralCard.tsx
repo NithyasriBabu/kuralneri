@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { Text, View, TouchableOpacity } from 'react-native';
 
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { KuralRecord } from 'src/types/types';
@@ -7,13 +7,14 @@ import { KuralRecord } from 'src/types/types';
 interface KuralCardProps {
   kural: KuralRecord;
   showComments?: boolean;
+  onPress?: () => void;
 }
 
-export default React.memo(function KuralCard({ kural, showComments }: KuralCardProps) {
+export default React.memo(function KuralCard({ kural, showComments, onPress }: KuralCardProps) {
   const { componentStyles } = useTheme();
 
-  return (
-    <View style={componentStyles.kuralCard}>
+  const content = (
+    <>
       <Text style={componentStyles.kuralCardNumber}>
         Kural #{kural.id} • {kural.paal_name} — {kural.adhikaram_name}
       </Text>
@@ -40,6 +41,22 @@ export default React.memo(function KuralCard({ kural, showComments }: KuralCardP
           ))}
         </View>
       )}
-    </View>
+    </>
   );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity
+        activeOpacity={0.88}
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={`Open Kural ${kural.id}`}
+        style={[componentStyles.kuralCard, componentStyles.kuralCardInteractive]}
+      >
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return <View style={componentStyles.kuralCard}>{content}</View>;
 });

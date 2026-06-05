@@ -20,6 +20,9 @@ export const createComponentStyles = (theme: AppTheme) => {
       shadowOpacity: 0.1,
       shadowRadius: 2,
     } as ViewStyle,
+    kuralCardInteractive: {
+      overflow: 'hidden',
+    } as ViewStyle,
     kuralCardNumber: {
       color: theme.colors.textSecondary,
       fontWeight: 'bold',

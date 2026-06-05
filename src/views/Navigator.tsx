@@ -10,6 +10,7 @@ import { ThemeToggle } from 'src/components/common/ThemeToggle';
 
 import KuralListView from 'src/views/KuralListView';
 import KuralOfTheDayView from 'src/views/KuralOfTheDayView';
+import KuralDetailView from 'src/views/KuralDetailView';
 
 const TABS: TabConfig[] = [
   { id: TabType.Home, label: 'Home', icon: '🏠' },
@@ -19,28 +20,57 @@ const TABS: TabConfig[] = [
   { id: TabType.Guru, label: 'Guru', icon: '🤖' },
 ];
 
+type RouteState = { kind: 'tab'; tabId: TabType } | { kind: 'kural'; kuralId: number };
+
+const DEFAULT_TAB: TabType = TabType.Home;
+
+function parsePath(pathname: string): RouteState {
+  const path = pathname.replace(/^\/+|\/+$/g, '');
+  const segments = path ? path.split('/') : [];
+
+  if (segments[0]?.toUpperCase() === 'KURAL' && segments[1]) {
+    const kuralId = Number(segments[1]);
+    if (Number.isFinite(kuralId) && kuralId > 0) {
+      return { kind: 'kural', kuralId };
+    }
+  }
+
+  const candidate = segments[0]?.toUpperCase() as TabType | undefined;
+  if (candidate && TABS.some((t) => t.id === candidate)) {
+    return { kind: 'tab', tabId: candidate };
+  }
+
+  return { kind: 'tab', tabId: DEFAULT_TAB };
+}
+
 export default function TabNavigator() {
   const { width } = useWindowDimensions();
   const isWidescreen = width > 768;
   const { componentStyles } = useTheme();
 
-  const [activeTab, setActiveTab] = useState<TabType>(TabType.Home);
+  const initialRoute: RouteState =
+    Platform.OS === 'web' && typeof window !== 'undefined'
+      ? parsePath(window.location.pathname)
+      : { kind: 'tab', tabId: DEFAULT_TAB };
+
+  const [activeTab, setActiveTab] = useState<TabType>(
+    initialRoute.kind === 'kural' ? TabType.Explore : initialRoute.tabId,
+  );
+  const [routeState, setRouteState] = useState<RouteState>(initialRoute);
 
   useEffect(() => {
     if (Platform.OS !== 'web') return;
 
-    // 1. Read initial browser path on cold boot (e.g., myapp.com/explore -> opens Explore tab)
-    const currentPath = window.location.pathname.replace('/', '') as TabType;
-    if (TABS.some((t) => t.id === currentPath)) {
-      setActiveTab(currentPath);
-    }
+    // 1. Read initial browser path on cold boot and hydrate the in-app route state.
+    const initialRoute = parsePath(window.location.pathname);
+    setRouteState(initialRoute);
+    setActiveTab(initialRoute.kind === 'kural' ? TabType.Explore : initialRoute.tabId);
 
     // 2. Handle browser Back/Forward arrow buttons
     const handlePopState = () => {
-      const path = window.location.pathname.replace('/', '') as TabType;
-      if (TABS.some((t) => t.id === path)) {
-        setActiveTab(path);
-      }
+      const nextRoute = parsePath(window.location.pathname);
+      setRouteState(nextRoute);
+      setActiveTab(nextRoute.kind === 'kural' ? TabType.Explore : nextRoute.tabId);
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -50,6 +80,7 @@ export default function TabNavigator() {
   // Handler for changing tabs
   const handleTabPress = (tabId: TabType) => {
     setActiveTab(tabId);
+    setRouteState({ kind: 'tab', tabId });
 
     // Update web address URL bar without forcing a hard page reload
     if (Platform.OS === 'web') {
@@ -57,12 +88,29 @@ export default function TabNavigator() {
     }
   };
 
+  const handleKuralPress = (kuralId: number) => {
+    setActiveTab(TabType.Explore);
+    setRouteState({ kind: 'kural', kuralId });
+
+    if (Platform.OS === 'web') {
+      window.history.pushState(null, '', `/KURAL/${kuralId}`);
+    }
+  };
+
+  const handleDetailBack = () => {
+    handleTabPress(TabType.Explore);
+  };
+
   const renderActiveScreen = () => {
+    if (routeState.kind === 'kural') {
+      return <KuralDetailView kuralId={routeState.kuralId} onBack={handleDetailBack} />;
+    }
+
     switch (activeTab) {
       case TabType.Home:
         return <KuralOfTheDayView />;
       case TabType.Explore:
-        return <KuralListView />;
+        return <KuralListView onKuralPress={handleKuralPress} />;
       case TabType.Favorites:
         return (
           <FeaturePlaceholder
