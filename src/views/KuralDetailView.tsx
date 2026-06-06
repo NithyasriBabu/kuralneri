@@ -4,7 +4,9 @@ import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'rea
 import { getKuralById, setKuralBookmarkStatus } from 'src/data/services';
 import KuralCard from 'src/components/KuralCard';
 import { useTheme } from 'src/theme/ThemeContextProvider';
+import { useSettings } from 'src/context/SettingsContext';
 import { KuralRecord } from 'src/types/types';
+import { KuralText } from 'src/components/common/KuralText';
 
 interface KuralDetailViewProps {
   kuralId: number;
@@ -13,6 +15,8 @@ interface KuralDetailViewProps {
 
 export default function KuralDetailView({ kuralId, onBack }: KuralDetailViewProps) {
   const { theme, componentStyles } = useTheme();
+  const { settings } = useSettings();
+  const { sectionHeaders: headerToggle } = settings.langToggles;
   const [kural, setKural] = useState<KuralRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -66,8 +70,12 @@ export default function KuralDetailView({ kuralId, onBack }: KuralDetailViewProp
       contentContainerStyle={componentStyles.kuralOfTheDayContent}
     >
       <View style={componentStyles.kuralOfTheDayHeader}>
-        <Text style={componentStyles.kuralOfTheDayTamilHeader}>குறள் #{kuralId}</Text>
-        <Text style={componentStyles.kuralOfTheDayEnglishHeader}>Kural Detail</Text>
+        {headerToggle.tamil && (
+          <KuralText style={componentStyles.kuralOfTheDayTamilHeader}>குறள் #{kuralId}</KuralText>
+        )}
+        {headerToggle.english && (
+          <KuralText style={componentStyles.kuralOfTheDayEnglishHeader}>Kural Detail</KuralText>
+        )}
       </View>
 
       {onBack && (

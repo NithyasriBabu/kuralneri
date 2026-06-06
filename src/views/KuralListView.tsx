@@ -15,6 +15,7 @@ import { FilterHeader } from 'src/components/FilterHeader';
 import KuralCard from 'src/components/KuralCard';
 import { setKuralBookmarkStatus } from 'src/data/services';
 import { useTheme } from 'src/theme/ThemeContextProvider';
+import { useSettings } from 'src/context/SettingsContext';
 
 interface KuralListViewProps {
   onKuralPress?: (kuralId: number) => void;
@@ -27,6 +28,8 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
 
   const { width } = useWindowDimensions();
   const { theme, componentStyles } = useTheme();
+  const { settings } = useSettings();
+  const { sectionHeaders: headerToggle } = settings.langToggles;
 
   const {
     kurals,

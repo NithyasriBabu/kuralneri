@@ -15,12 +15,12 @@ import KuralDetailView from 'src/views/KuralDetailView';
 import SettingsView from 'src/views/SettingsView';
 
 const TABS: TabConfig[] = [
-  { id: TabType.Home, label: 'Home', icon: '🏠' },
-  { id: TabType.Explore, label: 'Explore', icon: '🔍' },
-  { id: TabType.Bookmarks, label: 'Bookmarks', icon: '🔖' },
-  { id: TabType.Learn, label: 'Learn', icon: '📈' },
-  { id: TabType.Guru, label: 'Guru', icon: '🤖' },
-  { id: TabType.Settings, label: 'Settings', icon: '⚙' },
+  { id: TabType.Home, label: 'Home', tamilLabel: 'முகப்பு', icon: '🏠' },
+  { id: TabType.Explore, label: 'Explore', tamilLabel: 'தேடல்', icon: '🔍' },
+  { id: TabType.Bookmarks, label: 'Bookmarks', tamilLabel: 'சேமிப்பு', icon: '🔖' },
+  { id: TabType.Learn, label: 'Learn', tamilLabel: 'கற்றல்', icon: '📈' },
+  { id: TabType.Guru, label: 'Guru', tamilLabel: 'குரு', icon: '🤖' },
+  { id: TabType.Settings, label: 'Settings', tamilLabel: 'அமைப்பு', icon: '⚙' },
 ];
 
 type RouteState = { kind: 'tab'; tabId: TabType } | { kind: 'kural'; kuralId: number };
@@ -42,40 +42,6 @@ function parsePath(pathname: string): RouteState {
   }
 
   return { kind: 'tab', tabId: DEFAULT_TAB };
-}
-
-// ─── greeting banner ─────────────────────────────────────────────────────────
-
-function GreetingBanner() {
-  const { settings } = useSettings();
-  const { theme } = useTheme();
-
-  if (!settings.userName) return null;
-
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'காலை வணக்கம்' : hour < 17 ? 'மதிய வணக்கம்' : 'மாலை வணக்கம்';
-  const greetingEn = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-
-  return (
-    <View
-      style={{
-        paddingHorizontal: theme.layout.screenPadding,
-        paddingTop: 10,
-        paddingBottom: 4,
-      }}
-    >
-      <KuralText
-        isTamil
-        variant="bodyNormal"
-        style={{ color: theme.colors.primary, fontWeight: '700' }}
-      >
-        {greeting}, {settings.userName}!
-      </KuralText>
-      <KuralText variant="caption" style={{ color: theme.colors.textSecondary }}>
-        {greetingEn}, {settings.userName}!
-      </KuralText>
-    </View>
-  );
 }
 
 // ─── navigator ───────────────────────────────────────────────────────────────
@@ -140,7 +106,6 @@ export default function TabNavigator() {
       case TabType.Home:
         return (
           <View style={{ flex: 1 }}>
-            <GreetingBanner />
             <KuralOfTheDayView />
           </View>
         );
@@ -173,12 +138,12 @@ export default function TabNavigator() {
     }
   };
 
-  // Resolve nav label based on langToggles.navLabels
-  const getTabLabel = (tab: TabConfig): string => {
+  const getTabLabel = (tab: TabConfig): string | null => {
     const toggle = settings.langToggles.navLabels;
+    if (toggle.tamil && toggle.english) return `${tab.tamilLabel} / ${tab.label}`;
+    if (toggle.tamil) return tab.tamilLabel;
     if (toggle.english) return tab.label;
-    // tamil-only: we don't have Tamil tab labels in the type yet, fall back to label
-    return tab.label;
+    return null;
   };
 
   const renderNavigationLinks = () => {
@@ -191,18 +156,20 @@ export default function TabNavigator() {
           style={[componentStyles.navTabButton, isActive && componentStyles.navTabButtonActive]}
           onPress={() => handleTabPress(tab.id)}
         >
-          <KuralText
-            variant="bodyNormal"
-            style={[componentStyles.navTabIcon, { opacity: isActive ? 1 : 0.7 }]}
-          >
-            {tab.icon}
-          </KuralText>
-          <KuralText
-            variant="caption"
-            style={[componentStyles.navTabText, isActive && componentStyles.navTabTextActive]}
-          >
-            {getTabLabel(tab)}
-          </KuralText>
+          {(() => {
+            const label = getTabLabel(tab);
+            return label ? (
+              <KuralText
+                variant="caption"
+                isTamil={
+                  settings.langToggles.navLabels.tamil && !settings.langToggles.navLabels.english
+                }
+                style={[componentStyles.navTabText, isActive && componentStyles.navTabTextActive]}
+              >
+                {label}
+              </KuralText>
+            ) : null;
+          })()}
         </TouchableOpacity>
       );
     });

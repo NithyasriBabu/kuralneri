@@ -40,8 +40,11 @@ type KuralByIdRow = {
   transliteration1: string;
   transliteration2: string;
   adhikaram_name: string;
+  adhikaram_english_name: string;
   iyal_name: string;
+  iyal_english_name: string;
   paal_name: string;
+  paal_english_name: string;
   adhikaram_id: number;
   iyal_id: number;
   paal_id: number;
@@ -63,8 +66,11 @@ type BookmarkKuralRow = {
   transliteration1: string;
   transliteration2: string;
   adhikaram_name: string;
+  adhikaram_english_name: string;
   iyal_name: string;
+  iyal_english_name: string;
   paal_name: string;
+  paal_english_name: string;
   adhikaram_id: number;
   iyal_id: number;
   paal_id: number;
@@ -102,8 +108,11 @@ function assembleKuralFromRows(rows: KuralByIdRow[]): KuralRecord | null {
     transliteration1: head.transliteration1,
     transliteration2: head.transliteration2,
     adhikaram_name: head.adhikaram_name,
+    adhikaram_english_name: head.adhikaram_english_name,
     iyal_name: head.iyal_name,
+    iyal_english_name: head.iyal_english_name,
     paal_name: head.paal_name,
+    paal_english_name: head.paal_english_name,
     adhikaram_id: head.adhikaram_id,
     iyal_id: head.iyal_id,
     paal_id: head.paal_id,
@@ -124,8 +133,11 @@ function assembleBookmarkKural(row: BookmarkKuralRow): KuralRecord {
     transliteration1: row.transliteration1,
     transliteration2: row.transliteration2,
     adhikaram_name: row.adhikaram_name,
+    adhikaram_english_name: row.adhikaram_english_name,
     iyal_name: row.iyal_name,
+    iyal_english_name: row.iyal_english_name,
     paal_name: row.paal_name,
+    paal_english_name: row.paal_english_name,
     adhikaram_id: row.adhikaram_id,
     iyal_id: row.iyal_id,
     paal_id: row.paal_id,

@@ -16,6 +16,7 @@ import KuralCard from 'src/components/KuralCard';
 import { FeaturePlaceholder } from 'src/components/common/FeaturePlaceholder';
 import { setKuralBookmarkStatus } from 'src/data/services';
 import { useTheme } from 'src/theme/ThemeContextProvider';
+import { useSettings } from 'src/context/SettingsContext';
 
 interface BookmarksViewProps {
   onKuralPress?: (kuralId: number) => void;

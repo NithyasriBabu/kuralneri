@@ -6,6 +6,7 @@ import { useTheme } from 'src/theme/ThemeContextProvider';
 import { useSettings } from 'src/context/SettingsContext';
 
 import { KuralRecord } from 'src/types/types';
+import { KuralText } from './common/KuralText';
 
 interface KuralCardProps {
   kural: KuralRecord;
@@ -24,10 +25,21 @@ export default React.memo(function KuralCard({
 }: KuralCardProps) {
   const { theme, componentStyles } = useTheme();
   const { settings } = useSettings();
+  const {
+    kuralCard: cardToggle,
+    commentary: commentaryToggle,
+    sectionHeaders: headerToggle,
+  } = settings.langToggles;
 
   const [othersExpanded, setOthersExpanded] = useState(false);
 
   const preferredAuthorCode = settings.preferredAuthorCode;
+
+  const filterLabel = (tamil: string, english: string): string => {
+    if (commentaryToggle.tamil && commentaryToggle.english) return `${tamil} / ${english}`;
+    if (commentaryToggle.tamil) return tamil;
+    return english;
+  };
 
   const handleBookmarkPress = async () => {
     if (!onBookmarkToggle) return;
@@ -37,18 +49,35 @@ export default React.memo(function KuralCard({
   return (
     <View style={componentStyles.kuralCard}>
       <Pressable onPress={onPress} disabled={!onPress} style={componentStyles.kuralCardPressable}>
-        <View style={componentStyles.kuralCardHeaderRow}>
-          <Text style={[componentStyles.kuralCardNumber, componentStyles.kuralCardHeaderText]}>
-            Kural #{kural.id} • {kural.paal_name} — {kural.adhikaram_name}
-          </Text>
-        </View>
+        {headerToggle.tamil && (
+          <View style={componentStyles.kuralCardHeaderRow}>
+            <KuralText
+              style={[componentStyles.kuralCardNumber, componentStyles.kuralCardHeaderText]}
+            >
+              குறள் #{kural.id} • {kural.paal_name} — {kural.iyal_name} - {kural.adhikaram_name}
+            </KuralText>
+          </View>
+        )}
+        {headerToggle.english && (
+          <View style={componentStyles.kuralCardHeaderRow}>
+            <KuralText
+              style={[componentStyles.kuralCardNumber, componentStyles.kuralCardHeaderText]}
+            >
+              Kural #{kural.id} • {kural.paal_english_name} — {kural.iyal_english_name} —{' '}
+              {kural.adhikaram_english_name}
+            </KuralText>
+          </View>
+        )}
 
         <Text style={componentStyles.kuralCardTamil}>{kural.line1}</Text>
         <Text style={componentStyles.kuralCardTamil}>{kural.line2}</Text>
 
-        <Text style={componentStyles.kuralCardTranslation}>
-          {kural.translation || kural.explanation}
-        </Text>
+        {cardToggle.english && (
+          <>
+            <Text style={componentStyles.kuralCardTranslation}>{kural.translation}</Text>
+            <Text style={componentStyles.kuralCardTranslation}>{kural.explanation}</Text>
+          </>
+        )}
 
         {showComments &&
           kural.notes &&
@@ -64,23 +93,26 @@ export default React.memo(function KuralCard({
             return (
               <View style={{ marginTop: 16 }}>
                 <View style={componentStyles.commentaryDivider} />
+                <KuralText style={componentStyles.kuralCardNumber}>
+                  {filterLabel('உரை', 'Commentary')}
+                </KuralText>
 
-                {/* Primary commentary */}
-                <Text style={componentStyles.kuralCardNumber}>உரை / Commentary</Text>
                 {preferred ? (
                   <View style={componentStyles.commentaryNoteBlock}>
-                    <Text style={componentStyles.kuralCardNumber}>
+                    <KuralText style={componentStyles.kuralCardNumber}>
                       {preferred.author_name} ({preferred.author_code})
-                    </Text>
+                    </KuralText>
                     <Text style={componentStyles.kuralCardTranslation}>{preferred.note_text}</Text>
                   </View>
                 ) : (
                   others.map((note) => (
                     <View key={note.author_id} style={componentStyles.commentaryNoteBlock}>
-                      <Text style={componentStyles.kuralCardNumber}>
+                      <KuralText style={componentStyles.kuralCardNumber}>
                         {note.author_name} ({note.author_code})
-                      </Text>
-                      <Text style={componentStyles.kuralCardTranslation}>{note.note_text}</Text>
+                      </KuralText>
+                      <KuralText style={componentStyles.kuralCardTranslation}>
+                        {note.note_text}
+                      </KuralText>
                     </View>
                   ))
                 )}
@@ -92,21 +124,23 @@ export default React.memo(function KuralCard({
                       onPress={() => setOthersExpanded((v) => !v)}
                       style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
                     >
-                      <Text style={componentStyles.kuralCardNumber}>
-                        மற்ற உரைகள் / Other Commentaries ({others.length})
-                      </Text>
-                      <Text style={[componentStyles.kuralCardNumber, { fontSize: 10 }]}>
+                      <KuralText style={componentStyles.kuralCardNumber}>
+                        {filterLabel('மற்ற உரைகள்', 'Other Commentaries')} ({others.length})
+                      </KuralText>
+                      <KuralText style={[componentStyles.kuralCardNumber, { fontSize: 10 }]}>
                         {othersExpanded ? '▲' : '▼'}
-                      </Text>
+                      </KuralText>
                     </Pressable>
 
                     {othersExpanded &&
                       others.map((note) => (
                         <View key={note.author_id} style={componentStyles.commentaryNoteBlock}>
-                          <Text style={componentStyles.kuralCardNumber}>
+                          <KuralText style={componentStyles.kuralCardNumber}>
                             {note.author_name} ({note.author_code})
-                          </Text>
-                          <Text style={componentStyles.kuralCardTranslation}>{note.note_text}</Text>
+                          </KuralText>
+                          <KuralText style={componentStyles.kuralCardTranslation}>
+                            {note.note_text}
+                          </KuralText>
                         </View>
                       ))}
                   </View>

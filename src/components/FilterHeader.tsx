@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useTheme } from 'src/theme/ThemeContextProvider';
+import { useSettings } from 'src/context/SettingsContext';
 import { PaalRecord, IyalRecord, AdhigaramRecord } from 'src/types/types';
 
 // Atomic Common Components UI imports
@@ -54,6 +55,9 @@ export function FilterHeader({
   const isWidescreen = theme.layout.isWideScreen;
   const [isExpanded, setIsExpanded] = useState(isWidescreen);
 
+  const { settings } = useSettings();
+  const { filterLabels: filterToggle } = settings.langToggles;
+
   const hasActiveFilters =
     searchQuery.trim().length > 0 || selectedPaal > 0 || selectedIyal > 0 || selectedAdhigaram > 0;
   const hasSearchQuery = searchQuery.trim().length > 0;
@@ -81,6 +85,12 @@ export function FilterHeader({
     value: a.id,
   }));
 
+  const filterLabel = (tamil: string, english: string): string => {
+    if (filterToggle.tamil && filterToggle.english) return `${tamil} / ${english}`;
+    if (filterToggle.tamil) return tamil;
+    return english;
+  };
+
   return (
     <View style={globalStyles.container}>
       {/* Accordion Expansion Trigger Bar */}
@@ -91,7 +101,9 @@ export function FilterHeader({
       >
         <View style={componentStyles.accordionLeft}>
           <KuralText variant="bodyNormal" style={componentStyles.accordionTitle}>
-            {hasActiveFilters ? 'Search & Filters Active' : 'Search & Filter Verses'}
+            {hasActiveFilters
+              ? filterLabel('தேடல் & வடிகட்டி செயலில்', 'Search & Filters Active')
+              : filterLabel('தேடல் & வடிகட்டி', 'Search & Filter Verses')}
           </KuralText>
           {Boolean(hasActiveFilters) && (
             <View style={componentStyles.filterBadge}>
@@ -104,7 +116,7 @@ export function FilterHeader({
 
         <View style={componentStyles.accordionRight}>
           <KuralText variant="caption" style={componentStyles.counterText}>
-            Found {totalRecords}
+            {filterLabel('கண்டறியப்பட்டது', 'Found')} {totalRecords}
           </KuralText>
           <KuralText variant="caption" style={componentStyles.chevronIcon}>
             {isExpanded ? '▲' : '▼'}
@@ -127,7 +139,7 @@ export function FilterHeader({
                 variant="caption"
                 style={[globalStyles.fieldLabel, hasSearchQuery && globalStyles.disabledLabel]}
               >
-                Search
+                {filterLabel('தேடல்', 'Search')}
               </KuralText>
               <KuralInput
                 placeholder="Search Kurals by text, meaning, or ID (1-1330)..."
@@ -139,7 +151,7 @@ export function FilterHeader({
 
             {/* Tier 1: Section Selector (Paal) */}
             <KuralDropdown
-              label="Section (பால் / Paal)"
+              label={filterLabel('பால்', 'Section')}
               placeholder="All Sections"
               items={mappedPaalOptions}
               selectedValue={selectedPaal}
@@ -150,7 +162,7 @@ export function FilterHeader({
 
             {/* Tier 2: Sub-section Selector (Iyal) */}
             <KuralDropdown
-              label="Sub-section (இயல் / Iyal)"
+              label={filterLabel('இயல்', 'Sub-section')}
               placeholder="All Sub-sections"
               items={mappedIyalOptions}
               selectedValue={selectedIyal}
@@ -161,7 +173,7 @@ export function FilterHeader({
 
             {/* Tier 3: Chapter Selector (Adhigaram) */}
             <KuralDropdown
-              label="Chapter (அதிகாரம் / Adhigaram)"
+              label={filterLabel('அதிகாரம்', 'Chapter')}
               placeholder="All Chapters"
               items={mappedAdhigaramOptions}
               selectedValue={selectedAdhigaram}

@@ -12,8 +12,11 @@ export interface KuralRecord {
   transliteration1: string;
   transliteration2: string;
   adhikaram_name: string;
+  adhikaram_english_name: string;
   paal_name: string;
+  paal_english_name: string;
   iyal_name: string;
+  iyal_english_name: string;
   notes?: AuthorNote[];
   is_bookmarked?: boolean;
 }
@@ -75,5 +78,6 @@ export enum TabType {
 export interface TabConfig {
   id: TabType;
   label: string;
+  tamilLabel: string;
   icon: string;
 }

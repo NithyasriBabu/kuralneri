@@ -1,0 +1,23 @@
+{
+  "navigation": {
+    "home": "முகப்பு",
+    "explore": "தேடல்",
+    "bookmarks": "சேமிப்பு",
+    "learn": "கற்றல்",
+    "guru": "குரு",
+    "settings": "அமைப்பு"
+  },
+  "kural_of_the_day": {
+    "greeting": {
+      "morning": "காலை வணக்கம்!",
+      "afternoon": "மதிய வணக்கம்!",
+      "evening": "மாலை வணக்கம்!"
+    },
+    "header": "இன்றைய குறள்"
+  },
+  "kural_card": {
+    "title": "குறள்",
+    "commentary": "உரை",
+    "other_commentary": "மற்ற உரைகள்"
+  }
+}

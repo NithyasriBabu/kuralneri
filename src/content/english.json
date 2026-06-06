@@ -1,0 +1,23 @@
+{
+  "navigation": {
+    "home": "HOME",
+    "explore": "EXPLORE",
+    "bookmarks": "BOOKMARKS",
+    "learn": "LEARN",
+    "guru": "GURU",
+    "settings": "SETTINGS"
+  },
+  "kural_of_the_day": {
+    "greeting": {
+      "morning": "Good morning!",
+      "afternoon": "Good afternoon!",
+      "evening": "Good evening!"
+    },
+    "header": "Kural of the Day"
+  },
+  "kural_card": {
+    "title": "Kural",
+    "commentary": "Commentary",
+    "other_commentary": "Other Commentaries"
+  }
+}
