@@ -12,7 +12,7 @@ import {
 import { useKuralFeed } from 'src/hooks/useKuralFeed';
 
 import { FilterHeader } from 'src/components/FilterHeader';
-import KuralCard from 'src/components/KuralCard';
+import KuralCardShell from 'src/components/KuralCard/KuralCardShell';
 import { setKuralBookmarkStatus } from 'src/data/services';
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { useSettings } from 'src/context/SettingsContext';
@@ -80,6 +80,11 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
     listRef.current?.scrollToOffset({ offset: 0, animated: true });
   };
 
+  const onBookmarkToggleCallback = (kuralId: number) => async (newStatus: boolean) => {
+    await setKuralBookmarkStatus(kuralId, newStatus);
+    updateKuralBookmarkStatus(kuralId, newStatus);
+  };
+
   useEffect(() => {
     if (!totalRecords || totalRecords == 0) {
       setLimitOptions([]);
@@ -122,13 +127,10 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
             <View style={[componentStyles.kuralListCardWrapper, wrapperStyle]}>
-              <KuralCard
+              <KuralCardShell
                 kural={item}
                 onPress={onKuralPress ? () => onKuralPress(item.id) : undefined}
-                onBookmarkToggle={async (nextBookmarked) => {
-                  const next = await setKuralBookmarkStatus(item.id, nextBookmarked);
-                  updateKuralBookmarkStatus(item.id, next);
-                }}
+                onBookmarkToggle={onBookmarkToggleCallback(item.id)}
               />
             </View>
           )}

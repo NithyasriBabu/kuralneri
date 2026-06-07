@@ -4,7 +4,7 @@ import { useKuralOfTheDay } from 'src/hooks/useKuralOfTheDay';
 import { setKuralBookmarkStatus } from 'src/data/services';
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { useSettings } from 'src/context/SettingsContext';
-import KuralCard from 'src/components/KuralCard';
+import KuralCardShell from 'src/components/KuralCard/KuralCardShell';
 import { KuralRecord } from 'src/types/types';
 import { KuralText } from 'src/components/common/KuralText';
 
@@ -77,7 +77,7 @@ export default function KuralOfTheDayView() {
 
       {!loading && !error && displayKural && (
         <View style={componentStyles.kuralOfTheDayFeedWrapper}>
-          <KuralCard
+          <KuralCardShell
             kural={displayKural}
             showComments={true}
             onBookmarkToggle={handleBookmarkToggle}
