@@ -80,7 +80,7 @@ export function FilterHeader({
   }));
 
   const mappedAdhigaramOptions = adhigaramOptions.map((a) => ({
-    label: `${a.id}. ${a.name} (${a.translation})`,
+    label: `${a.name} (${a.translation})`,
     value: a.id,
   }));
 

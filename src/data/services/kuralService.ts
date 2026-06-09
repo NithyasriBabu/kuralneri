@@ -16,6 +16,7 @@ import {
 import {
   KURAL_BY_ID,
   KURAL_NOTES_BY_ID,
+  DISTINCT_KURAL_FILTER_IDS,
   PAGINATED_KURALS,
   KURALS_COUNT,
   PAALS,
@@ -407,6 +408,19 @@ export async function getKuralsCount(filters?: KuralFilters): Promise<number> {
   const { whereClause, args } = buildFilterClause(filters);
   const results = await executeSelect<{ count: number }>(KURALS_COUNT(whereClause), args);
   return results[0]?.count ?? 0;
+}
+
+type DistinctKuralFilterRow = {
+  paal_id: number;
+  iyal_id: number;
+  adhigaram_id: number;
+};
+
+export async function getDistinctKuralFilterIds(
+  filters?: KuralFilters,
+): Promise<DistinctKuralFilterRow[]> {
+  const { whereClause, args } = buildFilterClause(filters);
+  return executeSelect<DistinctKuralFilterRow>(DISTINCT_KURAL_FILTER_IDS(whereClause), args);
 }
 
 export async function loadTaxonomy(): Promise<Taxonomy> {

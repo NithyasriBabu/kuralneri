@@ -98,6 +98,22 @@ export const KURALS_COUNT = (whereClause: string) => `
 `;
 
 /**
+ * Distinct hierarchy ids for the current active kural scope.
+ */
+export const DISTINCT_KURAL_FILTER_IDS = (whereClause: string) => `
+  SELECT DISTINCT
+    p.id AS paal_id,
+    i.id AS iyal_id,
+    a.id AS adhigaram_id
+  FROM kurals k
+  JOIN adhikarams a ON k.adhikaram_id = a.id
+  JOIN iyals i ON a.iyal_id = i.id
+  JOIN paals p ON i.paal_id = p.id
+  ${whereClause}
+  ORDER BY p.id ASC, i.id ASC, a.id ASC;
+`;
+
+/**
  * Primary Tier 1 List
  */
 export const PAALS = 'SELECT * FROM paals ORDER BY id ASC;';

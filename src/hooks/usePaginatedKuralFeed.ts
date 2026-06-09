@@ -2,13 +2,18 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   getPaginatedKurals,
   getKuralsCount,
+  getDistinctKuralFilterIds,
   loadTaxonomy,
-  getIyalOptions,
-  getAdhigaramOptions,
   getPaalIdForIyal,
   getParentsForAdhigaram,
 } from 'src/data/services';
-import { KuralRecord, PaalRecord, KuralFilters } from 'src/types/types';
+import {
+  KuralRecord,
+  PaalRecord,
+  KuralFilters,
+  IyalRecord,
+  AdhigaramRecord,
+} from 'src/types/types';
 
 const normalizeId = (value: unknown): number => Number(value) || 0;
 
@@ -20,6 +25,8 @@ export function usePaginatedKuralFeed(userLimit: number = 30, isBookmarkedOnly: 
 
   const [taxonomyReady, setTaxonomyReady] = useState(false);
   const [paalOptions, setPaalOptions] = useState<PaalRecord[]>([]);
+  const [iyalOptions, setIyalOptions] = useState<IyalRecord[]>([]);
+  const [adhigaramOptions, setAdhigaramOptions] = useState<AdhigaramRecord[]>([]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPaal, setSelectedPaal] = useState(0);
@@ -40,14 +47,35 @@ export function usePaginatedKuralFeed(userLimit: number = 30, isBookmarkedOnly: 
     [searchQuery, selectedPaal, selectedIyal, selectedAdhigaram, isBookmarkedOnly],
   );
 
-  const iyalOptions = useMemo(
-    () => (taxonomyReady ? getIyalOptions(selectedPaal) : []),
-    [taxonomyReady, selectedPaal],
+  const filteredIyalOptions = useMemo(
+    () => iyalOptions.filter((item) => selectedPaal === 0 || item.paal_id === selectedPaal),
+    [iyalOptions, selectedPaal],
   );
 
-  const adhigaramOptions = useMemo(
-    () => (taxonomyReady ? getAdhigaramOptions(selectedPaal, selectedIyal) : []),
-    [taxonomyReady, selectedPaal, selectedIyal],
+  const filteredAdhigaramOptions = useMemo(() => {
+    if (selectedIyal > 0) {
+      return adhigaramOptions.filter((item) => item.iyal_id === selectedIyal);
+    }
+    if (selectedPaal > 0) {
+      const validIyalIds = new Set(filteredIyalOptions.map((item) => item.id));
+      return adhigaramOptions.filter((item) => validIyalIds.has(item.iyal_id));
+    }
+    return adhigaramOptions;
+  }, [adhigaramOptions, filteredIyalOptions, selectedIyal, selectedPaal]);
+
+  const syncFilterOptions = useCallback(
+    async (filters: KuralFilters & { isBookmarked?: boolean }) => {
+      const taxonomy = await loadTaxonomy();
+      const rows = await getDistinctKuralFilterIds(filters);
+      const paalIdSet = new Set(rows.map((row) => row.paal_id));
+      const iyalIdSet = new Set(rows.map((row) => row.iyal_id));
+      const adhigaramIdSet = new Set(rows.map((row) => row.adhigaram_id));
+
+      setPaalOptions(taxonomy.paals.filter((item) => paalIdSet.has(item.id)));
+      setIyalOptions(taxonomy.iyals.filter((item) => iyalIdSet.has(item.id)));
+      setAdhigaramOptions(taxonomy.adhigarams.filter((item) => adhigaramIdSet.has(item.id)));
+    },
+    [],
   );
 
   const fetchPageData = useCallback(
@@ -57,21 +85,27 @@ export function usePaginatedKuralFeed(userLimit: number = 30, isBookmarkedOnly: 
 
       const offset = (targetPage - 1) * userLimit;
 
-      // Assumes your query services accept the updated filters object
-      // containing the boolean flag for filtering.
-      const [records, count] = await Promise.all([
-        getPaginatedKurals(userLimit, offset, activeFilters),
-        getKuralsCount(activeFilters),
-      ]);
+      try {
+        // Assumes your query services accept the updated filters object
+        // containing the boolean flag for filtering.
+        const [records, count] = await Promise.all([
+          getPaginatedKurals(userLimit, offset, activeFilters),
+          getKuralsCount(activeFilters),
+          syncFilterOptions(activeFilters),
+        ]);
 
-      if (requestId !== fetchIdRef.current) return;
+        if (requestId !== fetchIdRef.current) return;
 
-      setTotalRecords(count);
-      setKurals(records);
-      setPage(targetPage);
-      setLoading(false);
+        setTotalRecords(count);
+        setKurals(records);
+        setPage(targetPage);
+      } finally {
+        if (requestId === fetchIdRef.current) {
+          setLoading(false);
+        }
+      }
     },
-    [userLimit, activeFilters],
+    [userLimit, activeFilters, syncFilterOptions],
   );
 
   // Boot: load taxonomy once
@@ -115,7 +149,7 @@ export function usePaginatedKuralFeed(userLimit: number = 30, isBookmarkedOnly: 
 
       if (paalId === 0) return;
 
-      const validIyals = getIyalOptions(paalId);
+      const validIyals = iyalOptions.filter((i) => i.paal_id === paalId);
       if (selectedIyal && !validIyals.some((i) => i.id === selectedIyal)) {
         setSelectedIyal(0);
         setSelectedAdhigaram(0);
@@ -123,13 +157,13 @@ export function usePaginatedKuralFeed(userLimit: number = 30, isBookmarkedOnly: 
       }
 
       if (selectedIyal > 0 && selectedAdhigaram > 0) {
-        const validChapters = getAdhigaramOptions(paalId, selectedIyal);
+        const validChapters = adhigaramOptions.filter((a) => a.iyal_id === selectedIyal);
         if (!validChapters.some((a) => a.id === selectedAdhigaram)) {
           setSelectedAdhigaram(0);
         }
       }
     },
-    [selectedIyal, selectedAdhigaram],
+    [adhigaramOptions, iyalOptions, selectedIyal, selectedAdhigaram],
   );
 
   const selectIyal = useCallback(
@@ -144,12 +178,12 @@ export function usePaginatedKuralFeed(userLimit: number = 30, isBookmarkedOnly: 
       if (paalId) setSelectedPaal(paalId);
       setSelectedIyal(iyalId);
 
-      const validChapters = getAdhigaramOptions(paalId ?? selectedPaal, iyalId);
+      const validChapters = adhigaramOptions.filter((a) => a.iyal_id === iyalId);
       if (selectedAdhigaram && !validChapters.some((a) => a.id === selectedAdhigaram)) {
         setSelectedAdhigaram(0);
       }
     },
-    [selectedPaal, selectedAdhigaram],
+    [adhigaramOptions, selectedPaal, selectedAdhigaram],
   );
 
   const selectAdhigaram = useCallback((value: unknown) => {
@@ -230,8 +264,8 @@ export function usePaginatedKuralFeed(userLimit: number = 30, isBookmarkedOnly: 
     clearAllFilters,
 
     paalOptions,
-    iyalOptions,
-    adhigaramOptions,
+    iyalOptions: filteredIyalOptions,
+    adhigaramOptions: filteredAdhigaramOptions,
 
     nextPage: () => fetchPageData(page + 1),
     prevPage: () => fetchPageData(page - 1),
