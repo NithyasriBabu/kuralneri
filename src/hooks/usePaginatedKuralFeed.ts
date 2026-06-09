@@ -12,11 +12,7 @@ import { KuralRecord, PaalRecord, KuralFilters } from 'src/types/types';
 
 const normalizeId = (value: unknown): number => Number(value) || 0;
 
-export function usePaginatedKuralFeed(
-  userLimit: number = 30,
-  isBookmarkedOnly: boolean = false,
-  screenWidth: number = 375,
-) {
+export function usePaginatedKuralFeed(userLimit: number = 30, isBookmarkedOnly: boolean = false) {
   const [kurals, setKurals] = useState<KuralRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -183,24 +179,6 @@ export function usePaginatedKuralFeed(
     return Math.ceil(totalRecords / userLimit);
   }, [totalRecords, userLimit]);
 
-  const visiblePageNumbers = useMemo(() => {
-    const pages: number[] = [];
-    const maxVisible = screenWidth > 1024 ? 7 : screenWidth > 600 ? 5 : 3;
-
-    let startPage = Math.max(1, page - Math.floor(maxVisible / 2));
-    let endPage = startPage + maxVisible - 1;
-
-    if (endPage > totalPages) {
-      endPage = totalPages;
-      startPage = Math.max(1, endPage - maxVisible + 1);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-    return pages;
-  }, [page, totalPages, screenWidth]);
-
   const kuralRange = useMemo(() => {
     if (totalRecords === 0) return { from: 0, to: 0 };
     const from = (page - 1) * userLimit + 1;
@@ -237,7 +215,6 @@ export function usePaginatedKuralFeed(
     page,
     hasMore: page < totalPages,
     totalPages,
-    visiblePageNumbers,
     kuralFrom: kuralRange.from,
     kuralTo: kuralRange.to,
     totalRecords,

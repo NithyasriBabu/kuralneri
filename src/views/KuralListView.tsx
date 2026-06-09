@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, FlatList, ActivityIndicator, useWindowDimensions } from 'react-native';
+import { View, FlatList, ActivityIndicator } from 'react-native';
 import { usePaginatedKuralFeed } from 'src/hooks/usePaginatedKuralFeed';
 
 import { FilterHeader } from 'src/components/FilterHeader';
@@ -18,8 +18,8 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
   const DEFAULT_LIMIT_OPTIONS = [10, 20, 30, 50, 100];
   const [limitOptions, setLimitOptions] = useState<number[]>(DEFAULT_LIMIT_OPTIONS);
 
-  const { width } = useWindowDimensions();
   const { theme, componentStyles } = useTheme();
+  const screenWidth = theme.layout.screenWidth;
 
   const {
     kurals,
@@ -46,18 +46,19 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
 
     // Pagination callbacks
     goToPage,
-    visiblePageNumbers,
     kuralFrom,
     kuralTo,
-  } = usePaginatedKuralFeed(kuralsPerPage, false, width);
+  } = usePaginatedKuralFeed(kuralsPerPage, false);
 
   const listRef = useRef<FlatList>(null);
   const hasActiveFilters =
     searchQuery.trim().length > 0 || selectedPaal > 0 || selectedIyal > 0 || selectedAdhigaram > 0;
 
   const getGridConfig = () => {
-    if (width > 1024) return { columns: 3, wrapperStyle: componentStyles.kuralListGridColumnThird };
-    if (width > 600) return { columns: 2, wrapperStyle: componentStyles.kuralListGridColumnHalf };
+    if (screenWidth > 1024)
+      return { columns: 3, wrapperStyle: componentStyles.kuralListGridColumnThird };
+    if (screenWidth > 600)
+      return { columns: 2, wrapperStyle: componentStyles.kuralListGridColumnHalf };
     return { columns: 1, wrapperStyle: componentStyles.kuralListGridColumnFull };
   };
 
@@ -130,7 +131,6 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
         totalPages={totalPages}
         hasMore={hasMore}
         loading={loading}
-        visiblePageNumbers={visiblePageNumbers}
         onPageJump={handlePageJump}
         showRange={!hasActiveFilters}
         rangeStart={kuralFrom}

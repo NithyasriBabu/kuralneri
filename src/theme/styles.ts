@@ -16,6 +16,7 @@ const baseTypography = {
 
 const baseLayout = {
   isWideScreen: false,
+  screenWidth: 0,
   borderRadius: { small: 4, medium: 8, large: 12 },
   minHeights: { button: 48, input: 48, card: 120 },
   gridGap: 12,

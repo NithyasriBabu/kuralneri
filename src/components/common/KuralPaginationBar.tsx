@@ -1,5 +1,5 @@
-import React from 'react';
-import { ScrollView, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import React, { useMemo } from 'react';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
 
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { KuralText } from './KuralText';
@@ -10,7 +10,6 @@ interface KuralPaginationBarProps {
   totalPages: number;
   hasMore: boolean;
   loading?: boolean;
-  visiblePageNumbers: number[];
   onPageJump: (targetPage: number) => void;
   showRange: boolean;
   rangeStart: number;
@@ -25,7 +24,6 @@ export function KuralPaginationBar({
   totalPages,
   hasMore,
   loading = false,
-  visiblePageNumbers,
   onPageJump,
   showRange,
   rangeStart,
@@ -35,8 +33,25 @@ export function KuralPaginationBar({
   onSelectLimit,
 }: KuralPaginationBarProps) {
   const { theme, componentStyles } = useTheme();
-  const { width } = useWindowDimensions();
+  const screenWidth = theme.layout.screenWidth;
   const { t, formatPageStatus, formatRangeStatus } = useTranslation('uiChrome', 'pagination');
+  const visiblePageNumbers = useMemo(() => {
+    const pages: number[] = [];
+    const maxVisible = screenWidth > 1024 ? 7 : screenWidth > 600 ? 5 : 3;
+
+    let startPage = Math.max(1, page - Math.floor(maxVisible / 2));
+    let endPage = startPage + maxVisible - 1;
+
+    if (endPage > totalPages) {
+      endPage = totalPages;
+      startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }, [page, totalPages, screenWidth]);
 
   return (
     <View style={componentStyles.kuralListPaginationContainer}>
@@ -109,7 +124,7 @@ export function KuralPaginationBar({
           {limitOptions.length > 0 && (
             <View style={componentStyles.kuralListBadgeCluster}>
               <KuralText style={componentStyles.kuralListLimitTitleText}>
-                {t(width > 520 ? 'kuralsPerPage' : 'perPage')}
+                {t(screenWidth > 520 ? 'kuralsPerPage' : 'perPage')}
               </KuralText>
               {limitOptions.map((opt) => (
                 <TouchableOpacity

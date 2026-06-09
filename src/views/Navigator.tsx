@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, TouchableOpacity, Platform, useWindowDimensions } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 
 import { useTheme } from 'src/theme/ThemeContextProvider';
-import { useSettings } from 'src/context/SettingsContext';
 import { TabType } from 'src/types/types';
 import { KuralText } from 'src/components/common/KuralText';
 import { FeaturePlaceholder } from 'src/components/common/FeaturePlaceholder';
 import { useTranslation } from 'src/content/translation';
+import { useNavigatorController } from 'src/hooks/useNavigatorController';
 
 import KuralListView from 'src/views/KuralListView';
 import BookmarksView from 'src/views/BookmarksView';
@@ -15,96 +15,20 @@ import KuralOfTheDayView from 'src/views/KuralOfTheDayView';
 import KuralDetailView from 'src/views/KuralDetailView';
 import SettingsView from 'src/views/SettingsView';
 
-const TABS = [
-  { id: TabType.Home, titleKey: 'homeTitle', icon: '🏠' },
-  { id: TabType.Explore, titleKey: 'exploreTitle', icon: '🔍' },
-  { id: TabType.Bookmarks, titleKey: 'bookmarksTitle', icon: '🔖' },
-  { id: TabType.Learn, titleKey: 'learnTitle', icon: '📈' },
-  { id: TabType.Guru, titleKey: 'guruTitle', icon: '🤖' },
-  { id: TabType.Settings, titleKey: 'settingsTitle', icon: '⚙' },
-] as const;
-
-type RouteState = { kind: 'tab'; tabId: TabType } | { kind: 'kural'; kuralId: number };
-
-const DEFAULT_TAB: TabType = TabType.Home;
-
-function parsePath(pathname: string): RouteState {
-  const path = pathname.replace(/^\/+|\/+$/g, '');
-  const segments = path ? path.split('/') : [];
-
-  if (segments[0]?.toUpperCase() === 'KURAL' && segments[1]) {
-    const kuralId = Number(segments[1]);
-    if (Number.isFinite(kuralId) && kuralId > 0) return { kind: 'kural', kuralId };
-  }
-
-  const candidate = segments[0]?.toUpperCase() as TabType | undefined;
-  if (candidate && TABS.some((t) => t.id === candidate)) {
-    return { kind: 'tab', tabId: candidate };
-  }
-
-  return { kind: 'tab', tabId: DEFAULT_TAB };
-}
-
 // ─── navigator ───────────────────────────────────────────────────────────────
 
 export default function TabNavigator() {
-  const { width } = useWindowDimensions();
-  const isWidescreen = width > 768;
   const { componentStyles } = useTheme();
-  const { settings } = useSettings();
   const { t } = useTranslation('uiChrome', 'navigation');
-
-  const initialRoute: RouteState =
-    Platform.OS === 'web' && typeof window !== 'undefined'
-      ? parsePath(window.location.pathname)
-      : { kind: 'tab', tabId: DEFAULT_TAB };
-
-  const [activeTab, setActiveTab] = useState<TabType>(
-    initialRoute.kind === 'kural' ? TabType.Explore : initialRoute.tabId,
-  );
-  const [routeState, setRouteState] = useState<RouteState>(initialRoute);
-
-  useEffect(() => {
-    if (Platform.OS !== 'web') return;
-
-    const initial = parsePath(window.location.pathname);
-    setRouteState(initial);
-    setActiveTab(initial.kind === 'kural' ? TabType.Explore : initial.tabId);
-
-    const handlePopState = () => {
-      const next = parsePath(window.location.pathname);
-      setRouteState(next);
-      setActiveTab(next.kind === 'kural' ? TabType.Explore : next.tabId);
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
-
-  const handleTabPress = (tabId: TabType) => {
-    setActiveTab(tabId);
-    setRouteState({ kind: 'tab', tabId });
-    if (Platform.OS === 'web') {
-      window.history.pushState(null, '', `/${tabId}`);
-    }
-  };
-
-  const handleKuralPress = (kuralId: number) => {
-    setActiveTab(TabType.Explore);
-    setRouteState({ kind: 'kural', kuralId });
-    if (Platform.OS === 'web') {
-      window.history.pushState(null, '', `/KURAL/${kuralId}`);
-    }
-  };
-
-  const handleDetailBack = () => handleTabPress(TabType.Explore);
+  const { handleDetailBack, handleKuralPress, handleTabPress, isWidescreen, navTabs, routeState } =
+    useNavigatorController();
 
   const renderActiveScreen = () => {
     if (routeState.kind === 'kural') {
       return <KuralDetailView kuralId={routeState.kuralId} onBack={handleDetailBack} />;
     }
 
-    switch (activeTab) {
+    switch (routeState.tabId) {
       case TabType.Home:
         return (
           <View style={{ flex: 1 }}>
@@ -140,43 +64,25 @@ export default function TabNavigator() {
     }
   };
 
-  const getTabLabel = (tab: (typeof TABS)[number]): string | null => {
-    const toggle = settings.langToggles.navLabels;
-    const label = t(tab.titleKey);
-    if (toggle.tamil && toggle.english) return label;
-    if (toggle.tamil) return label;
-    if (toggle.english) return label;
-    return null;
-  };
-
-  const renderNavigationLinks = () => {
-    return TABS.map((tab) => {
-      const isActive = activeTab === tab.id;
-      return (
-        <TouchableOpacity
-          key={tab.id}
-          activeOpacity={1}
-          style={[componentStyles.navTabButton, isActive && componentStyles.navTabButtonActive]}
-          onPress={() => handleTabPress(tab.id)}
-        >
-          {(() => {
-            const label = getTabLabel(tab);
-            return label ? (
-              <KuralText
-                variant="caption"
-                isTamil={
-                  settings.langToggles.navLabels.tamil && !settings.langToggles.navLabels.english
-                }
-                style={[componentStyles.navTabText, isActive && componentStyles.navTabTextActive]}
-              >
-                {label}
-              </KuralText>
-            ) : null;
-          })()}
-        </TouchableOpacity>
-      );
-    });
-  };
+  const renderNavigationLinks = () =>
+    navTabs.map((tab) => (
+      <TouchableOpacity
+        key={tab.id}
+        activeOpacity={1}
+        style={[componentStyles.navTabButton, tab.isActive && componentStyles.navTabButtonActive]}
+        onPress={() => handleTabPress(tab.id)}
+      >
+        {tab.label ? (
+          <KuralText
+            variant="caption"
+            isTamil={tab.isTamilLabel}
+            style={[componentStyles.navTabText, tab.isActive && componentStyles.navTabTextActive]}
+          >
+            {tab.label}
+          </KuralText>
+        ) : null}
+      </TouchableOpacity>
+    ));
 
   return (
     <SafeAreaView style={componentStyles.navShell} edges={['top', 'left', 'right', 'bottom']}>

@@ -58,6 +58,7 @@ export interface AppTheme {
   };
   layout: {
     isWideScreen: boolean;
+    screenWidth: number;
     borderRadius: {
       small: number;
       medium: number;

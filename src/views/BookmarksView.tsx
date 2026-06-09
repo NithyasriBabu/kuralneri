@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, FlatList, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { usePaginatedKuralFeed } from 'src/hooks/usePaginatedKuralFeed';
@@ -20,7 +20,6 @@ export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
   const [limitOptions, setLimitOptions] = useState<number[]>([10, 20, 30, 50, 100]);
   const [bookmarkLimit, setBookmarkLimit] = useState<number>(10);
 
-  const { width } = useWindowDimensions();
   const { theme, componentStyles } = useTheme();
   const { settings } = useSettings();
   const { t } = useTranslation('uiChrome', 'cards');
@@ -46,18 +45,19 @@ export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
     adhigaramOptions,
     clearAllFilters,
     goToPage,
-    visiblePageNumbers,
     kuralFrom,
     kuralTo,
     updateKuralBookmarkStatus,
-  } = usePaginatedKuralFeed(bookmarkLimit, true, width);
+  } = usePaginatedKuralFeed(bookmarkLimit, true);
 
   const hasActiveFilters =
     searchQuery.trim().length > 0 || selectedPaal > 0 || selectedIyal > 0 || selectedAdhigaram > 0;
 
   const getGridConfig = () => {
-    if (width > 1024) return { columns: 3, wrapperStyle: componentStyles.kuralListGridColumnThird };
-    if (width > 600) return { columns: 2, wrapperStyle: componentStyles.kuralListGridColumnHalf };
+    if (theme.layout.screenWidth > 1024)
+      return { columns: 3, wrapperStyle: componentStyles.kuralListGridColumnThird };
+    if (theme.layout.screenWidth > 600)
+      return { columns: 2, wrapperStyle: componentStyles.kuralListGridColumnHalf };
     return { columns: 1, wrapperStyle: componentStyles.kuralListGridColumnFull };
   };
 
@@ -150,7 +150,6 @@ export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
           totalPages={totalPages}
           hasMore={hasMore}
           loading={loading}
-          visiblePageNumbers={visiblePageNumbers}
           onPageJump={handlePageJump}
           showRange={!hasActiveFilters}
           rangeStart={kuralFrom}

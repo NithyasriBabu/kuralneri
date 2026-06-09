@@ -74,6 +74,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       layout: {
         ...baseTheme.layout,
         isWideScreen,
+        screenWidth: width,
         gridGap: isWideScreen ? 20 : 12,
         screenPadding: isWideScreen ? 32 : 16,
         maxContentWidth: 1200,
