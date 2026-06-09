@@ -6,7 +6,9 @@ import { useTheme } from 'src/theme/ThemeContextProvider';
 import { TabType } from 'src/types/types';
 import { KuralText } from 'src/components/common/KuralText';
 import { FeaturePlaceholder } from 'src/components/common/FeaturePlaceholder';
+import { ErrorBoundary, ErrorFallback } from 'src/components/common/ErrorBoundary';
 import { useTranslation } from 'src/content/translation';
+import { isDevCrashRoute, navigateToHomeRoute } from 'src/dev/devCrash';
 import { useNavigatorController } from 'src/hooks/useNavigatorController';
 
 import KuralListView from 'src/views/KuralListView';
@@ -22,8 +24,14 @@ export default function TabNavigator() {
   const { t } = useTranslation('uiChrome', 'navigation');
   const { handleDetailBack, handleKuralPress, handleTabPress, isWidescreen, navTabs, routeState } =
     useNavigatorController();
+  const routeResetKey =
+    routeState.kind === 'tab' ? routeState.tabId : `KURAL-${routeState.kuralId}`;
 
   const renderActiveScreen = () => {
+    if (isDevCrashRoute('screen')) {
+      throw new Error('Synthetic screen crash for error boundary verification.');
+    }
+
     if (routeState.kind === 'kural') {
       return <KuralDetailView kuralId={routeState.kuralId} onBack={handleDetailBack} />;
     }
@@ -93,7 +101,28 @@ export default function TabNavigator() {
       )}
 
       <View style={componentStyles.navCanvasWrapper}>
-        <View style={componentStyles.navFullWidthColumn}>{renderActiveScreen()}</View>
+        <ErrorBoundary
+          resetKeys={[routeState.kind, routeResetKey]}
+          onError={(error, errorInfo) => {
+            console.error('[NavigatorErrorBoundary]', error, errorInfo.componentStack);
+          }}
+          fallback={({ error, resetErrorBoundary }) => (
+            <ErrorFallback
+              error={error}
+              resetErrorBoundary={resetErrorBoundary}
+              title="Screen crashed"
+              message="This section failed to render. Try again or return home."
+              primaryActionLabel="Try again"
+              secondaryActionLabel="Go home"
+              onSecondaryAction={() => {
+                navigateToHomeRoute();
+                handleTabPress(TabType.Home);
+              }}
+            />
+          )}
+        >
+          <View style={componentStyles.navFullWidthColumn}>{renderActiveScreen()}</View>
+        </ErrorBoundary>
       </View>
 
       {!isWidescreen && (

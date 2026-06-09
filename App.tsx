@@ -20,7 +20,9 @@ import { ThemeProvider, useTheme } from 'src/theme/ThemeContextProvider';
 import { SettingsProvider, useSettings } from 'src/context/SettingsContext';
 
 import { KuralText } from 'src/components/common/KuralText';
+import { ErrorBoundary, ErrorFallback } from 'src/components/common/ErrorBoundary';
 import { useTranslation } from 'src/content/translation';
+import { isDevCrashRoute, navigateToHomeRoute } from 'src/dev/devCrash';
 
 // --------------------------------------------------------------------------
 // BOOT: waits for database, fonts, and settings before rendering the app
@@ -95,6 +97,10 @@ interface AppContentProps {
 function AppContent({ dbReady, fontsLoaded, settingsReady, error, logMessage }: AppContentProps) {
   const { theme, componentStyles } = useTheme();
 
+  if (isDevCrashRoute('root')) {
+    throw new Error('Synthetic root crash for error boundary verification.');
+  }
+
   if (error) {
     return (
       <View
@@ -139,10 +145,33 @@ function AppContent({ dbReady, fontsLoaded, settingsReady, error, logMessage }: 
 // APEX: SettingsProvider first so ThemedApp can read settings
 // --------------------------------------------------------------------------
 export default function App() {
+  const [appRemountKey, setAppRemountKey] = useState(0);
+
   return (
-    <SettingsProvider>
-      <ThemedApp />
-    </SettingsProvider>
+    <ErrorBoundary
+      onError={(error, errorInfo) => {
+        console.error('[RootErrorBoundary]', error, errorInfo.componentStack);
+      }}
+      fallback={({ error, resetErrorBoundary }) => (
+        <ErrorFallback
+          error={error}
+          resetErrorBoundary={() => {
+            if (isDevCrashRoute('root')) {
+              navigateToHomeRoute();
+            }
+            setAppRemountKey((current) => current + 1);
+            resetErrorBoundary();
+          }}
+          title="App crashed"
+          message="A critical error stopped the app shell. Retry to reload the providers and screens."
+          primaryActionLabel="Retry app"
+        />
+      )}
+    >
+      <SettingsProvider key={appRemountKey}>
+        <ThemedApp />
+      </SettingsProvider>
+    </ErrorBoundary>
   );
 }
 
