@@ -3,100 +3,280 @@ import * as SQLite from 'expo-sqlite';
 
 import { db } from 'src/data/database';
 import { runWebDbTask } from 'src/data/webDbQueue';
-import { AppSettings, DEFAULT_SETTINGS } from 'src/types/settings';
+import {
+  APP_SETTINGS_LANG_TOGGLE_KEYS,
+  APP_SETTINGS_SCALAR_KEYS,
+  AppSettings,
+  AppSettingsScalar,
+  DEFAULT_SETTINGS,
+  EnglishFont,
+  FontSizeScale,
+  LangToggle,
+  LangToggleKey,
+  TamilFont,
+  ThemeMode,
+} from 'src/types/settings';
 
-const SETTINGS_KEY = 'app_settings_v1';
+const SETTINGS_SCHEMA_SQL = `
+  CREATE TABLE IF NOT EXISTS app_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  );
 
-// ─── helpers ────────────────────────────────────────────────────────────────
+  CREATE TABLE IF NOT EXISTS app_settings_lang_toggles (
+    key TEXT PRIMARY KEY,
+    tamil INTEGER NOT NULL CHECK (tamil IN (0, 1)),
+    english INTEGER NOT NULL CHECK (english IN (0, 1))
+  );
+`;
 
-async function readRow(key: string): Promise<string | null> {
+type SettingsDb = SQLite.SQLiteDatabase;
+type ScalarRow = { value: string };
+type ToggleRow = { tamil: number; english: number };
+
+const THEME_MODES: readonly ThemeMode[] = ['light', 'dark', 'system'];
+const TAMIL_FONTS: readonly TamilFont[] = ['MuktaMalar', 'Latha', 'Catamaran', 'ArimaMadurai'];
+const ENGLISH_FONTS: readonly EnglishFont[] = ['Inter', 'Merriweather', 'SourceSerif'];
+const FONT_SIZE_SCALES: readonly FontSizeScale[] = ['small', 'medium', 'large', 'xlarge'];
+const DEFAULT_SCALAR_SETTINGS: AppSettingsScalar = {
+  userName: DEFAULT_SETTINGS.userName,
+  preferredAuthorCode: DEFAULT_SETTINGS.preferredAuthorCode,
+  themeMode: DEFAULT_SETTINGS.themeMode,
+  tamilFont: DEFAULT_SETTINGS.tamilFont,
+  englishFont: DEFAULT_SETTINGS.englishFont,
+  fontSizeScale: DEFAULT_SETTINGS.fontSizeScale,
+  customBackground: DEFAULT_SETTINGS.customBackground,
+  customForeground: DEFAULT_SETTINGS.customForeground,
+};
+
+async function getSettingsDb(): Promise<SettingsDb> {
+  if (Platform.OS === 'web') {
+    const targetDb = await db;
+    await targetDb.execAsync(SETTINGS_SCHEMA_SQL);
+    return targetDb;
+  }
+
+  const targetDb = db as SettingsDb;
+  targetDb.execSync(SETTINGS_SCHEMA_SQL);
+  return targetDb;
+}
+
+async function withSettingsDb<T>(operation: (targetDb: SettingsDb) => Promise<T> | T): Promise<T> {
   return runWebDbTask(async () => {
-    try {
-      if (Platform.OS === 'web') {
-        const targetDb = await db;
-        const row = await targetDb.getFirstAsync<{ value: string }>(
+    const targetDb = await getSettingsDb();
+    return operation(targetDb);
+  });
+}
+
+function isThemeMode(value: string): value is ThemeMode {
+  return THEME_MODES.includes(value as ThemeMode);
+}
+
+function isTamilFont(value: string): value is TamilFont {
+  return TAMIL_FONTS.includes(value as TamilFont);
+}
+
+function isEnglishFont(value: string): value is EnglishFont {
+  return ENGLISH_FONTS.includes(value as EnglishFont);
+}
+
+function isFontSizeScale(value: string): value is FontSizeScale {
+  return FONT_SIZE_SCALES.includes(value as FontSizeScale);
+}
+
+function coerceBoolean(value: unknown): boolean {
+  return value === 1 || value === true;
+}
+
+async function readScalarRow(targetDb: SettingsDb, key: string): Promise<string | null> {
+  const row =
+    Platform.OS === 'web'
+      ? await targetDb.getFirstAsync<ScalarRow>(
           'SELECT value FROM app_settings WHERE key = ? LIMIT 1;',
           [key],
+        )
+      : targetDb.getFirstSync<ScalarRow>('SELECT value FROM app_settings WHERE key = ? LIMIT 1;', [
+          key,
+        ]);
+
+  return row?.value ?? null;
+}
+
+async function upsertScalarRow(targetDb: SettingsDb, key: string, value: string): Promise<void> {
+  const sql = `
+    INSERT INTO app_settings (key, value)
+    VALUES (?, ?)
+    ON CONFLICT(key) DO UPDATE SET value = excluded.value;
+  `;
+
+  if (Platform.OS === 'web') {
+    await targetDb.runAsync(sql, [key, value]);
+    return;
+  }
+
+  targetDb.runSync(sql, [key, value]);
+}
+
+async function readToggleRow(targetDb: SettingsDb, key: LangToggleKey): Promise<LangToggle | null> {
+  const row =
+    Platform.OS === 'web'
+      ? await targetDb.getFirstAsync<ToggleRow>(
+          'SELECT tamil, english FROM app_settings_lang_toggles WHERE key = ? LIMIT 1;',
+          [key],
+        )
+      : targetDb.getFirstSync<ToggleRow>(
+          'SELECT tamil, english FROM app_settings_lang_toggles WHERE key = ? LIMIT 1;',
+          [key],
         );
-        return row?.value ?? null;
-      }
-      const targetDb = db as SQLite.SQLiteDatabase;
-      const row = targetDb.getFirstSync<{ value: string }>(
-        'SELECT value FROM app_settings WHERE key = ? LIMIT 1;',
-        [key],
-      );
-      return row?.value ?? null;
-    } catch {
-      return null;
-    }
-  });
+
+  if (!row) return null;
+
+  return {
+    tamil: coerceBoolean(row.tamil),
+    english: coerceBoolean(row.english),
+  };
 }
 
-async function writeRow(key: string, value: string): Promise<void> {
-  return runWebDbTask(async () => {
-    const sql = `
-      INSERT INTO app_settings (key, value)
-      VALUES (?, ?)
-      ON CONFLICT(key) DO UPDATE SET value = excluded.value;
-    `;
-    try {
-      if (Platform.OS === 'web') {
-        const targetDb = await db;
-        await targetDb.runAsync(sql, [key, value]);
-      } else {
-        const targetDb = db as SQLite.SQLiteDatabase;
-        targetDb.runSync(sql, [key, value]);
-      }
-    } catch (e) {
-      console.error('settingsService.writeRow failed:', e);
-    }
-  });
+async function upsertToggleRow(
+  targetDb: SettingsDb,
+  key: LangToggleKey,
+  value: LangToggle,
+): Promise<void> {
+  const sql = `
+    INSERT INTO app_settings_lang_toggles (key, tamil, english)
+    VALUES (?, ?, ?)
+    ON CONFLICT(key) DO UPDATE SET
+      tamil = excluded.tamil,
+      english = excluded.english;
+  `;
+
+  const tamil = value.tamil ? 1 : 0;
+  const english = value.english ? 1 : 0;
+
+  if (Platform.OS === 'web') {
+    await targetDb.runAsync(sql, [key, tamil, english]);
+    return;
+  }
+
+  targetDb.runSync(sql, [key, tamil, english]);
 }
 
-async function deleteRow(key: string): Promise<void> {
-  return runWebDbTask(async () => {
-    const sql = 'DELETE FROM app_settings WHERE key = ?;';
-    try {
-      if (Platform.OS === 'web') {
-        const targetDb = await db;
-        await targetDb.runAsync(sql, [key]);
-      } else {
-        const targetDb = db as SQLite.SQLiteDatabase;
-        targetDb.runSync(sql, [key]);
-      }
-    } catch (e) {
-      console.error('settingsService.deleteRow failed:', e);
-    }
-  });
+async function clearSettingsRows(targetDb: SettingsDb): Promise<void> {
+  if (Platform.OS === 'web') {
+    await targetDb.runAsync('DELETE FROM app_settings;');
+    await targetDb.runAsync('DELETE FROM app_settings_lang_toggles;');
+    return;
+  }
+
+  targetDb.runSync('DELETE FROM app_settings;');
+  targetDb.runSync('DELETE FROM app_settings_lang_toggles;');
+}
+
+function buildDefaultSettings(): AppSettings {
+  return {
+    ...DEFAULT_SETTINGS,
+    langToggles: {
+      ...DEFAULT_SETTINGS.langToggles,
+    },
+  };
+}
+
+async function persistScalarPatch(
+  targetDb: SettingsDb,
+  patch: Partial<AppSettingsScalar>,
+): Promise<void> {
+  for (const key of APP_SETTINGS_SCALAR_KEYS) {
+    const value = patch[key];
+    if (value === undefined) continue;
+    await upsertScalarRow(targetDb, key, value);
+  }
+}
+
+async function persistTogglePatch(
+  targetDb: SettingsDb,
+  key: LangToggleKey,
+  value: LangToggle,
+): Promise<void> {
+  await upsertToggleRow(targetDb, key, value);
 }
 
 // ─── public API ─────────────────────────────────────────────────────────────
 
 export async function loadSettings(): Promise<AppSettings> {
-  const raw = await readRow(SETTINGS_KEY);
-  if (!raw) return { ...DEFAULT_SETTINGS };
-  try {
-    const parsed = JSON.parse(raw) as Partial<AppSettings>;
-    // Deep merge so new keys added to DEFAULT_SETTINGS are always present
-    return {
-      ...DEFAULT_SETTINGS,
-      ...parsed,
-      langToggles: {
-        ...DEFAULT_SETTINGS.langToggles,
-        ...(parsed.langToggles ?? {}),
-      },
-    };
-  } catch {
-    return { ...DEFAULT_SETTINGS };
-  }
+  return withSettingsDb(async (targetDb) => {
+    const loaded = buildDefaultSettings();
+
+    for (const key of APP_SETTINGS_SCALAR_KEYS) {
+      const rawValue = await readScalarRow(targetDb, key);
+      if (rawValue === null) continue;
+
+      switch (key) {
+        case 'userName':
+          loaded.userName = rawValue;
+          break;
+        case 'preferredAuthorCode':
+          loaded.preferredAuthorCode = rawValue;
+          break;
+        case 'themeMode':
+          if (isThemeMode(rawValue)) loaded.themeMode = rawValue;
+          break;
+        case 'tamilFont':
+          if (isTamilFont(rawValue)) loaded.tamilFont = rawValue;
+          break;
+        case 'englishFont':
+          if (isEnglishFont(rawValue)) loaded.englishFont = rawValue;
+          break;
+        case 'fontSizeScale':
+          if (isFontSizeScale(rawValue)) loaded.fontSizeScale = rawValue;
+          break;
+        case 'customBackground':
+          loaded.customBackground = rawValue;
+          break;
+        case 'customForeground':
+          loaded.customForeground = rawValue;
+          break;
+      }
+    }
+
+    for (const key of APP_SETTINGS_LANG_TOGGLE_KEYS) {
+      const row = await readToggleRow(targetDb, key);
+      if (row === null) continue;
+      loaded.langToggles[key] = row;
+    }
+
+    return loaded;
+  });
 }
 
 export async function saveSettings(settings: AppSettings): Promise<void> {
-  await writeRow(SETTINGS_KEY, JSON.stringify(settings));
+  return withSettingsDb(async (targetDb) => {
+    await persistScalarPatch(targetDb, settings);
+    for (const key of APP_SETTINGS_LANG_TOGGLE_KEYS) {
+      await persistTogglePatch(targetDb, key, settings.langToggles[key]);
+    }
+  });
+}
+
+export async function saveSettingsPatch(patch: Partial<AppSettingsScalar>): Promise<void> {
+  return withSettingsDb(async (targetDb) => {
+    await persistScalarPatch(targetDb, patch);
+  });
+}
+
+export async function saveLangToggle(key: LangToggleKey, value: LangToggle): Promise<void> {
+  return withSettingsDb(async (targetDb) => {
+    await persistTogglePatch(targetDb, key, value);
+  });
 }
 
 export async function resetAllSettings(): Promise<void> {
-  await deleteRow(SETTINGS_KEY);
+  return withSettingsDb(async (targetDb) => {
+    await clearSettingsRows(targetDb);
+    await persistScalarPatch(targetDb, DEFAULT_SCALAR_SETTINGS);
+    for (const key of APP_SETTINGS_LANG_TOGGLE_KEYS) {
+      await persistTogglePatch(targetDb, key, DEFAULT_SETTINGS.langToggles[key]);
+    }
+  });
 }
 
 /**

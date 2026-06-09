@@ -289,7 +289,7 @@ function LangToggleRow({ toggleKey }: { toggleKey: LangToggleKey }) {
 // ─── main view ───────────────────────────────────────────────────────────────
 
 export default function SettingsView() {
-  const { theme, componentStyles, setThemeMode } = useTheme();
+  const { theme } = useTheme();
   const { settings, updateSettings, resetSettings } = useSettings();
 
   const [nameInput, setNameInput] = useState(settings.userName);
@@ -493,7 +493,6 @@ export default function SettingsView() {
             selected={settings.themeMode}
             onSelect={(v) => {
               updateSettings({ themeMode: v, customBackground: '', customForeground: '' });
-              setThemeMode(v);
             }}
           />
         </View>

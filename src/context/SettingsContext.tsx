@@ -1,6 +1,18 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { AppSettings, DEFAULT_SETTINGS, LangToggleKey, LangToggles } from 'src/types/settings';
-import { loadSettings, saveSettings } from 'src/data/services/settingsService';
+import {
+  APP_SETTINGS_LANG_TOGGLE_KEYS,
+  AppSettings,
+  AppSettingsScalar,
+  DEFAULT_SETTINGS,
+  LangToggleKey,
+  LangToggles,
+} from 'src/types/settings';
+import {
+  loadSettings,
+  resetAllSettings,
+  saveLangToggle,
+  saveSettingsPatch,
+} from 'src/data/services/settingsService';
 
 // ─── context shape ───────────────────────────────────────────────────────────
 
@@ -37,8 +49,31 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const updateSettings = useCallback((patch: Partial<AppSettings>) => {
     setSettings((prev) => {
-      const next = { ...prev, ...patch };
-      void saveSettings(next);
+      const { langToggles: patchLangToggles, ...scalarPatch } = patch;
+      const next = {
+        ...prev,
+        ...scalarPatch,
+        langToggles: patchLangToggles
+          ? {
+              ...prev.langToggles,
+              ...patchLangToggles,
+            }
+          : prev.langToggles,
+      };
+
+      if (Object.keys(scalarPatch).length > 0) {
+        void saveSettingsPatch(scalarPatch as Partial<AppSettingsScalar>);
+      }
+
+      if (patchLangToggles) {
+        for (const key of APP_SETTINGS_LANG_TOGGLE_KEYS) {
+          const togglePatch = patchLangToggles[key];
+          if (togglePatch) {
+            void saveLangToggle(key, next.langToggles[key]);
+          }
+        }
+      }
+
       return next;
     });
   }, []);
@@ -61,7 +96,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           [key]: { ...currentToggle, [field]: value },
         };
         const next = { ...prev, langToggles: nextToggles };
-        void saveSettings(next);
+        void saveLangToggle(key, nextToggles[key]);
         return next;
       });
     },
@@ -69,9 +104,12 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   );
 
   const resetSettings = useCallback(() => {
-    const fresh = { ...DEFAULT_SETTINGS };
+    const fresh = {
+      ...DEFAULT_SETTINGS,
+      langToggles: { ...DEFAULT_SETTINGS.langToggles },
+    };
     setSettings(fresh);
-    void saveSettings(fresh);
+    void resetAllSettings();
   }, []);
 
   const value = useMemo<SettingsContextType>(

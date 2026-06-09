@@ -22,10 +22,10 @@ import { SettingsProvider, useSettings } from 'src/context/SettingsContext';
 import { KuralText } from 'src/components/common/KuralText';
 
 // --------------------------------------------------------------------------
-// BRIDGE: reads settings and passes display tokens down into ThemeProvider
+// BOOT: waits for database, fonts, and settings before rendering the app
 // --------------------------------------------------------------------------
 function ThemedApp() {
-  const { settings, settingsReady } = useSettings();
+  const { settingsReady } = useSettings();
   const [dbReady, setDbReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [logMessage, setLogMessage] = useState('Booting Kuralneri engine...');

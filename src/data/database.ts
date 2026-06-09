@@ -76,6 +76,12 @@ const DATABASE_SCHEMA_SQL: string = `
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS app_settings_lang_toggles (
+      key TEXT PRIMARY KEY,
+      tamil INTEGER NOT NULL CHECK (tamil IN (0, 1)),
+      english INTEGER NOT NULL CHECK (english IN (0, 1))
+    );
   `;
 
 const AUTHOR_PRESETS = [

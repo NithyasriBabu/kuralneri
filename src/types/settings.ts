@@ -40,6 +40,28 @@ export interface AppSettings {
   langToggles: LangToggles;
 }
 
+export type AppSettingsScalar = Omit<AppSettings, 'langToggles'>;
+export type AppSettingsScalarKey = keyof AppSettingsScalar;
+
+export const APP_SETTINGS_SCALAR_KEYS = [
+  'userName',
+  'preferredAuthorCode',
+  'themeMode',
+  'tamilFont',
+  'englishFont',
+  'fontSizeScale',
+  'customBackground',
+  'customForeground',
+] as const satisfies readonly AppSettingsScalarKey[];
+
+export const APP_SETTINGS_LANG_TOGGLE_KEYS = [
+  'kuralCard',
+  'commentary',
+  'filterLabels',
+  'navLabels',
+  'sectionHeaders',
+] as const satisfies readonly LangToggleKey[];
+
 export const DEFAULT_LANG_TOGGLES: LangToggles = {
   kuralCard: { tamil: true, english: true },
   commentary: { tamil: false, english: true },
