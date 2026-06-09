@@ -20,15 +20,19 @@ import { ThemeProvider, useTheme } from 'src/theme/ThemeContextProvider';
 import { SettingsProvider, useSettings } from 'src/context/SettingsContext';
 
 import { KuralText } from 'src/components/common/KuralText';
+import { useTranslation } from 'src/content/translation';
 
 // --------------------------------------------------------------------------
 // BOOT: waits for database, fonts, and settings before rendering the app
 // --------------------------------------------------------------------------
 function ThemedApp() {
   const { settingsReady } = useSettings();
+  const { t } = useTranslation('uiChrome', 'common');
+  const bootMessage = t('bootingEngine');
+  const databaseErrorMessage = t('couldNotLoadDatabaseLayers');
   const [dbReady, setDbReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [logMessage, setLogMessage] = useState('Booting Kuralneri engine...');
+  const [logMessage, setLogMessage] = useState(bootMessage);
 
   let [fontsLoaded] = useFonts({
     'MuktaMalar-Regular': MuktaMalar_400Regular,
@@ -54,7 +58,7 @@ function ThemedApp() {
         });
         timeoutId = setTimeout(() => setDbReady(true), 600);
       } catch {
-        setError('Could not load database layers.');
+        setError(databaseErrorMessage);
       }
     }
 

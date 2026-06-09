@@ -1,8 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { KuralRecord } from 'src/types/types';
 import { getKuralById } from 'src/data/services';
+import { useTranslation } from 'src/content/translation';
 
 export const useKuralOfTheDay = () => {
+  const { t } = useTranslation('uiChrome', 'cards');
   const [kural, setKural] = useState<KuralRecord | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +43,7 @@ export const useKuralOfTheDay = () => {
         }
       } catch (err) {
         if (isMounted) {
-          setError('திருக்குறளைப் பதிவிறக்க முடியவில்லை / Failed to load daily Kural.');
+          setError(t('kuralLoadFailed'));
         }
         console.error(err);
       } finally {
@@ -57,7 +59,7 @@ export const useKuralOfTheDay = () => {
     return () => {
       isMounted = false;
     };
-  }, [kuralIdForTheDay]); // Runs safely whenever the ID recalculates
+  }, [kuralIdForTheDay, t]); // Runs safely whenever the ID recalculates
 
   return { kural, loading, error };
 };

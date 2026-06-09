@@ -1,17 +1,18 @@
 import { useMemo } from 'react';
+import { useTranslation as useI18nextTranslation } from 'react-i18next';
 
+import i18n, { FALLBACK_LANGUAGE_CODES } from 'src/content/i18n';
 import { useSettings } from 'src/context/SettingsContext';
 import { LangToggle, LangToggleKey, TranslationLocale } from 'src/types/settings';
 
-import tamilTranslations from 'src/content/tamil.json';
-import englishTranslations from 'src/content/english.json';
-
-const TRANSLATIONS = {
-  tamil: tamilTranslations,
-  english: englishTranslations,
-} as const;
-
-export type TranslationKey = keyof typeof tamilTranslations;
+export type TranslationNamespace =
+  | 'common'
+  | 'filters'
+  | 'pagination'
+  | 'navigation'
+  | 'cards'
+  | 'settings';
+export type TranslationKey = string;
 
 function formatTemplate(template: string, values: Record<string, string | number>): string {
   return template.replace(/\{(\w+)\}/g, (_, key: string) => {
@@ -20,28 +21,28 @@ function formatTemplate(template: string, values: Record<string, string | number
   });
 }
 
-function resolveLocaleValue(
+function readLocaleValue(
+  namespace: TranslationNamespace,
   key: TranslationKey,
   locale: TranslationLocale,
-  fallbackLocale: TranslationLocale,
 ): string {
-  const primary = TRANSLATIONS[locale][key];
-  if (typeof primary === 'string' && primary.length > 0) return primary;
-
-  const fallback = TRANSLATIONS[fallbackLocale][key];
-  if (typeof fallback === 'string' && fallback.length > 0) return fallback;
-
-  return '';
+  const localeCode = FALLBACK_LANGUAGE_CODES[locale];
+  const fixedT = i18n.getFixedT(localeCode, namespace);
+  const value = fixedT(key);
+  return typeof value === 'string' ? value : '';
 }
 
 export function translate(
+  namespace: TranslationNamespace,
   key: TranslationKey,
   toggle: LangToggle,
   fallbackLocale: TranslationLocale,
   separator = ' / ',
 ): string {
-  const tamil = resolveLocaleValue(key, 'tamil', fallbackLocale);
-  const english = resolveLocaleValue(key, 'english', fallbackLocale);
+  const tamil =
+    readLocaleValue(namespace, key, 'tamil') || readLocaleValue(namespace, key, fallbackLocale);
+  const english =
+    readLocaleValue(namespace, key, 'english') || readLocaleValue(namespace, key, fallbackLocale);
 
   if (toggle.tamil && toggle.english) {
     if (tamil === english) return tamil;
@@ -53,11 +54,12 @@ export function translate(
 }
 
 export function translateSingle(
+  namespace: TranslationNamespace,
   key: TranslationKey,
   locale: TranslationLocale,
   fallbackLocale: TranslationLocale,
 ): string {
-  return resolveLocaleValue(key, locale, fallbackLocale);
+  return readLocaleValue(namespace, key, locale) || readLocaleValue(namespace, key, fallbackLocale);
 }
 
 export function formatTranslation(
@@ -76,42 +78,58 @@ export function formatTranslation(
 }
 
 export function formatPageStatus(
+  namespace: TranslationNamespace,
   page: number,
   totalPages: number,
   toggle: LangToggle,
   fallbackLocale: TranslationLocale,
 ): string {
-  const tamil = formatTemplate(resolveLocaleValue('pageOf', 'tamil', fallbackLocale), {
-    page,
-    total: totalPages,
-  });
-  const english = formatTemplate(resolveLocaleValue('pageOf', 'english', fallbackLocale), {
-    page,
-    total: totalPages,
-  });
+  const tamil = formatTemplate(
+    readLocaleValue(namespace, 'pageOf', 'tamil') ||
+      readLocaleValue(namespace, 'pageOf', fallbackLocale),
+    {
+      page,
+      total: totalPages,
+    },
+  );
+  const english = formatTemplate(
+    readLocaleValue(namespace, 'pageOf', 'english') ||
+      readLocaleValue(namespace, 'pageOf', fallbackLocale),
+    {
+      page,
+      total: totalPages,
+    },
+  );
 
   return formatTranslation(tamil, english, toggle);
 }
 
 export function formatRangeStatus(
+  namespace: TranslationNamespace,
   start: number,
   end: number,
   toggle: LangToggle,
   fallbackLocale: TranslationLocale,
 ): string {
-  const tamil = formatTemplate(resolveLocaleValue('kuralsRange', 'tamil', fallbackLocale), {
-    start,
-    end,
-  });
-  const english = formatTemplate(resolveLocaleValue('kuralsRange', 'english', fallbackLocale), {
-    start,
-    end,
-  });
+  const tamil = formatTemplate(
+    readLocaleValue(namespace, 'kuralsRange', 'tamil') ||
+      readLocaleValue(namespace, 'kuralsRange', fallbackLocale),
+    { start, end },
+  );
+  const english = formatTemplate(
+    readLocaleValue(namespace, 'kuralsRange', 'english') ||
+      readLocaleValue(namespace, 'kuralsRange', fallbackLocale),
+    { start, end },
+  );
 
   return formatTranslation(tamil, english, toggle);
 }
 
-export function useTranslation(toggleKey: LangToggleKey = 'uiChrome') {
+export function useTranslation(
+  toggleKey: LangToggleKey = 'uiChrome',
+  namespace: TranslationNamespace = 'common',
+) {
+  const { i18n: i18nextInstance } = useI18nextTranslation(namespace);
   const { settings } = useSettings();
   const toggle = settings.langToggles[toggleKey];
   const fallbackLocale = settings.fallbackLanguage;
@@ -120,15 +138,16 @@ export function useTranslation(toggleKey: LangToggleKey = 'uiChrome') {
     () => ({
       toggle,
       fallbackLocale,
-      t: (key: TranslationKey) => translate(key, toggle, fallbackLocale),
+      i18n: i18nextInstance,
+      t: (key: TranslationKey) => translate(namespace, key, toggle, fallbackLocale),
       tSingle: (key: TranslationKey, locale: TranslationLocale) =>
-        translateSingle(key, locale, fallbackLocale),
+        translateSingle(namespace, key, locale, fallbackLocale),
       format: (tamil: string, english: string) => formatTranslation(tamil, english, toggle),
       formatPageStatus: (page: number, totalPages: number) =>
-        formatPageStatus(page, totalPages, toggle, fallbackLocale),
+        formatPageStatus(namespace, page, totalPages, toggle, fallbackLocale),
       formatRangeStatus: (start: number, end: number) =>
-        formatRangeStatus(start, end, toggle, fallbackLocale),
+        formatRangeStatus(namespace, start, end, toggle, fallbackLocale),
     }),
-    [toggle, fallbackLocale],
+    [namespace, toggle, fallbackLocale, i18nextInstance],
   );
 }

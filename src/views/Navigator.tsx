@@ -4,7 +4,7 @@ import { View, TouchableOpacity, Platform, useWindowDimensions } from 'react-nat
 
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { useSettings } from 'src/context/SettingsContext';
-import { TabConfig, TabType } from 'src/types/types';
+import { TabType } from 'src/types/types';
 import { KuralText } from 'src/components/common/KuralText';
 import { FeaturePlaceholder } from 'src/components/common/FeaturePlaceholder';
 import { useTranslation } from 'src/content/translation';
@@ -15,14 +15,14 @@ import KuralOfTheDayView from 'src/views/KuralOfTheDayView';
 import KuralDetailView from 'src/views/KuralDetailView';
 import SettingsView from 'src/views/SettingsView';
 
-const TABS: TabConfig[] = [
-  { id: TabType.Home, label: 'Home', tamilLabel: 'முகப்பு', icon: '🏠' },
-  { id: TabType.Explore, label: 'Explore', tamilLabel: 'தேடல்', icon: '🔍' },
-  { id: TabType.Bookmarks, label: 'Bookmarks', tamilLabel: 'சேமிப்பு', icon: '🔖' },
-  { id: TabType.Learn, label: 'Learn', tamilLabel: 'கற்றல்', icon: '📈' },
-  { id: TabType.Guru, label: 'Guru', tamilLabel: 'குரு', icon: '🤖' },
-  { id: TabType.Settings, label: 'Settings', tamilLabel: 'அமைப்பு', icon: '⚙' },
-];
+const TABS = [
+  { id: TabType.Home, titleKey: 'homeTitle', icon: '🏠' },
+  { id: TabType.Explore, titleKey: 'exploreTitle', icon: '🔍' },
+  { id: TabType.Bookmarks, titleKey: 'bookmarksTitle', icon: '🔖' },
+  { id: TabType.Learn, titleKey: 'learnTitle', icon: '📈' },
+  { id: TabType.Guru, titleKey: 'guruTitle', icon: '🤖' },
+  { id: TabType.Settings, titleKey: 'settingsTitle', icon: '⚙' },
+] as const;
 
 type RouteState = { kind: 'tab'; tabId: TabType } | { kind: 'kural'; kuralId: number };
 
@@ -52,7 +52,7 @@ export default function TabNavigator() {
   const isWidescreen = width > 768;
   const { componentStyles } = useTheme();
   const { settings } = useSettings();
-  const { t } = useTranslation('uiChrome');
+  const { t } = useTranslation('uiChrome', 'navigation');
 
   const initialRoute: RouteState =
     Platform.OS === 'web' && typeof window !== 'undefined'
@@ -140,11 +140,12 @@ export default function TabNavigator() {
     }
   };
 
-  const getTabLabel = (tab: TabConfig): string | null => {
+  const getTabLabel = (tab: (typeof TABS)[number]): string | null => {
     const toggle = settings.langToggles.navLabels;
-    if (toggle.tamil && toggle.english) return `${tab.tamilLabel} / ${tab.label}`;
-    if (toggle.tamil) return tab.tamilLabel;
-    if (toggle.english) return tab.label;
+    const label = t(tab.titleKey);
+    if (toggle.tamil && toggle.english) return label;
+    if (toggle.tamil) return label;
+    if (toggle.english) return label;
     return null;
   };
 

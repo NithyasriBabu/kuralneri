@@ -18,7 +18,7 @@ export default React.memo(function KuralCommentary({
 }: KuralCommentaryProps) {
   const { componentStyles } = useTheme();
   const { settings } = useSettings();
-  const { t } = useTranslation('uiChrome');
+  const { t } = useTranslation('uiChrome', 'cards');
   const [othersExpanded, setOthersExpanded] = useState(false);
 
   if (!notes || notes.length === 0) {

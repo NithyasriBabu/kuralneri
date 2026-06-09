@@ -14,7 +14,7 @@ export default function KuralOfTheDayView() {
   const { theme, componentStyles } = useTheme();
   const { settings } = useSettings();
   const { sectionHeaders: headerToggle } = settings.langToggles;
-  const { tSingle } = useTranslation('uiChrome');
+  const { tSingle } = useTranslation('uiChrome', 'cards');
   const userNameTamil = settings.userNameTamil || settings.userName;
 
   const [displayKural, setDisplayKural] = useState<KuralRecord | null>(null);

@@ -18,7 +18,7 @@ export default React.memo(function KuralCouplet({
   headerToggle,
 }: KuralCoupletProps) {
   const { componentStyles } = useTheme();
-  const { t } = useTranslation('uiChrome');
+  const { t } = useTranslation('uiChrome', 'cards');
 
   return (
     <View>

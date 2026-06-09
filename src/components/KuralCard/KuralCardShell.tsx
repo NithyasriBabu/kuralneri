@@ -26,7 +26,7 @@ export default React.memo(function KuralCardShell({
   bookmarkLoading,
 }: KuralCardShellProps) {
   const { theme, componentStyles } = useTheme();
-  const { t } = useTranslation('uiChrome');
+  const { t } = useTranslation('uiChrome', 'common');
   const { settings } = useSettings();
 
   const handleBookmarkPress = async () => {

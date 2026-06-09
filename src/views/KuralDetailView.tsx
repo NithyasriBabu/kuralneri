@@ -18,7 +18,8 @@ export default function KuralDetailView({ kuralId, onBack }: KuralDetailViewProp
   const { theme, componentStyles } = useTheme();
   const { settings } = useSettings();
   const { sectionHeaders: headerToggle } = settings.langToggles;
-  const { t: tChrome, tSingle } = useTranslation('uiChrome');
+  const { t: tCommon } = useTranslation('uiChrome', 'common');
+  const { t: tCards, tSingle } = useTranslation('uiChrome', 'cards');
   const [kural, setKural] = useState<KuralRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +39,7 @@ export default function KuralDetailView({ kuralId, onBack }: KuralDetailViewProp
         }
       } catch (err) {
         if (isMounted) {
-          setError(tChrome('kuralLoadFailed'));
+          setError(tCards('kuralLoadFailed'));
         }
         console.error(err);
       } finally {
@@ -104,7 +105,7 @@ export default function KuralDetailView({ kuralId, onBack }: KuralDetailViewProp
               fontFamily: theme.typography.fonts.english,
             }}
           >
-            {tChrome('backToExplore')}
+            {tCommon('backToExplore')}
           </KuralText>
         </TouchableOpacity>
       )}

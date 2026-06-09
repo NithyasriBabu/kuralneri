@@ -36,7 +36,7 @@ export function KuralPaginationBar({
 }: KuralPaginationBarProps) {
   const { theme, componentStyles } = useTheme();
   const { width } = useWindowDimensions();
-  const { t, formatPageStatus, formatRangeStatus } = useTranslation('uiChrome');
+  const { t, formatPageStatus, formatRangeStatus } = useTranslation('uiChrome', 'pagination');
 
   return (
     <View style={componentStyles.kuralListPaginationContainer}>

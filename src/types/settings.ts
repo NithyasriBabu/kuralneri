@@ -111,20 +111,3 @@ export const ENGLISH_FONT_FAMILIES: Record<EnglishFont, string> = {
   Merriweather: 'Merriweather-Regular',
   SourceSerif: 'SourceSerif-Regular',
 };
-
-export const LANG_TOGGLE_LABELS: Record<LangToggleKey, { tamil: string; english: string }> = {
-  kuralCard: { tamil: 'குறள் அட்டை', english: 'Kural Card' },
-  commentary: { tamil: 'உரை', english: 'Commentary' },
-  filterLabels: { tamil: 'வடிகட்டி', english: 'Filter Labels' },
-  navLabels: { tamil: 'வழிசெலுத்தல்', english: 'Nav Labels' },
-  uiChrome: { tamil: 'பயனர் UI', english: 'UI Chrome' },
-  sectionHeaders: { tamil: 'தலைப்புகள்', english: 'Section Headers' },
-};
-
-export const TRANSLATION_LOCALE_LABELS: Record<
-  TranslationLocale,
-  { tamil: string; english: string }
-> = {
-  tamil: { tamil: 'தமிழ்', english: 'Tamil' },
-  english: { tamil: 'ஆங்கிலம்', english: 'English' },
-};

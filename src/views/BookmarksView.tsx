@@ -23,7 +23,7 @@ export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
   const { width } = useWindowDimensions();
   const { theme, componentStyles } = useTheme();
   const { settings } = useSettings();
-  const { t } = useTranslation('uiChrome');
+  const { t } = useTranslation('uiChrome', 'cards');
   const listRef = useRef<FlatList>(null);
 
   const {

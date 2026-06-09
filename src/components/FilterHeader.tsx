@@ -55,8 +55,7 @@ export function FilterHeader({
   const isWidescreen = theme.layout.isWideScreen;
   const [isExpanded, setIsExpanded] = useState(isWidescreen);
 
-  const { t: tFilter } = useTranslation('filterLabels');
-  const { t: tChrome } = useTranslation('uiChrome');
+  const { t } = useTranslation('uiChrome', 'filters');
 
   const hasActiveFilters =
     searchQuery.trim().length > 0 || selectedPaal > 0 || selectedIyal > 0 || selectedAdhigaram > 0;
@@ -95,9 +94,7 @@ export function FilterHeader({
       >
         <View style={componentStyles.accordionLeft}>
           <KuralText variant="bodyNormal" style={componentStyles.accordionTitle}>
-            {hasActiveFilters
-              ? tFilter('searchAndFiltersActive')
-              : tFilter('searchAndFilterVerses')}
+            {hasActiveFilters ? t('searchAndFiltersActive') : t('searchAndFilterVerses')}
           </KuralText>
           {Boolean(hasActiveFilters) && (
             <View style={componentStyles.filterBadge}>
@@ -110,7 +107,7 @@ export function FilterHeader({
 
         <View style={componentStyles.accordionRight}>
           <KuralText variant="caption" style={componentStyles.counterText}>
-            {tFilter('found')} {totalRecords}
+            {t('found')} {totalRecords}
           </KuralText>
           <KuralText variant="caption" style={componentStyles.chevronIcon}>
             {isExpanded ? '▲' : '▼'}
@@ -133,10 +130,10 @@ export function FilterHeader({
                 variant="caption"
                 style={[globalStyles.fieldLabel, hasSearchQuery && globalStyles.disabledLabel]}
               >
-                {tChrome('search')}
+                {t('search')}
               </KuralText>
               <KuralInput
-                placeholder={tChrome('searchPlaceholder')}
+                placeholder={t('searchPlaceholder')}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 onClear={() => setSearchQuery('')}
@@ -145,8 +142,8 @@ export function FilterHeader({
 
             {/* Tier 1: Section Selector (Paal) */}
             <KuralDropdown
-              label={tFilter('section')}
-              placeholder={tChrome('allSections')}
+              label={t('section')}
+              placeholder={t('allSections')}
               items={mappedPaalOptions}
               selectedValue={selectedPaal}
               onValueChange={(val) => selectPaal(val, 0)}
@@ -156,8 +153,8 @@ export function FilterHeader({
 
             {/* Tier 2: Sub-section Selector (Iyal) */}
             <KuralDropdown
-              label={tFilter('subsection')}
-              placeholder={tChrome('allSubsections')}
+              label={t('subsection')}
+              placeholder={t('allSubsections')}
               items={mappedIyalOptions}
               selectedValue={selectedIyal}
               onValueChange={(val) => selectIyal(val, 0)}
@@ -167,8 +164,8 @@ export function FilterHeader({
 
             {/* Tier 3: Chapter Selector (Adhigaram) */}
             <KuralDropdown
-              label={tFilter('chapter')}
-              placeholder={tChrome('allChapters')}
+              label={t('chapter')}
+              placeholder={t('allChapters')}
               items={mappedAdhigaramOptions}
               selectedValue={selectedAdhigaram}
               onValueChange={(val) => selectAdhigaram(val, 0)}
@@ -179,7 +176,7 @@ export function FilterHeader({
             {/* Clear Filters Action Trigger */}
             {Boolean(hasActiveFilters) && (
               <KuralButton
-                title={tChrome('clearAllFilters')}
+                title={t('clearAllFilters')}
                 variant="secondary"
                 onPress={clearAllFilters}
                 style={isWidescreen ? { marginTop: 22 } : { marginTop: 8 }}
