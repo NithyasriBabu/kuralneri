@@ -38,19 +38,51 @@ export const KURAL_BY_ID = `
     a.translation AS adhikaram_english_name,
     i.translation AS iyal_english_name,
     p.translation AS paal_english_name,
-    n.text AS note_text,
-    au.id AS author_id,
-    au.name AS author_name,
-    au.tamil_name AS author_name_tamil,
-    au.short_code AS author_code
+    k.is_bookmarked
   FROM kurals k
     JOIN adhikarams a ON k.adhikaram_id = a.id
     JOIN iyals i ON a.iyal_id = i.id
     JOIN paals p ON i.paal_id = p.id
-    LEFT JOIN notes n ON k.id = n.kural_id
-    LEFT JOIN authors au ON n.author_id = au.id
-  WHERE k.id = ?
-  ORDER BY au.id ASC;
+  WHERE k.id = ?;
+`;
+
+export const KURAL_NOTES_BY_ID = `
+  WITH merged_notes AS (
+    SELECT
+      n.kural_id,
+      n.text AS note_text,
+      au.id AS author_id,
+      au.name AS author_name,
+      au.tamil_name AS author_name_tamil,
+      au.short_code AS author_code,
+      NULL AS note_date,
+      NULL AS created_at,
+      NULL AS updated_at,
+      'seeded' AS note_source
+    FROM notes n
+    JOIN authors au ON n.author_id = au.id
+    UNION ALL
+    SELECT
+      un.kural_id,
+      un.text AS note_text,
+      au.id AS author_id,
+      au.name AS author_name,
+      au.tamil_name AS author_name_tamil,
+      au.short_code AS author_code,
+      un.note_date,
+      un.created_at,
+      un.updated_at,
+      'user' AS note_source
+    FROM user_notes un
+    JOIN authors au ON un.author_id = au.id
+  )
+  SELECT *
+  FROM merged_notes
+  WHERE kural_id = ?
+  ORDER BY
+    CASE note_source WHEN 'user' THEN 0 ELSE 1 END,
+    COALESCE(updated_at, created_at, '') DESC,
+    author_id ASC;
 `;
 
 /**

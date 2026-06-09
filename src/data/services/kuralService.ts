@@ -15,6 +15,7 @@ import {
 
 import {
   KURAL_BY_ID,
+  KURAL_NOTES_BY_ID,
   PAGINATED_KURALS,
   KURALS_COUNT,
   PAALS,
@@ -43,54 +44,50 @@ type KuralByIdRow = {
   adhikaram_id: number;
   iyal_id: number;
   paal_id: number;
-  note_text: string | null;
-  author_id: number | null;
-  author_name: string | null;
-  author_code: string | null;
   is_bookmarked: number | null;
 };
 
-function assembleKuralFromRows(rows: KuralByIdRow[]): KuralRecord | null {
-  if (!rows.length) return null;
+type UserNoteRow = {
+  id: number;
+  kural_id: number;
+  author_id: number;
+  author_name: string;
+  author_name_tamil: string;
+  author_code: string;
+  note_text: string;
+  note_date: string;
+  created_at: string;
+  updated_at: string;
+};
 
-  const head = rows[0];
-  const notes: AuthorNote[] = [];
-  const seenAuthorIds = new Set<number>();
+type RunResult = {
+  lastInsertRowId?: number;
+  changes?: number;
+};
 
-  for (const row of rows) {
-    if (row.author_id == null || !row.note_text || seenAuthorIds.has(row.author_id)) {
-      continue;
-    }
-    seenAuthorIds.add(row.author_id);
-    notes.push({
-      author_id: row.author_id,
-      author_name: row.author_name ?? '',
-      author_code: row.author_code ?? '',
-      note_text: row.note_text,
-    });
-  }
+function assembleKuralFromRow(row: KuralByIdRow | undefined): KuralRecord | null {
+  if (!row) return null;
 
   return {
-    id: head.id,
-    text: head.text,
-    translation: head.translation,
-    couplet: head.couplet,
-    explanation: head.explanation,
-    line1: head.line1,
-    line2: head.line2,
-    transliteration1: head.transliteration1,
-    transliteration2: head.transliteration2,
-    adhikaram_name: head.adhikaram_name,
-    adhikaram_english_name: head.adhikaram_english_name,
-    iyal_name: head.iyal_name,
-    iyal_english_name: head.iyal_english_name,
-    paal_name: head.paal_name,
-    paal_english_name: head.paal_english_name,
-    adhikaram_id: head.adhikaram_id,
-    iyal_id: head.iyal_id,
-    paal_id: head.paal_id,
-    is_bookmarked: Boolean(head.is_bookmarked),
-    notes: notes.length > 0 ? notes : undefined,
+    id: row.id,
+    text: row.text,
+    translation: row.translation,
+    couplet: row.couplet,
+    explanation: row.explanation,
+    line1: row.line1,
+    line2: row.line2,
+    transliteration1: row.transliteration1,
+    transliteration2: row.transliteration2,
+    adhikaram_name: row.adhikaram_name,
+    adhikaram_english_name: row.adhikaram_english_name,
+    iyal_name: row.iyal_name,
+    iyal_english_name: row.iyal_english_name,
+    paal_name: row.paal_name,
+    paal_english_name: row.paal_english_name,
+    adhikaram_id: row.adhikaram_id,
+    iyal_id: row.iyal_id,
+    paal_id: row.paal_id,
+    is_bookmarked: Boolean(row.is_bookmarked),
   };
 }
 
@@ -128,6 +125,17 @@ async function executeRun(querySQL: string, args: any[] = []): Promise<void> {
     } catch (error) {
       console.error(`❌ DB Write Failed for Query: "${querySQL.substring(0, 50)}..."`, error);
     }
+  });
+}
+
+async function executeRunReturningResult(querySQL: string, args: any[] = []): Promise<RunResult> {
+  return runWebDbTask(async () => {
+    if (Platform.OS === 'web') {
+      const targetDb = await db;
+      return (await targetDb.runAsync(querySQL, args)) as RunResult;
+    }
+    const targetDb = db as SQLite.SQLiteDatabase;
+    return targetDb.runSync(querySQL, args) as RunResult;
   });
 }
 
@@ -172,10 +180,23 @@ function buildFilterClause(filters?: KuralFilters & { isBookmarked?: boolean }):
       args.push(Number(search));
     } else {
       clauses.push(
-        '(k.line1 LIKE ? OR k.line2 LIKE ? OR k.translation LIKE ? OR k.explanation LIKE ?)',
+        `(
+          k.line1 LIKE ? OR
+          k.line2 LIKE ? OR
+          k.translation LIKE ? OR
+          k.explanation LIKE ? OR
+          EXISTS (
+            SELECT 1 FROM notes n
+            WHERE n.kural_id = k.id AND n.text LIKE ?
+          ) OR
+          EXISTS (
+            SELECT 1 FROM user_notes un
+            WHERE un.kural_id = k.id AND un.text LIKE ?
+          )
+        )`,
       );
       const pattern = `%${search}%`;
-      args.push(pattern, pattern, pattern, pattern);
+      args.push(pattern, pattern, pattern, pattern, pattern, pattern);
     }
   }
 
@@ -185,7 +206,7 @@ function buildFilterClause(filters?: KuralFilters & { isBookmarked?: boolean }):
 
 export const getKuralById = async (id: number): Promise<KuralRecord | null> => {
   const rows = await executeSelect<KuralByIdRow>(KURAL_BY_ID, [id]);
-  return assembleKuralFromRows(rows);
+  return assembleKuralFromRow(rows[0]);
 };
 
 export async function isKuralBookmarked(id: number): Promise<boolean> {
@@ -205,6 +226,165 @@ export async function setKuralBookmarkStatus(id: number, bookmarked: boolean): P
 export async function toggleKuralBookmark(id: number): Promise<boolean> {
   const nextStatus = !(await isKuralBookmarked(id));
   return setKuralBookmarkStatus(id, nextStatus);
+}
+
+async function getSelfAuthorId(): Promise<number> {
+  const rows = await executeSelect<{ id: number }>(
+    'SELECT id FROM authors WHERE short_code = ? LIMIT 1;',
+    ['self'],
+  );
+  return rows[0]?.id ?? 1;
+}
+
+function getLocalDateString(date = new Date()): string {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getTimestampString(date = new Date()): string {
+  return date.toISOString();
+}
+
+export async function getUserNotesForKural(kuralId: number): Promise<AuthorNote[]> {
+  const rows = await executeSelect<UserNoteRow>(
+    `
+      SELECT
+        un.id,
+        un.kural_id,
+        un.author_id,
+        au.name AS author_name,
+        au.tamil_name AS author_name_tamil,
+        au.short_code AS author_code,
+        un.text AS note_text,
+        un.note_date,
+        un.created_at,
+        un.updated_at
+      FROM user_notes un
+      JOIN authors au ON un.author_id = au.id
+      WHERE un.kural_id = ?
+      ORDER BY un.note_date DESC, un.updated_at DESC, un.id DESC;
+    `,
+    [kuralId],
+  );
+
+  return rows.map((row) => ({
+    author_id: row.author_id,
+    author_name: row.author_name,
+    author_name_tamil: row.author_name_tamil,
+    author_code: row.author_code,
+    note_text: row.note_text,
+    note_source: 'user',
+    note_date: row.note_date,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  }));
+}
+
+export async function getKuralNotesById(kuralId: number): Promise<AuthorNote[]> {
+  const rows = await executeSelect<UserNoteRow & { note_source: 'seeded' | 'user' }>(
+    KURAL_NOTES_BY_ID,
+    [kuralId],
+  );
+
+  return rows.map((row) => ({
+    author_id: row.author_id,
+    author_name: row.author_name,
+    author_name_tamil: row.author_name_tamil,
+    author_code: row.author_code,
+    note_text: row.note_text,
+    note_source: row.note_source,
+    note_date: row.note_date,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  }));
+}
+
+export async function listUserNotesForKural(kuralId: number): Promise<AuthorNote[]> {
+  return getUserNotesForKural(kuralId);
+}
+
+export async function saveUserNote(kuralId: number, text: string): Promise<AuthorNote | null> {
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+
+  const authorId = await getSelfAuthorId();
+  const now = new Date();
+  const noteDate = getLocalDateString(now);
+  const timestamp = getTimestampString(now);
+
+  const existing = await executeSelect<UserNoteRow>(
+    `
+      SELECT
+        un.id,
+        un.kural_id,
+        un.author_id,
+        au.name AS author_name,
+        au.tamil_name AS author_name_tamil,
+        au.short_code AS author_code,
+        un.text AS note_text,
+        un.note_date,
+        un.created_at,
+        un.updated_at
+      FROM user_notes un
+      JOIN authors au ON un.author_id = au.id
+      WHERE un.kural_id = ? AND un.note_date = ? AND un.author_id = ?
+      LIMIT 1;
+    `,
+    [kuralId, noteDate, authorId],
+  );
+
+  if (existing[0]) {
+    await executeRun(
+      `
+        UPDATE user_notes
+        SET text = ?, updated_at = ?, note_date = ?
+        WHERE id = ?;
+      `,
+      [trimmed, timestamp, noteDate, existing[0].id],
+    );
+    return {
+      author_id: existing[0].author_id,
+      author_name: existing[0].author_name,
+      author_name_tamil: existing[0].author_name_tamil,
+      author_code: existing[0].author_code,
+      note_text: trimmed,
+      note_source: 'user',
+      note_date: noteDate,
+      created_at: existing[0].created_at,
+      updated_at: timestamp,
+    };
+  }
+
+  const result = await executeRunReturningResult(
+    `
+      INSERT INTO user_notes (kural_id, author_id, note_date, text, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?);
+    `,
+    [kuralId, authorId, noteDate, trimmed, timestamp, timestamp],
+  );
+
+  return {
+    author_id: authorId,
+    author_name: 'You',
+    author_name_tamil: 'நீங்கள்',
+    author_code: 'self',
+    note_text: trimmed,
+    note_source: 'user',
+    note_date: noteDate,
+    created_at: timestamp,
+    updated_at: timestamp,
+  };
+}
+
+export async function deleteUserNote(kuralId: number): Promise<void> {
+  const authorId = await getSelfAuthorId();
+  const noteDate = getLocalDateString();
+  await executeRun(
+    'DELETE FROM user_notes WHERE kural_id = ? AND author_id = ? AND note_date = ?;',
+    [kuralId, authorId, noteDate],
+  );
 }
 
 /**

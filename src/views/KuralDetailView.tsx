@@ -127,6 +127,7 @@ export default function KuralDetailView({ kuralId, onBack }: KuralDetailViewProp
           <KuralCardShell
             kural={kural}
             showComments
+            showUserNotes
             onBookmarkToggle={handleBookmarkToggle}
             bookmarkLoading={savingBookmark}
           />

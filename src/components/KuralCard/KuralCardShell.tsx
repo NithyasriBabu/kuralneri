@@ -8,11 +8,12 @@ import { useTranslation } from 'src/content/translation';
 
 import { KuralRecord } from 'src/types/types';
 import KuralCouplet from 'src/components/KuralCard/KuralCouplet';
-import KuralCommentary from 'src/components/KuralCard/KuralCommentary';
+import KuralNotesBlock from 'src/components/KuralCard/KuralNotesBlock';
 
 export interface KuralCardShellProps {
   kural: KuralRecord;
   showComments?: boolean;
+  showUserNotes?: boolean;
   onPress?: () => void;
   onBookmarkToggle?: (nextBookmarked: boolean) => void | Promise<void>;
   bookmarkLoading?: boolean;
@@ -21,6 +22,7 @@ export interface KuralCardShellProps {
 export default React.memo(function KuralCardShell({
   kural,
   showComments,
+  showUserNotes = false,
   onPress,
   onBookmarkToggle,
   bookmarkLoading,
@@ -41,11 +43,16 @@ export default React.memo(function KuralCardShell({
     <View style={componentStyles.kuralCard}>
       <Pressable onPress={onPress} disabled={!onPress} style={componentStyles.kuralCardPressable}>
         <KuralCouplet kural={kural} cardToggle={cardToggle} headerToggle={headerToggle} />
-
-        {showComments && (
-          <KuralCommentary notes={kural.notes} preferredAuthorCode={preferredAuthorCode} />
-        )}
       </Pressable>
+
+      {showComments || showUserNotes ? (
+        <KuralNotesBlock
+          kuralId={kural.id}
+          preferredAuthorCode={preferredAuthorCode}
+          showComments={showComments}
+          showUserNotes={showUserNotes}
+        />
+      ) : null}
 
       {onBookmarkToggle && (
         <Pressable

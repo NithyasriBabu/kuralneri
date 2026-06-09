@@ -17,9 +17,10 @@ export interface KuralRecord {
   paal_english_name: string;
   iyal_name: string;
   iyal_english_name: string;
-  notes?: AuthorNote[];
   is_bookmarked?: boolean;
 }
+
+export type AuthorNoteSource = 'seeded' | 'user';
 
 export interface AuthorNote {
   author_id: number;
@@ -27,6 +28,10 @@ export interface AuthorNote {
   author_name_tamil?: string;
   author_code: string;
   note_text: string;
+  note_source: AuthorNoteSource;
+  note_date?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface PaalRecord {

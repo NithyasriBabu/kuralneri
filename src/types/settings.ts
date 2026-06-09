@@ -32,6 +32,7 @@ export interface AppSettings {
   userName: string;
   userNameTamil: string;
   preferredAuthorCode: string; // 'mv' | 'sp' | 'mk' | '' (all)
+  selfNotesEnabled: boolean;
   fallbackLanguage: TranslationLocale;
   themeMode: ThemeMode;
   tamilFont: TamilFont;
@@ -51,6 +52,7 @@ export const APP_SETTINGS_SCALAR_KEYS = [
   'userName',
   'userNameTamil',
   'preferredAuthorCode',
+  'selfNotesEnabled',
   'fallbackLanguage',
   'themeMode',
   'tamilFont',
@@ -82,6 +84,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   userName: '',
   userNameTamil: '',
   preferredAuthorCode: '',
+  selfNotesEnabled: true,
   fallbackLanguage: 'english',
   themeMode: 'system',
   tamilFont: 'MuktaMalar',

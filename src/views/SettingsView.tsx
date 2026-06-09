@@ -236,7 +236,6 @@ export default function SettingsView() {
 
   const AUTHORS = [
     { label: tSettings('allAuthors'), value: '' },
-    { label: tSettings('youAuthor'), value: 'self' },
     { label: `${tSettings('authorMVaradarajan')} (mv)`, value: 'mv' },
     { label: `${tSettings('authorSolomonPappaiah')} (sp)`, value: 'sp' },
     { label: `${tSettings('authorMKarunanidhi')} (mk)`, value: 'mk' },
@@ -446,6 +445,18 @@ export default function SettingsView() {
               </TouchableOpacity>
             );
           })}
+        </View>
+
+        <View style={row}>
+          <RowLabel label={tSettings('selfNotes')} sub={tSettings('selfNotesHelp')} />
+          <Switch
+            value={settings.selfNotesEnabled}
+            onValueChange={(value) => updateSettings({ selfNotesEnabled: value })}
+            trackColor={{ false: theme.colors.border, true: theme.colors.accent }}
+            thumbColor={
+              settings.selfNotesEnabled ? theme.colors.primary : theme.colors.disabledText
+            }
+          />
         </View>
 
         {/* ── 2. Display ──────────────────────────────────────── */}

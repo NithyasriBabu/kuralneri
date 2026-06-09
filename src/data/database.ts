@@ -73,6 +73,21 @@ const DATABASE_SCHEMA_SQL: string = `
       FOREIGN KEY (author_id) REFERENCES authors (id) ON DELETE CASCADE
     );
 
+    CREATE TABLE IF NOT EXISTS user_notes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      kural_id INTEGER NOT NULL,
+      author_id INTEGER NOT NULL,
+      note_date TEXT NOT NULL,
+      text TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (kural_id) REFERENCES kurals (id) ON DELETE CASCADE,
+      FOREIGN KEY (author_id) REFERENCES authors (id) ON DELETE CASCADE
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_user_notes_kural_day
+      ON user_notes (kural_id, note_date);
+
     CREATE TABLE IF NOT EXISTS app_settings (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
@@ -254,6 +269,17 @@ async function ensureAuthorPresets(targetDb: SQLite.SQLiteDatabase): Promise<voi
   }
 }
 
+async function ensureUserNotesIndexes(targetDb: SQLite.SQLiteDatabase): Promise<void> {
+  const sql =
+    'CREATE UNIQUE INDEX IF NOT EXISTS idx_user_notes_kural_day ON user_notes (kural_id, note_date);';
+  if (Platform.OS === 'web') {
+    await targetDb.runAsync(sql);
+    return;
+  }
+
+  targetDb.runSync(sql);
+}
+
 export const setupDatabase = async (onLog: LogCallback) => {
   try {
     if (Platform.OS === 'web') {
@@ -281,6 +307,7 @@ export const setupDatabase = async (onLog: LogCallback) => {
         const isSeeded = await isDatabaseAlreadySeeded(
           async (sql) => await targetDb.getFirstAsync<any>(sql),
         );
+        await ensureUserNotesIndexes(targetDb);
         if (isSeeded) {
           await ensureAuthorPresets(targetDb);
           onLog('✨ Database fully synchronized.');
@@ -306,6 +333,7 @@ export const setupDatabase = async (onLog: LogCallback) => {
 
       // Utilize shared helper with sync context wrapper
       const isSeeded = await isDatabaseAlreadySeeded((sql) => targetDb.getFirstSync<any>(sql));
+      await ensureUserNotesIndexes(targetDb);
       if (isSeeded) {
         await ensureAuthorPresets(targetDb);
         onLog('✨ Database fully synchronized.');

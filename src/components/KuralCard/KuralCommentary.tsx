@@ -21,16 +21,18 @@ export default React.memo(function KuralCommentary({
   const { t } = useTranslation('uiChrome', 'cards');
   const [othersExpanded, setOthersExpanded] = useState(false);
 
-  if (!notes || notes.length === 0) {
+  const seededNotes = (notes ?? []).filter((note) => note.note_source === 'seeded');
+
+  if (seededNotes.length === 0) {
     return null;
   }
 
   const preferred = preferredAuthorCode
-    ? notes.find((n) => n.author_code === preferredAuthorCode)
+    ? seededNotes.find((n) => n.author_code === preferredAuthorCode)
     : null;
   const others = preferredAuthorCode
-    ? notes.filter((n) => n.author_code !== preferredAuthorCode)
-    : notes;
+    ? seededNotes.filter((n) => n.author_code !== preferredAuthorCode)
+    : seededNotes;
   const authorToggle = settings.langToggles.uiChrome;
 
   const renderAuthorName = (note: AuthorNote): string => {

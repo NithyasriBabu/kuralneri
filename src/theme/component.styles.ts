@@ -86,6 +86,73 @@ export const createComponentStyles = (theme: AppTheme) => {
       padding: 10,
       borderRadius: theme.layout.borderRadius.small,
     } as ViewStyle,
+    userNotesSection: {
+      marginTop: 16,
+    } as ViewStyle,
+    userNotesTitleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 8,
+      gap: 8,
+    } as ViewStyle,
+    userNotesTitle: {
+      color: theme.colors.primary,
+      fontWeight: '700',
+      fontSize: theme.typography.sizes.caption + 2,
+    } as TextStyle,
+    userNotesEditorCard: {
+      backgroundColor: theme.colors.surfaceElevated,
+      borderRadius: theme.layout.borderRadius.medium,
+      padding: 12,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      gap: 10,
+    } as ViewStyle,
+    userNotesInput: {
+      minHeight: 96,
+      textAlignVertical: 'top',
+      paddingTop: 12,
+    } as TextStyle,
+    userNotesActionsRow: {
+      flexDirection: 'row',
+      gap: 10,
+      flexWrap: 'wrap',
+    } as ViewStyle,
+    userNotesHistoryList: {
+      marginTop: 12,
+      gap: 10,
+    } as ViewStyle,
+    userNotesHistoryItem: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: theme.layout.borderRadius.small,
+      padding: 10,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+    } as ViewStyle,
+    userNotesHistoryMeta: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 6,
+      gap: 8,
+    } as ViewStyle,
+    userNotesHistoryDate: {
+      color: theme.colors.textSecondary,
+      fontSize: theme.typography.sizes.caption,
+      fontWeight: '700',
+    } as TextStyle,
+    userNotesHistoryBody: {
+      color: theme.colors.textPrimary,
+      fontFamily: theme.typography.fonts.english,
+      fontSize: theme.typography.sizes.bodyNormal,
+      lineHeight: 22,
+    } as TextStyle,
+    userNotesEmptyText: {
+      color: theme.colors.textSecondary,
+      fontSize: theme.typography.sizes.caption + 1,
+      fontStyle: 'italic',
+    } as TextStyle,
 
     /* ==========================================================================
        KURAL OF THE DAY VIEW SURFACE

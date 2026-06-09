@@ -44,6 +44,7 @@ const DEFAULT_SCALAR_SETTINGS: AppSettingsScalar = {
   userName: DEFAULT_SETTINGS.userName,
   userNameTamil: DEFAULT_SETTINGS.userNameTamil,
   preferredAuthorCode: DEFAULT_SETTINGS.preferredAuthorCode,
+  selfNotesEnabled: DEFAULT_SETTINGS.selfNotesEnabled,
   fallbackLanguage: DEFAULT_SETTINGS.fallbackLanguage,
   themeMode: DEFAULT_SETTINGS.themeMode,
   tamilFont: DEFAULT_SETTINGS.tamilFont,
@@ -196,7 +197,7 @@ async function persistScalarPatch(
   for (const key of APP_SETTINGS_SCALAR_KEYS) {
     const value = patch[key];
     if (value === undefined) continue;
-    await upsertScalarRow(targetDb, key, value);
+    await upsertScalarRow(targetDb, key, String(value));
   }
 }
 
@@ -227,6 +228,9 @@ export async function loadSettings(): Promise<AppSettings> {
           break;
         case 'preferredAuthorCode':
           loaded.preferredAuthorCode = rawValue;
+          break;
+        case 'selfNotesEnabled':
+          loaded.selfNotesEnabled = rawValue === '1' || rawValue === 'true';
           break;
         case 'fallbackLanguage':
           if (isTranslationLocale(rawValue)) loaded.fallbackLanguage = rawValue;

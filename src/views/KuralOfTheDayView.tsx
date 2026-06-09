@@ -87,6 +87,7 @@ export default function KuralOfTheDayView() {
           <KuralCardShell
             kural={displayKural}
             showComments={true}
+            showUserNotes
             onBookmarkToggle={handleBookmarkToggle}
           />
         </View>
