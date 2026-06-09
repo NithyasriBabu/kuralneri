@@ -13,6 +13,7 @@ import {
   FontSizeScale,
   LangToggle,
   LangToggleKey,
+  TranslationLocale,
   TamilFont,
   ThemeMode,
 } from 'src/types/settings';
@@ -38,9 +39,12 @@ const THEME_MODES: readonly ThemeMode[] = ['light', 'dark', 'system'];
 const TAMIL_FONTS: readonly TamilFont[] = ['MuktaMalar', 'Latha', 'Catamaran', 'ArimaMadurai'];
 const ENGLISH_FONTS: readonly EnglishFont[] = ['Inter', 'Merriweather', 'SourceSerif'];
 const FONT_SIZE_SCALES: readonly FontSizeScale[] = ['small', 'medium', 'large', 'xlarge'];
+const TRANSLATION_LOCALES: readonly TranslationLocale[] = ['tamil', 'english'];
 const DEFAULT_SCALAR_SETTINGS: AppSettingsScalar = {
   userName: DEFAULT_SETTINGS.userName,
+  userNameTamil: DEFAULT_SETTINGS.userNameTamil,
   preferredAuthorCode: DEFAULT_SETTINGS.preferredAuthorCode,
+  fallbackLanguage: DEFAULT_SETTINGS.fallbackLanguage,
   themeMode: DEFAULT_SETTINGS.themeMode,
   tamilFont: DEFAULT_SETTINGS.tamilFont,
   englishFont: DEFAULT_SETTINGS.englishFont,
@@ -82,6 +86,10 @@ function isEnglishFont(value: string): value is EnglishFont {
 
 function isFontSizeScale(value: string): value is FontSizeScale {
   return FONT_SIZE_SCALES.includes(value as FontSizeScale);
+}
+
+function isTranslationLocale(value: string): value is TranslationLocale {
+  return TRANSLATION_LOCALES.includes(value as TranslationLocale);
 }
 
 function coerceBoolean(value: unknown): boolean {
@@ -214,8 +222,14 @@ export async function loadSettings(): Promise<AppSettings> {
         case 'userName':
           loaded.userName = rawValue;
           break;
+        case 'userNameTamil':
+          loaded.userNameTamil = rawValue;
+          break;
         case 'preferredAuthorCode':
           loaded.preferredAuthorCode = rawValue;
+          break;
+        case 'fallbackLanguage':
+          if (isTranslationLocale(rawValue)) loaded.fallbackLanguage = rawValue;
           break;
         case 'themeMode':
           if (isThemeMode(rawValue)) loaded.themeMode = rawValue;

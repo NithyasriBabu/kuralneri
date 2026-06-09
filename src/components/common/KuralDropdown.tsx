@@ -25,7 +25,7 @@ export const KuralDropdown: React.FC<KuralDropdownProps> = ({
   items,
   selectedValue,
   onValueChange,
-  placeholder = 'தேர்ந்தெடு / Select...',
+  placeholder = '',
   disabled = false,
   containerStyle,
 }) => {

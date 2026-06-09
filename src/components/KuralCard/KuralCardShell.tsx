@@ -4,6 +4,7 @@ import { Bookmark } from 'lucide-react-native';
 
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { useSettings } from 'src/context/SettingsContext';
+import { useTranslation } from 'src/content/translation';
 
 import { KuralRecord } from 'src/types/types';
 import KuralCouplet from 'src/components/KuralCard/KuralCouplet';
@@ -25,6 +26,7 @@ export default React.memo(function KuralCardShell({
   bookmarkLoading,
 }: KuralCardShellProps) {
   const { theme, componentStyles } = useTheme();
+  const { t } = useTranslation('uiChrome');
   const { settings } = useSettings();
 
   const handleBookmarkPress = async () => {
@@ -32,12 +34,7 @@ export default React.memo(function KuralCardShell({
     await onBookmarkToggle(!Boolean(kural.is_bookmarked));
   };
 
-  const {
-    kuralCard: cardToggle,
-    commentary: commentaryToggle,
-    sectionHeaders: headerToggle,
-  } = settings.langToggles;
-
+  const { kuralCard: cardToggle, sectionHeaders: headerToggle } = settings.langToggles;
   const preferredAuthorCode = settings.preferredAuthorCode;
 
   return (
@@ -46,11 +43,7 @@ export default React.memo(function KuralCardShell({
         <KuralCouplet kural={kural} cardToggle={cardToggle} headerToggle={headerToggle} />
 
         {showComments && (
-          <KuralCommentary
-            notes={kural.notes}
-            preferredAuthorCode={preferredAuthorCode}
-            commentaryToggle={commentaryToggle}
-          />
+          <KuralCommentary notes={kural.notes} preferredAuthorCode={preferredAuthorCode} />
         )}
       </Pressable>
 
@@ -64,7 +57,7 @@ export default React.memo(function KuralCardShell({
             bookmarkLoading && componentStyles.kuralCardBookmarkButtonDisabled,
           ]}
           accessibilityRole="button"
-          accessibilityLabel={kural.is_bookmarked ? 'Remove bookmark' : 'Add bookmark'}
+          accessibilityLabel={kural.is_bookmarked ? t('removeBookmark') : t('addBookmark')}
         >
           <Bookmark
             size={18}

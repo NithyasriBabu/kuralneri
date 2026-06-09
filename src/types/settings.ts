@@ -3,6 +3,7 @@
  */
 
 export type ThemeMode = 'light' | 'dark' | 'system';
+export type TranslationLocale = 'tamil' | 'english';
 
 export type TamilFont = 'MuktaMalar' | 'Latha' | 'Catamaran' | 'ArimaMadurai';
 
@@ -22,13 +23,16 @@ export type LangToggleKey =
   | 'commentary' // Commentary/notes section in detail view
   | 'filterLabels' // Dropdown labels (பால் / Paal etc.)
   | 'navLabels' // Bottom/top nav tab labels
+  | 'uiChrome' // App chrome, controls, empty states, and dialogs
   | 'sectionHeaders'; // Section headers (இன்றைய அதிகாரம் / Wisdom of the Day)
 
 export type LangToggles = Record<LangToggleKey, LangToggle>;
 
 export interface AppSettings {
   userName: string;
+  userNameTamil: string;
   preferredAuthorCode: string; // 'mv' | 'sp' | 'mk' | '' (all)
+  fallbackLanguage: TranslationLocale;
   themeMode: ThemeMode;
   tamilFont: TamilFont;
   englishFont: EnglishFont;
@@ -45,7 +49,9 @@ export type AppSettingsScalarKey = keyof AppSettingsScalar;
 
 export const APP_SETTINGS_SCALAR_KEYS = [
   'userName',
+  'userNameTamil',
   'preferredAuthorCode',
+  'fallbackLanguage',
   'themeMode',
   'tamilFont',
   'englishFont',
@@ -59,6 +65,7 @@ export const APP_SETTINGS_LANG_TOGGLE_KEYS = [
   'commentary',
   'filterLabels',
   'navLabels',
+  'uiChrome',
   'sectionHeaders',
 ] as const satisfies readonly LangToggleKey[];
 
@@ -67,12 +74,15 @@ export const DEFAULT_LANG_TOGGLES: LangToggles = {
   commentary: { tamil: false, english: true },
   filterLabels: { tamil: true, english: true },
   navLabels: { tamil: false, english: true },
+  uiChrome: { tamil: false, english: true },
   sectionHeaders: { tamil: true, english: true },
 };
 
 export const DEFAULT_SETTINGS: AppSettings = {
   userName: '',
+  userNameTamil: '',
   preferredAuthorCode: '',
+  fallbackLanguage: 'english',
   themeMode: 'system',
   tamilFont: 'MuktaMalar',
   englishFont: 'Inter',
@@ -107,5 +117,14 @@ export const LANG_TOGGLE_LABELS: Record<LangToggleKey, { tamil: string; english:
   commentary: { tamil: 'உரை', english: 'Commentary' },
   filterLabels: { tamil: 'வடிகட்டி', english: 'Filter Labels' },
   navLabels: { tamil: 'வழிசெலுத்தல்', english: 'Nav Labels' },
+  uiChrome: { tamil: 'பயனர் UI', english: 'UI Chrome' },
   sectionHeaders: { tamil: 'தலைப்புகள்', english: 'Section Headers' },
+};
+
+export const TRANSLATION_LOCALE_LABELS: Record<
+  TranslationLocale,
+  { tamil: string; english: string }
+> = {
+  tamil: { tamil: 'தமிழ்', english: 'Tamil' },
+  english: { tamil: 'ஆங்கிலம்', english: 'English' },
 };

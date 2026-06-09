@@ -41,6 +41,7 @@ export const KURAL_BY_ID = `
     n.text AS note_text,
     au.id AS author_id,
     au.name AS author_name,
+    au.tamil_name AS author_name_tamil,
     au.short_code AS author_code
   FROM kurals k
     JOIN adhikarams a ON k.adhikaram_id = a.id

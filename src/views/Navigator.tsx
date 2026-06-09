@@ -7,6 +7,7 @@ import { useSettings } from 'src/context/SettingsContext';
 import { TabConfig, TabType } from 'src/types/types';
 import { KuralText } from 'src/components/common/KuralText';
 import { FeaturePlaceholder } from 'src/components/common/FeaturePlaceholder';
+import { useTranslation } from 'src/content/translation';
 
 import KuralListView from 'src/views/KuralListView';
 import BookmarksView from 'src/views/BookmarksView';
@@ -51,6 +52,7 @@ export default function TabNavigator() {
   const isWidescreen = width > 768;
   const { componentStyles } = useTheme();
   const { settings } = useSettings();
+  const { t } = useTranslation('uiChrome');
 
   const initialRoute: RouteState =
     Platform.OS === 'web' && typeof window !== 'undefined'
@@ -117,18 +119,18 @@ export default function TabNavigator() {
         return (
           <FeaturePlaceholder
             icon="📈"
-            title="Learn"
-            subtitle="Study Path"
-            body="Reserved for learning tools like topic tags, patterns, and guided study flows."
+            title={t('learnTitle')}
+            subtitle={t('learnSubtitle')}
+            body={t('learnBody')}
           />
         );
       case TabType.Guru:
         return (
           <FeaturePlaceholder
             icon="🤖"
-            title="Guru"
-            subtitle="Commentary Companion"
-            body="The guided interpreter experience will live here once the reasoning and retrieval layers are connected."
+            title={t('guruTitle')}
+            subtitle={t('guruSubtitle')}
+            body={t('guruBody')}
           />
         );
       case TabType.Settings:

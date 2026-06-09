@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, TouchableOpacity, View } from 'react-native';
 
 import { getKuralById, setKuralBookmarkStatus } from 'src/data/services';
 import KuralCardShell from 'src/components/KuralCard/KuralCardShell';
@@ -7,6 +7,7 @@ import { useTheme } from 'src/theme/ThemeContextProvider';
 import { useSettings } from 'src/context/SettingsContext';
 import { KuralRecord } from 'src/types/types';
 import { KuralText } from 'src/components/common/KuralText';
+import { useTranslation } from 'src/content/translation';
 
 interface KuralDetailViewProps {
   kuralId: number;
@@ -17,6 +18,7 @@ export default function KuralDetailView({ kuralId, onBack }: KuralDetailViewProp
   const { theme, componentStyles } = useTheme();
   const { settings } = useSettings();
   const { sectionHeaders: headerToggle } = settings.langToggles;
+  const { t: tChrome, tSingle } = useTranslation('uiChrome');
   const [kural, setKural] = useState<KuralRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +38,7 @@ export default function KuralDetailView({ kuralId, onBack }: KuralDetailViewProp
         }
       } catch (err) {
         if (isMounted) {
-          setError('திருக்குறளைப் பதிவிறக்க முடியவில்லை / Failed to load Kural.');
+          setError(tChrome('kuralLoadFailed'));
         }
         console.error(err);
       } finally {
@@ -71,10 +73,14 @@ export default function KuralDetailView({ kuralId, onBack }: KuralDetailViewProp
     >
       <View style={componentStyles.kuralOfTheDayHeader}>
         {headerToggle.tamil && (
-          <KuralText style={componentStyles.kuralOfTheDayTamilHeader}>குறள் #{kuralId}</KuralText>
+          <KuralText style={componentStyles.kuralOfTheDayTamilHeader}>
+            {tSingle('kuralDetail', 'tamil')} #{kuralId}
+          </KuralText>
         )}
         {headerToggle.english && (
-          <KuralText style={componentStyles.kuralOfTheDayEnglishHeader}>Kural Detail</KuralText>
+          <KuralText style={componentStyles.kuralOfTheDayEnglishHeader}>
+            {tSingle('kuralDetail', 'english')} #{kuralId}
+          </KuralText>
         )}
       </View>
 
@@ -91,15 +97,15 @@ export default function KuralDetailView({ kuralId, onBack }: KuralDetailViewProp
             backgroundColor: theme.colors.accent,
           }}
         >
-          <Text
+          <KuralText
             style={{
               color: theme.colors.textPrimary,
               fontWeight: '700',
               fontFamily: theme.typography.fonts.english,
             }}
           >
-            Back to Explore
-          </Text>
+            {tChrome('backToExplore')}
+          </KuralText>
         </TouchableOpacity>
       )}
 
@@ -111,7 +117,7 @@ export default function KuralDetailView({ kuralId, onBack }: KuralDetailViewProp
 
       {error && (
         <View style={componentStyles.kuralOfTheDayCentered}>
-          <Text style={componentStyles.kuralOfTheDayErrorText}>{error}</Text>
+          <KuralText style={componentStyles.kuralOfTheDayErrorText}>{error}</KuralText>
         </View>
       )}
 

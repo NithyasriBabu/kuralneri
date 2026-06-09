@@ -1,9 +1,10 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { KuralText } from '../common/KuralText';
 import { KuralRecord } from 'src/types/types';
+import { useTranslation } from 'src/content/translation';
 
 export interface KuralCoupletProps {
   kural: KuralRecord;
@@ -17,6 +18,7 @@ export default React.memo(function KuralCouplet({
   headerToggle,
 }: KuralCoupletProps) {
   const { componentStyles } = useTheme();
+  const { t } = useTranslation('uiChrome');
 
   return (
     <View>
@@ -36,15 +38,19 @@ export default React.memo(function KuralCouplet({
         </View>
       )}
 
-      <Text style={componentStyles.kuralCardTamil}>{kural.line1}</Text>
-      <Text style={componentStyles.kuralCardTamil}>{kural.line2}</Text>
+      <KuralText isTamil style={componentStyles.kuralCardTamil}>
+        {kural.line1}
+      </KuralText>
+      <KuralText isTamil style={componentStyles.kuralCardTamil}>
+        {kural.line2}
+      </KuralText>
 
       {cardToggle.english && (
         <>
-          <Text style={componentStyles.kuralCardTranslation}>Translation:</Text>
-          <Text style={componentStyles.kuralCardTranslation}>{kural.translation}</Text>
-          <Text style={componentStyles.kuralCardTranslation}>Explanation:</Text>
-          <Text style={componentStyles.kuralCardTranslation}>{kural.explanation}</Text>
+          <KuralText style={componentStyles.kuralCardTranslation}>{t('translation')}</KuralText>
+          <KuralText style={componentStyles.kuralCardTranslation}>{kural.translation}</KuralText>
+          <KuralText style={componentStyles.kuralCardTranslation}>{t('explanation')}</KuralText>
+          <KuralText style={componentStyles.kuralCardTranslation}>{kural.explanation}</KuralText>
         </>
       )}
     </View>

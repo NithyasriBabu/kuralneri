@@ -14,6 +14,9 @@ import { useTheme } from 'src/theme/ThemeContextProvider';
 import { useSettings } from 'src/context/SettingsContext';
 import { KuralText } from 'src/components/common/KuralText';
 import { KuralButton } from 'src/components/common/KuralButton';
+import { KuralSegmentedControl } from 'src/components/common/KuralSegmentedControl';
+import { KuralColorSwatches } from 'src/components/common/KuralColorSwatches';
+import { useTranslation } from 'src/content/translation';
 import {
   LANG_TOGGLE_LABELS,
   LangToggleKey,
@@ -73,56 +76,6 @@ function RowLabel({ label, sub }: { label: string; sub?: string }) {
   );
 }
 
-interface SegmentedControlProps<T extends string> {
-  options: { label: string; value: T }[];
-  selected: T;
-  onSelect: (v: T) => void;
-}
-
-function SegmentedControl<T extends string>({
-  options,
-  selected,
-  onSelect,
-}: SegmentedControlProps<T>) {
-  const { theme } = useTheme();
-  return (
-    <View
-      style={{
-        flexDirection: 'row',
-        backgroundColor: theme.colors.surface,
-        borderRadius: theme.layout.borderRadius.medium,
-        overflow: 'hidden',
-        alignSelf: 'flex-end',
-      }}
-    >
-      {options.map((opt) => {
-        const active = opt.value === selected;
-        return (
-          <TouchableOpacity
-            key={opt.value}
-            onPress={() => onSelect(opt.value)}
-            style={{
-              paddingHorizontal: 12,
-              paddingVertical: 8,
-              backgroundColor: active ? theme.colors.accent : 'transparent',
-            }}
-          >
-            <KuralText
-              variant="caption"
-              style={{
-                color: active ? theme.colors.textPrimary : theme.colors.textSecondary,
-                fontWeight: active ? '700' : '400',
-              }}
-            >
-              {opt.label}
-            </KuralText>
-          </TouchableOpacity>
-        );
-      })}
-    </View>
-  );
-}
-
 // ─── color swatch picker ─────────────────────────────────────────────────────
 
 const BG_PRESETS_DARK = [
@@ -167,58 +120,12 @@ const FG_PRESETS_LIGHT = [
   '#212121',
 ];
 
-function ColorSwatches({
-  presets,
-  selected,
-  onSelect,
-  defaultLabel,
-}: {
-  presets: string[];
-  selected: string;
-  onSelect: (v: string) => void;
-  defaultLabel: string;
-}) {
-  const { theme } = useTheme();
-  return (
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-      {presets.map((color, i) => {
-        const isSelected = color === selected;
-        const isEmpty = color === '';
-        return (
-          <TouchableOpacity
-            key={i}
-            onPress={() => onSelect(color)}
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 18,
-              backgroundColor: isEmpty ? theme.colors.background : color,
-              borderWidth: isSelected ? 3 : 1,
-              borderColor: isSelected ? theme.colors.primary : theme.colors.border,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            {isEmpty && (
-              <KuralText
-                variant="caption"
-                style={{ fontSize: 9, color: theme.colors.textSecondary }}
-              >
-                {defaultLabel}
-              </KuralText>
-            )}
-          </TouchableOpacity>
-        );
-      })}
-    </View>
-  );
-}
-
 // ─── lang toggle row ─────────────────────────────────────────────────────────
 
 function LangToggleRow({ toggleKey }: { toggleKey: LangToggleKey }) {
   const { theme } = useTheme();
   const { settings, setLangToggle } = useSettings();
+  const { t: tChrome } = useTranslation('uiChrome');
   const toggle = settings.langToggles[toggleKey];
   const labels = LANG_TOGGLE_LABELS[toggleKey];
 
@@ -279,7 +186,7 @@ function LangToggleRow({ toggleKey }: { toggleKey: LangToggleKey }) {
       {/* At-least-one warning */}
       {!toggle.tamil && !toggle.english && (
         <KuralText variant="caption" style={{ color: theme.colors.error, marginTop: 6 }}>
-          At least one language must be enabled.
+          {tChrome('atLeastOneLanguage')}
         </KuralText>
       )}
     </View>
@@ -291,8 +198,10 @@ function LangToggleRow({ toggleKey }: { toggleKey: LangToggleKey }) {
 export default function SettingsView() {
   const { theme } = useTheme();
   const { settings, updateSettings, resetSettings } = useSettings();
+  const { t: tChrome } = useTranslation('uiChrome');
 
   const [nameInput, setNameInput] = useState(settings.userName);
+  const [nameInputTamil, setNameInputTamil] = useState(settings.userNameTamil);
   const [confirmReset, setConfirmReset] = useState<'none' | 'bookmarks' | 'all'>('none');
 
   const isDark = theme.dark;
@@ -300,23 +209,24 @@ export default function SettingsView() {
   const foregroundColors = isDark ? FG_PRESETS_DARK : FG_PRESETS_LIGHT;
 
   const AUTHORS = [
-    { label: 'All Authors', value: '' },
-    { label: 'M. Varadarajan (mv)', value: 'mv' },
-    { label: 'Solomon Pappaiah (sp)', value: 'sp' },
-    { label: 'M. Karunanidhi (mk)', value: 'mk' },
+    { label: tChrome('allAuthors'), value: '' },
+    { label: tChrome('youAuthor'), value: 'self' },
+    { label: `${tChrome('authorMVaradarajan')} (mv)`, value: 'mv' },
+    { label: `${tChrome('authorSolomonPappaiah')} (sp)`, value: 'sp' },
+    { label: `${tChrome('authorMKarunanidhi')} (mk)`, value: 'mk' },
   ];
 
   const THEME_OPTIONS: { label: string; value: ThemeMode }[] = [
-    { label: '☀ Light', value: 'light' },
-    { label: '☾ Dark', value: 'dark' },
-    { label: '⚙ System', value: 'system' },
+    { label: `☀ ${tChrome('light')}`, value: 'light' },
+    { label: `☾ ${tChrome('dark')}`, value: 'dark' },
+    { label: `⚙ ${tChrome('system')}`, value: 'system' },
   ];
 
   const FONT_SIZE_OPTIONS: { label: string; value: FontSizeScale }[] = [
-    { label: 'S', value: 'small' },
-    { label: 'M', value: 'medium' },
-    { label: 'L', value: 'large' },
-    { label: 'XL', value: 'xlarge' },
+    { label: tChrome('small'), value: 'small' },
+    { label: tChrome('medium'), value: 'medium' },
+    { label: tChrome('large'), value: 'large' },
+    { label: tChrome('xlarge'), value: 'xlarge' },
   ];
 
   const TAMIL_FONT_OPTIONS: { label: string; value: TamilFont }[] = [
@@ -337,6 +247,7 @@ export default function SettingsView() {
     'commentary',
     'filterLabels',
     'navLabels',
+    'uiChrome',
     'sectionHeaders',
   ];
 
@@ -345,15 +256,14 @@ export default function SettingsView() {
       // Web: use inline confirm UI (no Alert)
       setConfirmReset(type);
     } else {
-      const title = type === 'bookmarks' ? 'Clear all bookmarks?' : 'Reset everything?';
+      const title =
+        type === 'bookmarks' ? tChrome('clearAllBookmarks') : tChrome('resetAllSettings');
       const msg =
-        type === 'bookmarks'
-          ? 'All saved kurals will be removed. This cannot be undone.'
-          : 'All bookmarks and settings will be reset to defaults. This cannot be undone.';
+        type === 'bookmarks' ? tChrome('clearBookmarksPrompt') : tChrome('resetSettingsPrompt');
       Alert.alert(title, msg, [
-        { text: 'Cancel', style: 'cancel' },
+        { text: tChrome('cancel'), style: 'cancel' },
         {
-          text: 'Reset',
+          text: tChrome('reset'),
           style: 'destructive',
           onPress: () => executeReset(type),
         },
@@ -369,6 +279,7 @@ export default function SettingsView() {
     if (type === 'all') {
       resetSettings();
       setNameInput('');
+      setNameInputTamil('');
     }
   };
 
@@ -398,38 +309,22 @@ export default function SettingsView() {
       >
         {/* Page title */}
         <View style={{ marginBottom: 4 }}>
-          <KuralText
-            variant="h1"
-            isTamil
-            style={{ color: theme.colors.primary, textAlign: 'center' }}
-          >
-            அமைப்புகள்
-          </KuralText>
-          <KuralText
-            variant="caption"
-            style={{
-              color: theme.colors.textSecondary,
-              textAlign: 'center',
-              textTransform: 'uppercase',
-              letterSpacing: 1,
-              marginTop: 2,
-            }}
-          >
-            Settings
+          <KuralText variant="h1" style={{ color: theme.colors.primary, textAlign: 'center' }}>
+            {tChrome('settingsTitle')}
           </KuralText>
         </View>
 
         {/* ── 1. Personal ─────────────────────────────────────── */}
-        <SectionHeader label="Personal" />
+        <SectionHeader label={tChrome('personal')} />
 
         <View style={row}>
-          <RowLabel label="Your name" sub="Used to greet you on the home screen" />
+          <RowLabel label={tChrome('yourName')} sub={tChrome('usedToGreetYou')} />
           <TextInput
             value={nameInput}
             onChangeText={setNameInput}
             onBlur={() => updateSettings({ userName: nameInput.trim() })}
             onSubmitEditing={() => updateSettings({ userName: nameInput.trim() })}
-            placeholder="Enter name…"
+            placeholder={tChrome('namePlaceholder')}
             placeholderTextColor={theme.colors.disabledText}
             style={{
               minWidth: 130,
@@ -448,10 +343,32 @@ export default function SettingsView() {
         </View>
 
         <View style={row}>
-          <RowLabel
-            label="Preferred author"
-            sub="Commentary shown first (or only) in detail view"
+          <RowLabel label={tChrome('yourNameTamil')} sub={tChrome('usedToGreetYouTamil')} />
+          <TextInput
+            value={nameInputTamil}
+            onChangeText={setNameInputTamil}
+            onBlur={() => updateSettings({ userNameTamil: nameInputTamil.trim() })}
+            onSubmitEditing={() => updateSettings({ userNameTamil: nameInputTamil.trim() })}
+            placeholder={tChrome('namePlaceholder')}
+            placeholderTextColor={theme.colors.disabledText}
+            style={{
+              minWidth: 130,
+              height: 40,
+              backgroundColor: theme.colors.surfaceElevated,
+              borderRadius: theme.layout.borderRadius.medium,
+              borderWidth: 1,
+              borderColor: theme.colors.border,
+              paddingHorizontal: 10,
+              color: theme.colors.textPrimary,
+              fontFamily: theme.typography.fonts.tamil,
+              fontSize: theme.typography.sizes.bodyNormal,
+            }}
+            returnKeyType="done"
           />
+        </View>
+
+        <View style={row}>
+          <RowLabel label={tChrome('preferredAuthor')} sub={tChrome('commentaryShownFirst')} />
         </View>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingBottom: 10 }}>
           {AUTHORS.map((a) => {
@@ -484,11 +401,11 @@ export default function SettingsView() {
         </View>
 
         {/* ── 2. Display ──────────────────────────────────────── */}
-        <SectionHeader label="Display" />
+        <SectionHeader label={tChrome('display')} />
 
         <View style={row}>
-          <RowLabel label="Theme" />
-          <SegmentedControl
+          <RowLabel label={tChrome('theme')} />
+          <KuralSegmentedControl
             options={THEME_OPTIONS}
             selected={settings.themeMode}
             onSelect={(v) => {
@@ -498,8 +415,8 @@ export default function SettingsView() {
         </View>
 
         <View style={row}>
-          <RowLabel label="Font size" />
-          <SegmentedControl
+          <RowLabel label={tChrome('fontSize')} />
+          <KuralSegmentedControl
             options={FONT_SIZE_OPTIONS}
             selected={settings.fontSizeScale}
             onSelect={(v) => updateSettings({ fontSizeScale: v })}
@@ -513,7 +430,7 @@ export default function SettingsView() {
             borderBottomColor: theme.colors.surface,
           }}
         >
-          <RowLabel label="Tamil font" sub="Affects all Tamil script rendering" />
+          <RowLabel label={tChrome('tamilFont')} sub={tChrome('affectsTamilRendering')} />
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
             {TAMIL_FONT_OPTIONS.map((opt) => {
               const active = opt.value === settings.tamilFont;
@@ -553,7 +470,7 @@ export default function SettingsView() {
             borderBottomColor: theme.colors.surface,
           }}
         >
-          <RowLabel label="English font" sub="Affects all English text rendering" />
+          <RowLabel label={tChrome('englishFont')} sub={tChrome('affectsEnglishRendering')} />
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
             {ENGLISH_FONT_OPTIONS.map((opt) => {
               const active = opt.value === settings.englishFont;
@@ -578,7 +495,7 @@ export default function SettingsView() {
                       fontFamily: ENGLISH_FONT_FAMILIES[opt.value],
                     }}
                   >
-                    The quick brown fox — {opt.label}
+                    {tChrome('fontPreviewSample')} — {opt.label}
                   </KuralText>
                 </TouchableOpacity>
               );
@@ -593,41 +510,64 @@ export default function SettingsView() {
             borderBottomColor: theme.colors.surface,
           }}
         >
-          <RowLabel label="Background color" sub="Swipe to default (circle with 'def')" />
-          <ColorSwatches
+          <RowLabel label={tChrome('backgroundColor')} sub={tChrome('defaultSwatchHint')} />
+          <KuralColorSwatches
             presets={backgroundColors}
             selected={settings.customBackground}
             onSelect={(v) => updateSettings({ customBackground: v })}
-            defaultLabel="def"
+            defaultLabel={tChrome('defaultSwatchLabel')}
           />
         </View>
 
         <View style={{ paddingVertical: 10 }}>
-          <RowLabel label="Text color" sub="Applies to primary text" />
-          <ColorSwatches
+          <RowLabel label={tChrome('textColor')} sub={tChrome('primaryTextApplies')} />
+          <KuralColorSwatches
             presets={foregroundColors}
             selected={settings.customForeground}
             onSelect={(v) => updateSettings({ customForeground: v })}
-            defaultLabel="def"
+            defaultLabel={tChrome('defaultSwatchLabel')}
           />
         </View>
 
         {/* ── 3. Language visibility ───────────────────────────── */}
-        <SectionHeader label="Language Display" />
+        <SectionHeader label={tChrome('languageDisplay')} />
         <KuralText
           variant="caption"
           style={{ color: theme.colors.textSecondary, marginBottom: 12 }}
         >
-          Toggle Tamil / English visibility for each section. At least one must remain on per
-          section.
+          {tChrome('languageDisplayHelp')}
         </KuralText>
 
         {LANG_TOGGLE_KEYS.map((key) => (
           <LangToggleRow key={key} toggleKey={key} />
         ))}
 
+        <View
+          style={{
+            backgroundColor: theme.colors.surfaceElevated,
+            borderRadius: theme.layout.borderRadius.medium,
+            padding: 14,
+            marginTop: 8,
+            borderWidth: 1,
+            borderColor: theme.colors.border,
+          }}
+        >
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 16 }}>
+            <RowLabel label={tChrome('fallbackLanguage')} sub={tChrome('fallbackLanguageHelp')} />
+            <KuralSegmentedControl
+              options={[
+                { label: tChrome('tamilLanguage'), value: 'tamil' },
+                { label: tChrome('englishLanguage'), value: 'english' },
+              ]}
+              selected={settings.fallbackLanguage}
+              onSelect={(v) => updateSettings({ fallbackLanguage: v })}
+              containerStyle={{ alignSelf: 'center' }}
+            />
+          </View>
+        </View>
+
         {/* ── 4. Reset ────────────────────────────────────────── */}
-        <SectionHeader label="Reset" />
+        <SectionHeader label={tChrome('reset')} />
 
         {confirmReset !== 'none' && (
           <View
@@ -645,18 +585,18 @@ export default function SettingsView() {
               style={{ color: theme.colors.textPrimary, marginBottom: 12 }}
             >
               {confirmReset === 'bookmarks'
-                ? 'Clear all saved bookmarks? This cannot be undone.'
-                : 'Reset all settings and clear bookmarks? This cannot be undone.'}
+                ? tChrome('clearBookmarksPrompt')
+                : tChrome('resetSettingsPrompt')}
             </KuralText>
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <KuralButton
-                title="Cancel"
+                title={tChrome('cancel')}
                 variant="secondary"
                 onPress={() => setConfirmReset('none')}
                 style={{ flex: 1 }}
               />
               <KuralButton
-                title="Confirm Reset"
+                title={tChrome('confirmReset')}
                 variant="primary"
                 onPress={() => executeReset(confirmReset)}
                 style={{
@@ -670,12 +610,12 @@ export default function SettingsView() {
 
         <View style={{ gap: 12 }}>
           <KuralButton
-            title="Clear All Bookmarks"
+            title={tChrome('clearAllBookmarks')}
             variant="secondary"
             onPress={() => handleConfirmReset('bookmarks')}
           />
           <KuralButton
-            title="Reset All Settings & Data"
+            title={tChrome('resetAllSettings')}
             variant="secondary"
             onPress={() => handleConfirmReset('all')}
           />

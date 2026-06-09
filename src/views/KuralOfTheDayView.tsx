@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import { View, ScrollView, ActivityIndicator } from 'react-native';
 import { useKuralOfTheDay } from 'src/hooks/useKuralOfTheDay';
 import { setKuralBookmarkStatus } from 'src/data/services';
 import { useTheme } from 'src/theme/ThemeContextProvider';
@@ -7,18 +7,21 @@ import { useSettings } from 'src/context/SettingsContext';
 import KuralCardShell from 'src/components/KuralCard/KuralCardShell';
 import { KuralRecord } from 'src/types/types';
 import { KuralText } from 'src/components/common/KuralText';
+import { useTranslation } from 'src/content/translation';
 
 export default function KuralOfTheDayView() {
   const { kural, loading, error } = useKuralOfTheDay();
   const { theme, componentStyles } = useTheme();
   const { settings } = useSettings();
   const { sectionHeaders: headerToggle } = settings.langToggles;
+  const { tSingle } = useTranslation('uiChrome');
+  const userNameTamil = settings.userNameTamil || settings.userName;
 
   const [displayKural, setDisplayKural] = useState<KuralRecord | null>(null);
 
   const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'காலை வணக்கம்' : hour < 17 ? 'மதிய வணக்கம்' : 'மாலை வணக்கம்';
-  const greetingEn = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const greetingKey: 'greetingMorning' | 'greetingAfternoon' | 'greetingEvening' =
+    hour < 12 ? 'greetingMorning' : hour < 17 ? 'greetingAfternoon' : 'greetingEvening';
 
   useEffect(() => {
     setDisplayKural(kural);
@@ -43,12 +46,12 @@ export default function KuralOfTheDayView() {
         >
           {headerToggle.tamil && (
             <KuralText style={componentStyles.kuralOfTheDayTamilHeader}>
-              {greeting}, {settings.userName}!
+              {tSingle(greetingKey, 'tamil')}, {userNameTamil}!
             </KuralText>
           )}
           {headerToggle.english && (
             <KuralText style={componentStyles.kuralOfTheDayEnglishHeader}>
-              {greetingEn}, {settings.userName}
+              {tSingle(greetingKey, 'english')}, {settings.userName}
             </KuralText>
           )}
         </View>
@@ -56,10 +59,14 @@ export default function KuralOfTheDayView() {
 
       <View style={componentStyles.kuralOfTheDayHeader}>
         {headerToggle.tamil && (
-          <KuralText style={componentStyles.kuralOfTheDayTamilHeader}>இன்றைய குறள்</KuralText>
+          <KuralText style={componentStyles.kuralOfTheDayTamilHeader}>
+            {tSingle('kuralOfTheDay', 'tamil')}
+          </KuralText>
         )}
         {headerToggle.english && (
-          <KuralText style={componentStyles.kuralOfTheDayEnglishHeader}>Kural of the Day</KuralText>
+          <KuralText style={componentStyles.kuralOfTheDayEnglishHeader}>
+            {tSingle('kuralOfTheDay', 'english')}
+          </KuralText>
         )}
       </View>
 
@@ -71,7 +78,7 @@ export default function KuralOfTheDayView() {
 
       {error && (
         <View style={componentStyles.kuralOfTheDayCentered}>
-          <Text style={componentStyles.kuralOfTheDayErrorText}>{error}</Text>
+          <KuralText style={componentStyles.kuralOfTheDayErrorText}>{error}</KuralText>
         </View>
       )}
 

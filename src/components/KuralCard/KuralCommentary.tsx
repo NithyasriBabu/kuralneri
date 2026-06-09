@@ -1,29 +1,25 @@
 import React, { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { useTheme } from 'src/theme/ThemeContextProvider';
+import { useSettings } from 'src/context/SettingsContext';
 import { KuralText } from 'src/components/common/KuralText';
 import { AuthorNote } from 'src/types/types';
+import { formatTranslation, useTranslation } from 'src/content/translation';
 
 export interface KuralCommentaryProps {
   notes?: AuthorNote[];
   preferredAuthorCode: string | null;
-  commentaryToggle: { tamil: boolean; english: boolean };
 }
 
 export default React.memo(function KuralCommentary({
   notes,
   preferredAuthorCode,
-  commentaryToggle,
 }: KuralCommentaryProps) {
   const { componentStyles } = useTheme();
+  const { settings } = useSettings();
+  const { t } = useTranslation('uiChrome');
   const [othersExpanded, setOthersExpanded] = useState(false);
-
-  const filterLabel = (tamil: string, english: string): string => {
-    if (commentaryToggle.tamil && commentaryToggle.english) return `${tamil} / ${english}`;
-    if (commentaryToggle.tamil) return tamil;
-    return english;
-  };
 
   if (!notes || notes.length === 0) {
     return null;
@@ -35,26 +31,30 @@ export default React.memo(function KuralCommentary({
   const others = preferredAuthorCode
     ? notes.filter((n) => n.author_code !== preferredAuthorCode)
     : notes;
+  const authorToggle = settings.langToggles.uiChrome;
+
+  const renderAuthorName = (note: AuthorNote): string => {
+    const tamilName = note.author_name_tamil || note.author_name;
+    return formatTranslation(tamilName, note.author_name, authorToggle);
+  };
 
   return (
     <View style={{ marginTop: 16 }}>
       <View style={componentStyles.commentaryDivider} />
-      <KuralText style={componentStyles.kuralCardNumber}>
-        {filterLabel('உரை', 'Commentary')}
-      </KuralText>
+      <KuralText style={componentStyles.kuralCardNumber}>{t('commentary')}</KuralText>
 
       {preferred ? (
         <View style={componentStyles.commentaryNoteBlock}>
           <KuralText style={componentStyles.kuralCardNumber}>
-            {preferred.author_name} ({preferred.author_code})
+            {renderAuthorName(preferred)} ({preferred.author_code})
           </KuralText>
-          <Text style={componentStyles.kuralCardTranslation}>{preferred.note_text}</Text>
+          <KuralText style={componentStyles.kuralCardTranslation}>{preferred.note_text}</KuralText>
         </View>
       ) : (
         others.map((note) => (
           <View key={note.author_id} style={componentStyles.commentaryNoteBlock}>
             <KuralText style={componentStyles.kuralCardNumber}>
-              {note.author_name} ({note.author_code})
+              {renderAuthorName(note)} ({note.author_code})
             </KuralText>
             <KuralText style={componentStyles.kuralCardTranslation}>{note.note_text}</KuralText>
           </View>
@@ -69,7 +69,7 @@ export default React.memo(function KuralCommentary({
             style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
           >
             <KuralText style={componentStyles.kuralCardNumber}>
-              {filterLabel('மற்ற உரைகள்', 'Other Commentaries')} ({others.length})
+              {t('otherCommentaries')} ({others.length})
             </KuralText>
             <KuralText style={[componentStyles.kuralCardNumber, { fontSize: 10 }]}>
               {othersExpanded ? '▲' : '▼'}
@@ -80,7 +80,7 @@ export default React.memo(function KuralCommentary({
             others.map((note) => (
               <View key={note.author_id} style={componentStyles.commentaryNoteBlock}>
                 <KuralText style={componentStyles.kuralCardNumber}>
-                  {note.author_name} ({note.author_code})
+                  {renderAuthorName(note)} ({note.author_code})
                 </KuralText>
                 <KuralText style={componentStyles.kuralCardTranslation}>{note.note_text}</KuralText>
               </View>

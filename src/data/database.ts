@@ -60,6 +60,7 @@ const DATABASE_SCHEMA_SQL: string = `
     CREATE TABLE IF NOT EXISTS authors (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL UNIQUE,     -- 'M. Varadarajan', 'Solomon Pappaiah', 'M. Karunanidhi'
+      tamil_name TEXT NOT NULL DEFAULT '',
       short_code TEXT NOT NULL UNIQUE -- 'mv', 'sp', 'mk'
     );
 
@@ -85,9 +86,10 @@ const DATABASE_SCHEMA_SQL: string = `
   `;
 
 const AUTHOR_PRESETS = [
-  { code: 'mv', name: 'M. Varadarajan' },
-  { code: 'sp', name: 'Solomon Pappaiah' },
-  { code: 'mk', name: 'M. Karunanidhi' },
+  { code: 'self', name: 'You', tamilName: 'நீங்கள்' },
+  { code: 'mv', name: 'M. Varadarajan', tamilName: 'மு. வரதராசன்' },
+  { code: 'sp', name: 'Solomon Pappaiah', tamilName: 'சொ. பாப்பையா' },
+  { code: 'mk', name: 'M. Karunanidhi', tamilName: 'மு. கருணாநிதி' },
 ];
 
 // Define custom signature types for our runner hooks
@@ -117,10 +119,10 @@ async function parseAndSeedDataset(execute: ExecRunner, fetchAll: FetchRunner, o
   // A. Seed Authors
   onLog('📝 Registering commentary authors...');
   for (const author of AUTHOR_PRESETS) {
-    const rowId = await execute(`INSERT INTO authors (name, short_code) VALUES (?, ?);`, [
-      author.name,
-      author.code,
-    ]);
+    const rowId = await execute(
+      `INSERT INTO authors (name, tamil_name, short_code) VALUES (?, ?, ?);`,
+      [author.name, author.tamilName, author.code],
+    );
     authorMap.set(author.code, rowId);
   }
 
@@ -215,6 +217,43 @@ async function parseAndSeedDataset(execute: ExecRunner, fetchAll: FetchRunner, o
   }
 }
 
+async function ensureAuthorTamilNameColumn(targetDb: SQLite.SQLiteDatabase): Promise<void> {
+  const inspectSql = 'PRAGMA table_info(authors);';
+  const rows =
+    Platform.OS === 'web'
+      ? await targetDb.getAllAsync<{ name: string }>(inspectSql)
+      : targetDb.getAllSync<{ name: string }>(inspectSql);
+
+  const hasColumn = rows.some((row) => row.name === 'tamil_name');
+  if (hasColumn) return;
+
+  const alterSql = 'ALTER TABLE authors ADD COLUMN tamil_name TEXT NOT NULL DEFAULT "";';
+  if (Platform.OS === 'web') {
+    await targetDb.runAsync(alterSql);
+    return;
+  }
+
+  targetDb.runSync(alterSql);
+}
+
+async function ensureAuthorPresets(targetDb: SQLite.SQLiteDatabase): Promise<void> {
+  for (const author of AUTHOR_PRESETS) {
+    const sql = `
+      INSERT INTO authors (name, tamil_name, short_code)
+      VALUES (?, ?, ?)
+      ON CONFLICT(short_code) DO UPDATE SET
+        name = excluded.name,
+        tamil_name = excluded.tamil_name;
+    `;
+    const params = [author.name, author.tamilName, author.code];
+    if (Platform.OS === 'web') {
+      await targetDb.runAsync(sql, params);
+    } else {
+      targetDb.runSync(sql, params);
+    }
+  }
+}
+
 export const setupDatabase = async (onLog: LogCallback) => {
   try {
     if (Platform.OS === 'web') {
@@ -236,12 +275,14 @@ export const setupDatabase = async (onLog: LogCallback) => {
 
         // Initialize core tables
         await targetDb.execAsync(DATABASE_SCHEMA_SQL);
+        await ensureAuthorTamilNameColumn(targetDb);
 
         // Utilize shared helper with async context wrapper
         const isSeeded = await isDatabaseAlreadySeeded(
           async (sql) => await targetDb.getFirstAsync<any>(sql),
         );
         if (isSeeded) {
+          await ensureAuthorPresets(targetDb);
           onLog('✨ Database fully synchronized.');
           return;
         }
@@ -261,10 +302,12 @@ export const setupDatabase = async (onLog: LogCallback) => {
 
       // Initialize core tables
       targetDb.execSync(DATABASE_SCHEMA_SQL);
+      await ensureAuthorTamilNameColumn(targetDb);
 
       // Utilize shared helper with sync context wrapper
       const isSeeded = await isDatabaseAlreadySeeded((sql) => targetDb.getFirstSync<any>(sql));
       if (isSeeded) {
+        await ensureAuthorPresets(targetDb);
         onLog('✨ Database fully synchronized.');
         return;
       }

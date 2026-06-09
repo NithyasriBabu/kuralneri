@@ -24,6 +24,7 @@ export interface KuralRecord {
 export interface AuthorNote {
   author_id: number;
   author_name: string;
+  author_name_tamil?: string;
   author_code: string;
   note_text: string;
 }

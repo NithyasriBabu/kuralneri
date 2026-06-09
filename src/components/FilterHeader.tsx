@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useTheme } from 'src/theme/ThemeContextProvider';
-import { useSettings } from 'src/context/SettingsContext';
 import { PaalRecord, IyalRecord, AdhigaramRecord } from 'src/types/types';
 
 // Atomic Common Components UI imports
@@ -9,6 +8,7 @@ import { KuralText } from 'src/components/common/KuralText';
 import { KuralInput } from 'src/components/common/KuralInput';
 import { KuralDropdown } from 'src/components/common/KuralDropdown';
 import { KuralButton } from 'src/components/common/KuralButton';
+import { useTranslation } from 'src/content/translation';
 
 interface FilterHeaderProps {
   searchQuery: string;
@@ -55,8 +55,8 @@ export function FilterHeader({
   const isWidescreen = theme.layout.isWideScreen;
   const [isExpanded, setIsExpanded] = useState(isWidescreen);
 
-  const { settings } = useSettings();
-  const { filterLabels: filterToggle } = settings.langToggles;
+  const { t: tFilter } = useTranslation('filterLabels');
+  const { t: tChrome } = useTranslation('uiChrome');
 
   const hasActiveFilters =
     searchQuery.trim().length > 0 || selectedPaal > 0 || selectedIyal > 0 || selectedAdhigaram > 0;
@@ -85,12 +85,6 @@ export function FilterHeader({
     value: a.id,
   }));
 
-  const filterLabel = (tamil: string, english: string): string => {
-    if (filterToggle.tamil && filterToggle.english) return `${tamil} / ${english}`;
-    if (filterToggle.tamil) return tamil;
-    return english;
-  };
-
   return (
     <View style={globalStyles.container}>
       {/* Accordion Expansion Trigger Bar */}
@@ -102,8 +96,8 @@ export function FilterHeader({
         <View style={componentStyles.accordionLeft}>
           <KuralText variant="bodyNormal" style={componentStyles.accordionTitle}>
             {hasActiveFilters
-              ? filterLabel('தேடல் & வடிகட்டி செயலில்', 'Search & Filters Active')
-              : filterLabel('தேடல் & வடிகட்டி', 'Search & Filter Verses')}
+              ? tFilter('searchAndFiltersActive')
+              : tFilter('searchAndFilterVerses')}
           </KuralText>
           {Boolean(hasActiveFilters) && (
             <View style={componentStyles.filterBadge}>
@@ -116,7 +110,7 @@ export function FilterHeader({
 
         <View style={componentStyles.accordionRight}>
           <KuralText variant="caption" style={componentStyles.counterText}>
-            {filterLabel('கண்டறியப்பட்டது', 'Found')} {totalRecords}
+            {tFilter('found')} {totalRecords}
           </KuralText>
           <KuralText variant="caption" style={componentStyles.chevronIcon}>
             {isExpanded ? '▲' : '▼'}
@@ -139,10 +133,10 @@ export function FilterHeader({
                 variant="caption"
                 style={[globalStyles.fieldLabel, hasSearchQuery && globalStyles.disabledLabel]}
               >
-                {filterLabel('தேடல்', 'Search')}
+                {tChrome('search')}
               </KuralText>
               <KuralInput
-                placeholder="Search Kurals by text, meaning, or ID (1-1330)..."
+                placeholder={tChrome('searchPlaceholder')}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 onClear={() => setSearchQuery('')}
@@ -151,8 +145,8 @@ export function FilterHeader({
 
             {/* Tier 1: Section Selector (Paal) */}
             <KuralDropdown
-              label={filterLabel('பால்', 'Section')}
-              placeholder="All Sections"
+              label={tFilter('section')}
+              placeholder={tChrome('allSections')}
               items={mappedPaalOptions}
               selectedValue={selectedPaal}
               onValueChange={(val) => selectPaal(val, 0)}
@@ -162,8 +156,8 @@ export function FilterHeader({
 
             {/* Tier 2: Sub-section Selector (Iyal) */}
             <KuralDropdown
-              label={filterLabel('இயல்', 'Sub-section')}
-              placeholder="All Sub-sections"
+              label={tFilter('subsection')}
+              placeholder={tChrome('allSubsections')}
               items={mappedIyalOptions}
               selectedValue={selectedIyal}
               onValueChange={(val) => selectIyal(val, 0)}
@@ -173,8 +167,8 @@ export function FilterHeader({
 
             {/* Tier 3: Chapter Selector (Adhigaram) */}
             <KuralDropdown
-              label={filterLabel('அதிகாரம்', 'Chapter')}
-              placeholder="All Chapters"
+              label={tFilter('chapter')}
+              placeholder={tChrome('allChapters')}
               items={mappedAdhigaramOptions}
               selectedValue={selectedAdhigaram}
               onValueChange={(val) => selectAdhigaram(val, 0)}
@@ -185,7 +179,7 @@ export function FilterHeader({
             {/* Clear Filters Action Trigger */}
             {Boolean(hasActiveFilters) && (
               <KuralButton
-                title="Clear All Filters"
+                title={tChrome('clearAllFilters')}
                 variant="secondary"
                 onPress={clearAllFilters}
                 style={isWidescreen ? { marginTop: 22 } : { marginTop: 8 }}
