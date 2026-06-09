@@ -53,6 +53,7 @@ const DATABASE_SCHEMA_SQL: string = `
       line2 TEXT NOT NULL,           -- Line 2 in Tamil script
       transliteration1 TEXT,        -- English phonetics line 1
       transliteration2 TEXT,        -- English phonetics line 2
+      is_bookmarked INTEGER DEFAULT 0, -- 0 or 1 flag for bookmark status
       FOREIGN KEY (adhikaram_id) REFERENCES adhikarams (id) ON DELETE CASCADE
     );
     
@@ -69,12 +70,6 @@ const DATABASE_SCHEMA_SQL: string = `
       text TEXT NOT NULL,
       FOREIGN KEY (kural_id) REFERENCES kurals (id) ON DELETE CASCADE,
       FOREIGN KEY (author_id) REFERENCES authors (id) ON DELETE CASCADE
-    );
-
-    CREATE TABLE IF NOT EXISTS bookmarks (
-      kural_id INTEGER PRIMARY KEY,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (kural_id) REFERENCES kurals (id) ON DELETE CASCADE
     );
 
     CREATE TABLE IF NOT EXISTS app_settings (
@@ -104,21 +99,6 @@ type LogCallback = (message: string) => void;
 async function isDatabaseAlreadySeeded(fetchFirst: SingleFetchRunner): Promise<boolean> {
   const res = await fetchFirst('SELECT COUNT(*) as count FROM paals;');
   return !!(res && res.count > 0);
-}
-
-async function migrateFavoritesToBookmarks(
-  fetchFirst: SingleFetchRunner,
-  execute: ExecRunner,
-): Promise<void> {
-  const legacyTable = await fetchFirst(
-    "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'favorites' LIMIT 1;",
-  );
-  if (!legacyTable) return;
-
-  await execute(
-    'INSERT OR IGNORE INTO bookmarks (kural_id, created_at) SELECT kural_id, created_at FROM favorites;',
-  );
-  await execute('DROP TABLE IF EXISTS favorites;');
 }
 
 /**
@@ -235,15 +215,21 @@ export const setupDatabase = async (onLog: LogCallback) => {
       await runWebDbTask(async () => {
         const targetDb = await db;
 
+        //  console.log('🧹 Force dropping old web tables for fresh seed...');
+        //  await targetDb.execAsync(`
+        //    DROP TABLE IF EXISTS notes;
+        //    DROP TABLE IF EXISTS authors;
+        //    DROP TABLE IF EXISTS kurals;
+        //    DROP TABLE IF EXISTS adhikarams;
+        //    DROP TABLE IF EXISTS iyals;
+        //    DROP TABLE IF EXISTS paals;
+        //  `);
+
         console.log('databasePath:', targetDb.databasePath);
         console.log('default dir:', SQLite.defaultDatabaseDirectory);
 
         // Initialize core tables
         await targetDb.execAsync(DATABASE_SCHEMA_SQL);
-        await migrateFavoritesToBookmarks(
-          async (sql) => await targetDb.getFirstAsync<any>(sql),
-          async (sql, params) => (await targetDb.runAsync(sql, params || [])).changes,
-        );
 
         // Utilize shared helper with async context wrapper
         const isSeeded = await isDatabaseAlreadySeeded(
@@ -269,10 +255,6 @@ export const setupDatabase = async (onLog: LogCallback) => {
 
       // Initialize core tables
       targetDb.execSync(DATABASE_SCHEMA_SQL);
-      await migrateFavoritesToBookmarks(
-        (sql) => targetDb.getFirstSync<any>(sql),
-        (sql, params) => targetDb.runSync(sql, params || []).changes,
-      );
 
       // Utilize shared helper with sync context wrapper
       const isSeeded = await isDatabaseAlreadySeeded((sql) => targetDb.getFirstSync<any>(sql));

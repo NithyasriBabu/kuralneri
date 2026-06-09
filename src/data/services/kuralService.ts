@@ -17,11 +17,6 @@ import {
   KURAL_BY_ID,
   PAGINATED_KURALS,
   KURALS_COUNT,
-  BOOKMARK_KURALS,
-  BOOKMARKS_COUNT,
-  BOOKMARK_PAALS,
-  BOOKMARK_IYALS,
-  BOOKMARK_ADHIGARAMS,
   PAALS,
   IYALS,
   ADHIGARAMS,
@@ -53,28 +48,6 @@ type KuralByIdRow = {
   author_name: string | null;
   author_code: string | null;
   is_bookmarked: number | null;
-};
-
-type BookmarkKuralRow = {
-  id: number;
-  text: string;
-  line1: string;
-  line2: string;
-  translation: string;
-  couplet: string;
-  explanation: string;
-  transliteration1: string;
-  transliteration2: string;
-  adhikaram_name: string;
-  adhikaram_english_name: string;
-  iyal_name: string;
-  iyal_english_name: string;
-  paal_name: string;
-  paal_english_name: string;
-  adhikaram_id: number;
-  iyal_id: number;
-  paal_id: number;
-  is_bookmarked: number;
 };
 
 function assembleKuralFromRows(rows: KuralByIdRow[]): KuralRecord | null {
@@ -118,30 +91,6 @@ function assembleKuralFromRows(rows: KuralByIdRow[]): KuralRecord | null {
     paal_id: head.paal_id,
     is_bookmarked: Boolean(head.is_bookmarked),
     notes: notes.length > 0 ? notes : undefined,
-  };
-}
-
-function assembleBookmarkKural(row: BookmarkKuralRow): KuralRecord {
-  return {
-    id: row.id,
-    text: row.text,
-    translation: row.translation,
-    couplet: row.couplet,
-    explanation: row.explanation,
-    line1: row.line1,
-    line2: row.line2,
-    transliteration1: row.transliteration1,
-    transliteration2: row.transliteration2,
-    adhikaram_name: row.adhikaram_name,
-    adhikaram_english_name: row.adhikaram_english_name,
-    iyal_name: row.iyal_name,
-    iyal_english_name: row.iyal_english_name,
-    paal_name: row.paal_name,
-    paal_english_name: row.paal_english_name,
-    adhikaram_id: row.adhikaram_id,
-    iyal_id: row.iyal_id,
-    paal_id: row.paal_id,
-    is_bookmarked: Boolean(row.is_bookmarked),
   };
 }
 
@@ -189,11 +138,19 @@ function isActiveId(id?: number): boolean {
 /**
  * Builds the dynamic SQL WHERE clause and arguments array based on active user input filters
  */
-function buildFilterClause(filters?: KuralFilters): { whereClause: string; args: any[] } {
+function buildFilterClause(filters?: KuralFilters & { isBookmarked?: boolean }): {
+  whereClause: string;
+  args: any[];
+} {
   const clauses: string[] = [];
   const args: any[] = [];
 
   if (!filters) return { whereClause: '', args };
+
+  // Dynamic filter check for our updated column pattern
+  if (filters.isBookmarked) {
+    clauses.push(`k.is_bookmarked = 1`);
+  }
 
   if (isActiveId(filters.paalId)) {
     clauses.push(`i.paal_id = ?`);
@@ -231,71 +188,23 @@ export const getKuralById = async (id: number): Promise<KuralRecord | null> => {
   return assembleKuralFromRows(rows);
 };
 
-export async function getBookmarkKurals(
-  limit: number = 10,
-  offset: number = 0,
-  filters?: KuralFilters,
-): Promise<KuralRecord[]> {
-  const { whereClause, args } = buildFilterClause(filters);
-  const rows = await executeSelect<BookmarkKuralRow>(BOOKMARK_KURALS(whereClause), [
-    ...args,
-    limit,
-    offset,
-  ]);
-  return rows.map(assembleBookmarkKural);
-}
-
-export async function getBookmarksCount(filters?: KuralFilters): Promise<number> {
-  const { whereClause, args } = buildFilterClause(filters);
-  const results = await executeSelect<{ count: number }>(BOOKMARKS_COUNT(whereClause), args);
-  return results[0]?.count ?? 0;
-}
-
-export async function getBookmarkPaalOptions(): Promise<PaalRecord[]> {
-  return executeSelect<PaalRecord>(BOOKMARK_PAALS);
-}
-
-export async function getBookmarkIyalOptions(paalId = 0): Promise<IyalRecord[]> {
-  if (paalId > 0) {
-    return executeSelect<IyalRecord>(BOOKMARK_IYALS('WHERE p.id = ?'), [paalId]);
-  }
-  return executeSelect<IyalRecord>(BOOKMARK_IYALS(''));
-}
-
-export async function getBookmarkAdhigaramOptions(
-  paalId = 0,
-  iyalId = 0,
-): Promise<AdhigaramRecord[]> {
-  if (iyalId > 0) {
-    return executeSelect<AdhigaramRecord>(BOOKMARK_ADHIGARAMS('WHERE i.id = ?'), [iyalId]);
-  }
-  if (paalId > 0) {
-    return executeSelect<AdhigaramRecord>(BOOKMARK_ADHIGARAMS('WHERE p.id = ?'), [paalId]);
-  }
-  return executeSelect<AdhigaramRecord>(BOOKMARK_ADHIGARAMS(''));
-}
-
 export async function isKuralBookmarked(id: number): Promise<boolean> {
-  const rows = await executeSelect<{ found: number }>(
-    'SELECT 1 as found FROM bookmarks WHERE kural_id = ? LIMIT 1;',
+  const rows = await executeSelect<{ is_bookmarked: number }>(
+    'SELECT is_bookmarked FROM kurals WHERE id = ? LIMIT 1;',
     [id],
   );
-  return rows.length > 0;
+  return rows[0]?.is_bookmarked === 1;
 }
 
 export async function setKuralBookmarkStatus(id: number, bookmarked: boolean): Promise<boolean> {
-  if (bookmarked) {
-    await executeRun('INSERT OR IGNORE INTO bookmarks (kural_id) VALUES (?);', [id]);
-    return true;
-  }
-
-  await executeRun('DELETE FROM bookmarks WHERE kural_id = ?;', [id]);
-  return false;
+  const statusValue = bookmarked ? 1 : 0;
+  await executeRun('UPDATE kurals SET is_bookmarked = ? WHERE id = ?;', [statusValue, id]);
+  return bookmarked;
 }
 
 export async function toggleKuralBookmark(id: number): Promise<boolean> {
-  const next = !(await isKuralBookmarked(id));
-  return setKuralBookmarkStatus(id, next);
+  const nextStatus = !(await isKuralBookmarked(id));
+  return setKuralBookmarkStatus(id, nextStatus);
 }
 
 /**

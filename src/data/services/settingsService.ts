@@ -100,11 +100,11 @@ export async function resetAllSettings(): Promise<void> {
 }
 
 /**
- * Wipe bookmarks table. Called from the Reset section.
+ * Wipe bookmarks from the kurals. Called from the Reset section.
  */
 export async function clearAllBookmarks(): Promise<void> {
   return runWebDbTask(async () => {
-    const sql = 'DELETE FROM bookmarks;';
+    const sql = 'UPDATE kurals set is_bookmarked = 0;';
     try {
       if (Platform.OS === 'web') {
         const targetDb = await db;

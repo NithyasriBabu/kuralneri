@@ -9,7 +9,7 @@ import {
   ScrollView,
   useWindowDimensions,
 } from 'react-native';
-import { useKuralFeed } from 'src/hooks/useKuralFeed';
+import { usePaginatedKuralFeed } from 'src/hooks/usePaginatedKuralFeed';
 
 import { FilterHeader } from 'src/components/FilterHeader';
 import KuralCardShell from 'src/components/KuralCard/KuralCardShell';
@@ -55,13 +55,11 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
     updateKuralBookmarkStatus,
 
     // Pagination callbacks
-    nextPage,
-    prevPage,
     goToPage,
     visiblePageNumbers,
     kuralFrom,
     kuralTo,
-  } = useKuralFeed(kuralsPerPage, width);
+  } = usePaginatedKuralFeed(kuralsPerPage, false, width);
 
   const listRef = useRef<FlatList>(null);
   const hasActiveFilters =

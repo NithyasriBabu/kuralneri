@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import { getKuralById, setKuralBookmarkStatus } from 'src/data/services';
-import KuralCard from 'src/components/KuralCard';
+import KuralCardShell from 'src/components/KuralCard/KuralCardShell';
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { useSettings } from 'src/context/SettingsContext';
 import { KuralRecord } from 'src/types/types';
@@ -117,7 +117,7 @@ export default function KuralDetailView({ kuralId, onBack }: KuralDetailViewProp
 
       {!loading && !error && kural && (
         <View style={componentStyles.kuralOfTheDayFeedWrapper}>
-          <KuralCard
+          <KuralCardShell
             kural={kural}
             showComments
             onBookmarkToggle={handleBookmarkToggle}

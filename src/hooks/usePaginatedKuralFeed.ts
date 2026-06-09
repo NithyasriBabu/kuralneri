@@ -12,7 +12,11 @@ import { KuralRecord, PaalRecord, KuralFilters } from 'src/types/types';
 
 const normalizeId = (value: unknown): number => Number(value) || 0;
 
-export function useKuralFeed(userLimit: number = 30, screenWidth: number = 375) {
+export function usePaginatedKuralFeed(
+  userLimit: number = 30,
+  isBookmarkedOnly: boolean = false,
+  screenWidth: number = 375,
+) {
   const [kurals, setKurals] = useState<KuralRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -28,14 +32,16 @@ export function useKuralFeed(userLimit: number = 30, screenWidth: number = 375) 
 
   const fetchIdRef = useRef(0);
 
-  const activeFilters = useMemo<KuralFilters>(
+  // Merge the isBookmarked condition into the underlying active query filters
+  const activeFilters = useMemo<KuralFilters & { isBookmarked?: boolean }>(
     () => ({
       search: searchQuery.trim() || undefined,
       paalId: selectedPaal || undefined,
       iyalId: selectedIyal || undefined,
       adhigaramId: selectedAdhigaram || undefined,
+      isBookmarked: isBookmarkedOnly || undefined, // Handled by service query layer
     }),
-    [searchQuery, selectedPaal, selectedIyal, selectedAdhigaram],
+    [searchQuery, selectedPaal, selectedIyal, selectedAdhigaram, isBookmarkedOnly],
   );
 
   const iyalOptions = useMemo(
@@ -54,6 +60,9 @@ export function useKuralFeed(userLimit: number = 30, screenWidth: number = 375) 
       setLoading(true);
 
       const offset = (targetPage - 1) * userLimit;
+
+      // Assumes your query services accept the updated filters object
+      // containing the boolean flag for filtering.
       const [records, count] = await Promise.all([
         getPaginatedKurals(userLimit, offset, activeFilters),
         getKuralsCount(activeFilters),
@@ -85,13 +94,13 @@ export function useKuralFeed(userLimit: number = 30, screenWidth: number = 375) 
     };
   }, []);
 
-  // Refetch page 1 when filters change (after taxonomy is ready)
+  // Refetch page 1 when filters or bookmark scopes switch
   useEffect(() => {
     if (!taxonomyReady) return;
     fetchPageData(1);
   }, [activeFilters, taxonomyReady, fetchPageData]);
 
-  // When page size changes, keep approximate position
+  // Handle adjustments to page sizing gracefully
   useEffect(() => {
     if (!taxonomyReady || totalRecords === 0 || kurals.length === 0 || page === 1) return;
 
@@ -199,13 +208,28 @@ export function useKuralFeed(userLimit: number = 30, screenWidth: number = 375) 
     return { from, to };
   }, [page, userLimit, totalRecords]);
 
-  const updateKuralBookmarkStatus = useCallback((kuralId: number, isBookmarked: boolean) => {
-    setKurals((current) =>
-      current.map((kural) =>
-        kural.id === kuralId ? { ...kural, is_bookmarked: isBookmarked } : kural,
-      ),
-    );
-  }, []);
+  // Context-aware bookmark updater
+  const updateKuralBookmarkStatus = useCallback(
+    (kuralId: number, isBookmarked: boolean) => {
+      setKurals((current) => {
+        // If we are looking at the Bookmarks tab/feed exclusively,
+        // unbookmarking a item should instantly remove it from view.
+        if (isBookmarkedOnly && !isBookmarked) {
+          return current.filter((kural) => kural.id !== kuralId);
+        }
+        // Otherwise, just map and update the status inline
+        return current.map((kural) =>
+          kural.id === kuralId ? { ...kural, is_bookmarked: isBookmarked } : kural,
+        );
+      });
+
+      // Sync total counts dynamically if items are dropped instantly from view
+      if (isBookmarkedOnly && !isBookmarked) {
+        setTotalRecords((prev) => Math.max(0, prev - 1));
+      }
+    },
+    [isBookmarkedOnly],
+  );
 
   return {
     kurals,

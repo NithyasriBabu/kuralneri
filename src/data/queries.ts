@@ -13,13 +13,11 @@ export const PAGINATED_KURALS = (whereClause: string) => `
       p.name AS paal_name,
       p.id AS paal_id,
       i.id AS iyal_id,
-      a.id AS adhikaram_id,
-      CASE WHEN b.kural_id IS NULL THEN 0 ELSE 1 END AS is_bookmarked
+      a.id AS adhikaram_id
     FROM kurals k
     JOIN adhikarams a ON k.adhikaram_id = a.id
     JOIN iyals i ON a.iyal_id = i.id
     JOIN paals p ON i.paal_id = p.id
-    LEFT JOIN bookmarks b ON k.id = b.kural_id
     ${whereClause}
     ORDER BY k.id ASC
     LIMIT ? OFFSET ?;
@@ -30,15 +28,7 @@ export const PAGINATED_KURALS = (whereClause: string) => `
  */
 export const KURAL_BY_ID = `
   SELECT 
-    k.id,
-    k.text,
-    k.line1,
-    k.line2,
-    k.translation,
-    k.couplet,
-    k.explanation,
-    k.transliteration1,
-    k.transliteration2,
+    k.*,
     a.id AS adhikaram_id,
     i.id AS iyal_id,
     p.id AS paal_id,
@@ -51,106 +41,27 @@ export const KURAL_BY_ID = `
     n.text AS note_text,
     au.id AS author_id,
     au.name AS author_name,
-    au.short_code AS author_code,
-    CASE WHEN b.kural_id IS NULL THEN 0 ELSE 1 END AS is_bookmarked
+    au.short_code AS author_code
   FROM kurals k
     JOIN adhikarams a ON k.adhikaram_id = a.id
     JOIN iyals i ON a.iyal_id = i.id
     JOIN paals p ON i.paal_id = p.id
     LEFT JOIN notes n ON k.id = n.kural_id
     LEFT JOIN authors au ON n.author_id = au.id
-    LEFT JOIN bookmarks b ON k.id = b.kural_id
   WHERE k.id = ?
   ORDER BY au.id ASC;
-`;
-
-/**
- * Full bookmark list for the Bookmarks tab
- */
-export const BOOKMARK_KURALS = (whereClause: string) => `
-  SELECT
-    k.*,
-    a.name AS adhikaram_name,
-    i.name AS iyal_name,
-    p.name AS paal_name,
-    p.id AS paal_id,
-    i.id AS iyal_id,
-    a.id AS adhikaram_id,
-    1 AS is_bookmarked
-  FROM bookmarks b
-    JOIN kurals k ON b.kural_id = k.id
-    JOIN adhikarams a ON k.adhikaram_id = a.id
-    JOIN iyals i ON a.iyal_id = i.id
-    JOIN paals p ON i.paal_id = p.id
-  ${whereClause}
-  ORDER BY k.id ASC
-  LIMIT ? OFFSET ?;
-`;
-
-/**
- * Count bookmarks after filters are applied
- */
-export const BOOKMARKS_COUNT = (whereClause: string) => `
-  SELECT COUNT(*) as count
-  FROM bookmarks b
-    JOIN kurals k ON b.kural_id = k.id
-    JOIN adhikarams a ON k.adhikaram_id = a.id
-    JOIN iyals i ON a.iyal_id = i.id
-    JOIN paals p ON i.paal_id = p.id
-  ${whereClause};
-`;
-
-/**
- * Distinct bookmark-friendly paals
- */
-export const BOOKMARK_PAALS = `
-  SELECT DISTINCT p.*
-  FROM bookmarks b
-    JOIN kurals k ON b.kural_id = k.id
-    JOIN adhikarams a ON k.adhikaram_id = a.id
-    JOIN iyals i ON a.iyal_id = i.id
-    JOIN paals p ON i.paal_id = p.id
-  ORDER BY p.id ASC;
-`;
-
-/**
- * Distinct bookmark-friendly iyals
- */
-export const BOOKMARK_IYALS = (whereClause: string) => `
-  SELECT DISTINCT i.*
-  FROM bookmarks b
-    JOIN kurals k ON b.kural_id = k.id
-    JOIN adhikarams a ON k.adhikaram_id = a.id
-    JOIN iyals i ON a.iyal_id = i.id
-    JOIN paals p ON i.paal_id = p.id
-  ${whereClause}
-  ORDER BY i.paal_id ASC, i.id ASC;
-`;
-
-/**
- * Distinct bookmark-friendly adhigarams
- */
-export const BOOKMARK_ADHIGARAMS = (whereClause: string) => `
-  SELECT DISTINCT a.*
-  FROM bookmarks b
-    JOIN kurals k ON b.kural_id = k.id
-    JOIN adhikarams a ON k.adhikaram_id = a.id
-    JOIN iyals i ON a.iyal_id = i.id
-    JOIN paals p ON i.paal_id = p.id
-  ${whereClause}
-  ORDER BY a.id ASC;
 `;
 
 /**
  * Counts match subsets for total page calculations
  */
 export const KURALS_COUNT = (whereClause: string) => `
-SELECT COUNT(*) as count 
-FROM kurals k
-JOIN adhikarams a ON k.adhikaram_id = a.id
-JOIN iyals i ON a.iyal_id = i.id
-JOIN paals p ON i.paal_id = p.id
-${whereClause};
+  SELECT COUNT(*) as count 
+  FROM kurals k
+  JOIN adhikarams a ON k.adhikaram_id = a.id
+  JOIN iyals i ON a.iyal_id = i.id
+  JOIN paals p ON i.paal_id = p.id
+  ${whereClause};
 `;
 
 /**

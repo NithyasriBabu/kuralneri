@@ -10,13 +10,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useBookmarkFeed } from 'src/hooks/useBookmarkFeed';
+import { usePaginatedKuralFeed } from 'src/hooks/usePaginatedKuralFeed';
 import { FilterHeader } from 'src/components/FilterHeader';
-import KuralCard from 'src/components/KuralCard';
+import KuralCardShell from 'src/components/KuralCard/KuralCardShell';
 import { FeaturePlaceholder } from 'src/components/common/FeaturePlaceholder';
 import { setKuralBookmarkStatus } from 'src/data/services';
 import { useTheme } from 'src/theme/ThemeContextProvider';
-import { useSettings } from 'src/context/SettingsContext';
 
 interface BookmarksViewProps {
   onKuralPress?: (kuralId: number) => void;
@@ -54,7 +53,7 @@ export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
     kuralFrom,
     kuralTo,
     updateKuralBookmarkStatus,
-  } = useBookmarkFeed(bookmarkLimit, width);
+  } = usePaginatedKuralFeed(bookmarkLimit, true, width);
 
   const hasActiveFilters =
     searchQuery.trim().length > 0 || selectedPaal > 0 || selectedIyal > 0 || selectedAdhigaram > 0;
@@ -135,7 +134,7 @@ export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
             <View style={[componentStyles.kuralListCardWrapper, wrapperStyle]}>
-              <KuralCard
+              <KuralCardShell
                 kural={item}
                 onPress={onKuralPress ? () => onKuralPress(item.id) : undefined}
                 onBookmarkToggle={async (nextBookmarked) => {
