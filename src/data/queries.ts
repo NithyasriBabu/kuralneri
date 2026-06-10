@@ -9,11 +9,15 @@
 export const PAGINATED_KURALS = (whereClause: string) => `
     SELECT 
       k.*, 
-      a.name AS adhikaram_name, 
-      p.name AS paal_name,
-      p.id AS paal_id,
+      a.id AS adhikaram_id,
       i.id AS iyal_id,
-      a.id AS adhikaram_id
+      p.id AS paal_id,
+      a.name AS adhikaram_name,
+      i.name AS iyal_name,
+      p.name AS paal_name,
+      a.translation AS adhikaram_english_name,
+      i.translation AS iyal_english_name,
+      p.translation AS paal_english_name
     FROM kurals k
     JOIN adhikarams a ON k.adhikaram_id = a.id
     JOIN iyals i ON a.iyal_id = i.id

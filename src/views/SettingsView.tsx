@@ -8,12 +8,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Eraser, RefreshCcw, Sparkles } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { useSettings } from 'src/context/SettingsContext';
 import { KuralText } from 'src/components/common/KuralText';
 import { KuralButton } from 'src/components/common/KuralButton';
+import { KuralIconButton } from 'src/components/common/KuralIconButton';
 import { KuralSegmentedControl } from 'src/components/common/KuralSegmentedControl';
 import { KuralColorSwatches } from 'src/components/common/KuralColorSwatches';
 import { useTranslation } from 'src/content/translation';
@@ -224,7 +226,7 @@ function LangToggleRow({ toggleKey }: { toggleKey: LangToggleKey }) {
 export default function SettingsView() {
   const { theme } = useTheme();
   const { settings, updateSettings, resetSettings } = useSettings();
-  const { t: tSettings } = useTranslation('uiChrome', 'settings');
+  const { t: tSettings, pair } = useTranslation('uiChrome', 'settings');
 
   const [nameInput, setNameInput] = useState(settings.userName);
   const [nameInputTamil, setNameInputTamil] = useState(settings.userNameTamil);
@@ -401,10 +403,12 @@ export default function SettingsView() {
                 }}
                 returnKeyType="done"
               />
-              <KuralButton
-                title={tSettings('autoFillTamilName')}
-                variant="secondary"
+              <KuralIconButton
+                icon={<Sparkles />}
+                label={pair('autoFillTamilName').visible}
+                tooltip={pair('autoFillTamilName').hover}
                 onPress={autoFillTamilName}
+                size="sm"
                 style={{ alignSelf: 'stretch' }}
               />
             </View>
@@ -671,14 +675,16 @@ export default function SettingsView() {
         )}
 
         <View style={{ gap: 12 }}>
-          <KuralButton
-            title={tSettings('clearAllBookmarks')}
-            variant="secondary"
+          <KuralIconButton
+            icon={<Eraser />}
+            label={pair('clearAllBookmarks').visible}
+            tooltip={pair('clearAllBookmarks').hover}
             onPress={() => handleConfirmReset('bookmarks')}
           />
-          <KuralButton
-            title={tSettings('resetAllSettings')}
-            variant="secondary"
+          <KuralIconButton
+            icon={<RefreshCcw />}
+            label={pair('resetAllSettings').visible}
+            tooltip={pair('resetAllSettings').hover}
             onPress={() => handleConfirmReset('all')}
           />
         </View>

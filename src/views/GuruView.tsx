@@ -1,8 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
+import { Plus, Sparkles, Trash2 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { KuralButton } from 'src/components/common/KuralButton';
+import { KuralIconButton } from 'src/components/common/KuralIconButton';
 import { KuralInput } from 'src/components/common/KuralInput';
 import { KuralText } from 'src/components/common/KuralText';
 import { useTranslation } from 'src/content/translation';
@@ -23,7 +25,7 @@ function renderMessageBody(message: GuruThreadMessage) {
 
 export default function GuruView({ onKuralPress }: GuruViewProps) {
   const { componentStyles, theme } = useTheme();
-  const { t } = useTranslation('uiChrome', 'guru');
+  const { t, pair } = useTranslation('uiChrome', 'guru');
   const { t: tCommon } = useTranslation('uiChrome', 'common');
   const {
     activeSession,
@@ -63,9 +65,16 @@ export default function GuruView({ onKuralPress }: GuruViewProps) {
 
   const sessionList =
     sessions.length > 0 ? (
-      <View style={componentStyles.guruSessionList}>
+      <ScrollView
+        style={componentStyles.guruSessionListScroll}
+        contentContainerStyle={componentStyles.guruSessionListContent}
+        showsVerticalScrollIndicator
+        keyboardShouldPersistTaps="handled"
+      >
         {sessions.map((session) => {
           const active = session.session_id === activeSessionId;
+          const preview = session.last_message_preview || session.summary_text || t('emptyBody');
+
           return (
             <Pressable
               key={session.session_id}
@@ -75,20 +84,26 @@ export default function GuruView({ onKuralPress }: GuruViewProps) {
                 active && componentStyles.guruSessionButtonActive,
               ]}
             >
-              <KuralText variant="bodyNormal" style={componentStyles.guruSessionTitle}>
+              <KuralText
+                variant="bodyNormal"
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                style={componentStyles.guruSessionTitle}
+              >
                 {session.title}
               </KuralText>
-              <KuralText variant="caption" style={componentStyles.guruSessionMeta}>
-                {session.last_message_preview || t('emptyBody')}
-              </KuralText>
-              <KuralText variant="caption" style={componentStyles.guruSessionMeta}>
-                {session.message_count} / {session.context_limit}
-                {session.is_closed ? ` · ${t('closedLabel')}` : ''}
+              <KuralText
+                variant="caption"
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                style={componentStyles.guruSessionMeta}
+              >
+                {preview}
               </KuralText>
             </Pressable>
           );
         })}
-      </View>
+      </ScrollView>
     ) : (
       <View style={componentStyles.guruEmptyState}>
         <KuralText variant="h2" style={componentStyles.guruEmptyTitle}>
@@ -108,7 +123,12 @@ export default function GuruView({ onKuralPress }: GuruViewProps) {
             <KuralText variant="bodyNormal" style={componentStyles.guruSidebarTitle}>
               {t('sessionsHeader')}
             </KuralText>
-            <KuralButton title={t('newSession')} onPress={() => void startNewSession()} />
+            <KuralIconButton
+              icon={<Plus />}
+              label={pair('newSession').visible}
+              tooltip={pair('newSession').hover}
+              onPress={() => void startNewSession()}
+            />
           </View>
           {sessionList}
         </View>
@@ -134,9 +154,10 @@ export default function GuruView({ onKuralPress }: GuruViewProps) {
                   loading={summaryLoading}
                   disabled={!activeSessionId || summaryLoading}
                 />
-                <KuralButton
-                  title={t('deleteAction')}
-                  variant="secondary"
+                <KuralIconButton
+                  icon={<Trash2 />}
+                  label={pair('deleteAction').visible}
+                  tooltip={pair('deleteAction').hover}
                   onPress={handleDelete}
                   disabled={!activeSessionId}
                 />
@@ -157,9 +178,10 @@ export default function GuruView({ onKuralPress }: GuruViewProps) {
                     variant="secondary"
                     onPress={() => setDeleteConfirmOpen(false)}
                   />
-                  <KuralButton
-                    title={t('deleteAction')}
-                    variant="secondary"
+                  <KuralIconButton
+                    icon={<Trash2 />}
+                    label={pair('deleteAction').visible}
+                    tooltip={pair('deleteAction').hover}
                     onPress={() => {
                       setDeleteConfirmOpen(false);
                       if (activeSessionId) void deleteSession(activeSessionId);

@@ -36,6 +36,8 @@
   "pagination": {
     "kuralsPerPage": "Kurals per page",
     "perPage": "Per page",
+    "previousPage": "Previous",
+    "nextPage": "Next",
     "pageOf": "Page {page} of {total}",
     "kuralsRange": "Kurals {start} - {end}"
   },

@@ -25,14 +25,14 @@ export default React.memo(function KuralCouplet({
       {headerToggle.tamil && (
         <View style={componentStyles.kuralCardHeaderRow}>
           <KuralText style={[componentStyles.kuralCardNumber, componentStyles.kuralCardHeaderText]}>
-            குறள் #{kural.id} • {kural.paal_name} — {kural.iyal_name} - {kural.adhikaram_name}
+            குறள் #{kural.id} • {kural.paal_name} • {kural.iyal_name} • {kural.adhikaram_name}
           </KuralText>
         </View>
       )}
       {headerToggle.english && (
         <View style={componentStyles.kuralCardHeaderRow}>
           <KuralText style={[componentStyles.kuralCardNumber, componentStyles.kuralCardHeaderText]}>
-            Kural #{kural.id} • {kural.paal_english_name} — {kural.iyal_english_name} —{' '}
+            Kural #{kural.id} • {kural.paal_english_name} • {kural.iyal_english_name} •{' '}
             {kural.adhikaram_english_name}
           </KuralText>
         </View>

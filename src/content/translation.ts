@@ -33,6 +33,23 @@ function readLocaleValue(
   return typeof value === 'string' ? value : '';
 }
 
+export function translatePair(
+  namespace: TranslationNamespace,
+  key: TranslationKey,
+  fallbackLocale: TranslationLocale,
+): { visible: string; hover: string } {
+  const tamil =
+    readLocaleValue(namespace, key, 'tamil') || readLocaleValue(namespace, key, fallbackLocale);
+  const english =
+    readLocaleValue(namespace, key, 'english') || readLocaleValue(namespace, key, fallbackLocale);
+
+  if (fallbackLocale === 'tamil') {
+    return { visible: tamil, hover: english };
+  }
+
+  return { visible: english, hover: tamil };
+}
+
 export function translate(
   namespace: TranslationNamespace,
   key: TranslationKey,
@@ -143,6 +160,7 @@ export function useTranslation(
       t: (key: TranslationKey) => translate(namespace, key, toggle, fallbackLocale),
       tSingle: (key: TranslationKey, locale: TranslationLocale) =>
         translateSingle(namespace, key, locale, fallbackLocale),
+      pair: (key: TranslationKey) => translatePair(namespace, key, fallbackLocale),
       format: (tamil: string, english: string) => formatTranslation(tamil, english, toggle),
       formatPageStatus: (page: number, totalPages: number) =>
         formatPageStatus(namespace, page, totalPages, toggle, fallbackLocale),

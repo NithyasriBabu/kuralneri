@@ -357,14 +357,23 @@ export const createComponentStyles = (theme: AppTheme) => {
     } as TextStyle,
     guruSessionList: {
       gap: 8,
+      flex: 1,
+    } as ViewStyle,
+    guruSessionListScroll: {
+      flex: 1,
+    } as ViewStyle,
+    guruSessionListContent: {
+      gap: 8,
+      paddingBottom: 4,
     } as ViewStyle,
     guruSessionButton: {
       borderWidth: 1,
       borderColor: theme.colors.border,
       borderRadius: theme.layout.borderRadius.medium,
-      padding: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
       backgroundColor: theme.colors.surface,
-      gap: 4,
+      gap: 2,
     } as ViewStyle,
     guruSessionButtonActive: {
       backgroundColor: theme.colors.accent,
@@ -380,6 +389,7 @@ export const createComponentStyles = (theme: AppTheme) => {
       fontFamily: theme.typography.fonts.english,
       fontSize: theme.typography.sizes.caption,
       color: theme.colors.textSecondary,
+      lineHeight: theme.typography.sizes.caption + 2,
     } as TextStyle,
     guruMainColumn: {
       flex: 1,

@@ -1,9 +1,11 @@
 import React, { useMemo } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { KuralText } from './KuralText';
 import { useTranslation } from 'src/content/translation';
+import { KuralIconButton } from 'src/components/common/KuralIconButton';
 
 interface KuralPaginationBarProps {
   page: number;
@@ -34,7 +36,7 @@ export function KuralPaginationBar({
 }: KuralPaginationBarProps) {
   const { theme, componentStyles } = useTheme();
   const screenWidth = theme.layout.screenWidth;
-  const { t, formatPageStatus, formatRangeStatus } = useTranslation('uiChrome', 'pagination');
+  const { t, pair, formatPageStatus, formatRangeStatus } = useTranslation('uiChrome', 'pagination');
   const visiblePageNumbers = useMemo(() => {
     const pages: number[] = [];
     const maxVisible = screenWidth > 1024 ? 7 : screenWidth > 600 ? 5 : 3;
@@ -56,16 +58,14 @@ export function KuralPaginationBar({
   return (
     <View style={componentStyles.kuralListPaginationContainer}>
       <View style={componentStyles.kuralListRibbonRow}>
-        <TouchableOpacity
-          style={[
-            componentStyles.kuralListStepperButton,
-            page === 1 && componentStyles.kuralListStepperButtonDisabled,
-          ]}
+        <KuralIconButton
+          icon={<ChevronLeft />}
+          label={pair('previousPage').visible}
+          tooltip={pair('previousPage').hover}
           onPress={() => onPageJump(page - 1)}
           disabled={page === 1 || loading}
-        >
-          <KuralText style={componentStyles.kuralListStepperButtonText}>‹</KuralText>
-        </TouchableOpacity>
+          size="sm"
+        />
 
         <ScrollView
           horizontal
@@ -95,16 +95,14 @@ export function KuralPaginationBar({
           ))}
         </ScrollView>
 
-        <TouchableOpacity
-          style={[
-            componentStyles.kuralListStepperButton,
-            !hasMore && componentStyles.kuralListStepperButtonDisabled,
-          ]}
+        <KuralIconButton
+          icon={<ChevronRight />}
+          label={pair('nextPage').visible}
+          tooltip={pair('nextPage').hover}
           onPress={() => onPageJump(page + 1)}
           disabled={!hasMore || loading}
-        >
-          <KuralText style={componentStyles.kuralListStepperButtonText}>›</KuralText>
-        </TouchableOpacity>
+          size="sm"
+        />
       </View>
 
       <View style={componentStyles.kuralListMetaRow}>

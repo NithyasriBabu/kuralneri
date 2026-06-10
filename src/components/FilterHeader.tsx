@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, TouchableOpacity } from 'react-native';
+import { FilterX } from 'lucide-react-native';
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { PaalRecord, IyalRecord, AdhigaramRecord } from 'src/types/types';
 
@@ -7,7 +8,7 @@ import { PaalRecord, IyalRecord, AdhigaramRecord } from 'src/types/types';
 import { KuralText } from 'src/components/common/KuralText';
 import { KuralInput } from 'src/components/common/KuralInput';
 import { KuralDropdown } from 'src/components/common/KuralDropdown';
-import { KuralButton } from 'src/components/common/KuralButton';
+import { KuralIconButton } from 'src/components/common/KuralIconButton';
 import { useTranslation } from 'src/content/translation';
 
 interface FilterHeaderProps {
@@ -55,7 +56,7 @@ export function FilterHeader({
   const isWidescreen = theme.layout.isWideScreen;
   const [isExpanded, setIsExpanded] = useState(isWidescreen);
 
-  const { t } = useTranslation('uiChrome', 'filters');
+  const { t, pair } = useTranslation('uiChrome', 'filters');
 
   const hasActiveFilters =
     searchQuery.trim().length > 0 || selectedPaal > 0 || selectedIyal > 0 || selectedAdhigaram > 0;
@@ -175,10 +176,12 @@ export function FilterHeader({
 
             {/* Clear Filters Action Trigger */}
             {Boolean(hasActiveFilters) && (
-              <KuralButton
-                title={t('clearAllFilters')}
-                variant="secondary"
+              <KuralIconButton
+                icon={<FilterX />}
+                label={pair('clearAllFilters').visible}
+                tooltip={pair('clearAllFilters').hover}
                 onPress={clearAllFilters}
+                size="sm"
                 style={isWidescreen ? { marginTop: 22 } : { marginTop: 8 }}
               />
             )}

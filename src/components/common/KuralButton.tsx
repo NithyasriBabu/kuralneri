@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, ActivityIndicator, ViewStyle, Platform } from 'react-native';
+import { Pressable, StyleSheet, ActivityIndicator, View, ViewStyle, Platform } from 'react-native';
 import { useTheme } from '../../theme/ThemeContextProvider';
 import { KuralText } from './KuralText';
 
@@ -29,6 +29,12 @@ export const KuralButton: React.FC<KuralButtonProps> = ({
   const buttonConfig =
     variant === 'primary' ? colors.interactive.primaryButton : colors.interactive.secondaryButton;
   const primaryTextColor = theme.dark ? colors.background : colors.surfaceElevated;
+  const bilingualParts = title.includes(' / ')
+    ? title
+        .split(' / ')
+        .map((part) => part.trim())
+        .filter(Boolean)
+    : null;
 
   // Safe cursor interaction bindings for web engines
   const webHoverHandlers =
@@ -65,20 +71,47 @@ export const KuralButton: React.FC<KuralButtonProps> = ({
       {loading ? (
         <ActivityIndicator color={variant === 'primary' ? primaryTextColor : colors.primary} />
       ) : (
-        <KuralText
-          variant="bodyNormal"
-          style={{
-            color:
-              variant === 'primary'
-                ? primaryTextColor
-                : disabled
-                  ? colors.disabledText
-                  : colors.primary,
-            fontWeight: '600',
-          }}
-        >
-          {title}
-        </KuralText>
+        <View style={styles.labelStack}>
+          {bilingualParts ? (
+            bilingualParts.map((part, index) => (
+              <KuralText
+                key={`${part}-${index}`}
+                variant={index === 0 ? 'caption' : 'caption'}
+                style={[
+                  styles.labelLine,
+                  {
+                    color:
+                      variant === 'primary'
+                        ? primaryTextColor
+                        : disabled
+                          ? colors.disabledText
+                          : colors.primary,
+                  },
+                  index === 0 && styles.labelLineTop,
+                  index === 1 && styles.labelLineBottom,
+                ]}
+              >
+                {part}
+              </KuralText>
+            ))
+          ) : (
+            <KuralText
+              variant="bodyNormal"
+              style={{
+                color:
+                  variant === 'primary'
+                    ? primaryTextColor
+                    : disabled
+                      ? colors.disabledText
+                      : colors.primary,
+                fontWeight: '600',
+                textAlign: 'center',
+              }}
+            >
+              {title}
+            </KuralText>
+          )}
+        </View>
       )}
     </Pressable>
   );
@@ -90,5 +123,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 16,
+  },
+  labelStack: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 0,
+  },
+  labelLine: {
+    textAlign: 'center',
+    fontWeight: '700',
+    lineHeight: 15,
+  },
+  labelLineTop: {
+    marginBottom: 1,
+  },
+  labelLineBottom: {
+    opacity: 0.9,
   },
 });

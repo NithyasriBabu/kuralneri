@@ -42,6 +42,8 @@
   "pagination": {
     "kuralsPerPage": "ஒரு பக்கத்திற்கு குறள்கள்",
     "perPage": "ஒரு பக்கத்திற்கு",
+    "previousPage": "முந்தைய",
+    "nextPage": "அடுத்த",
     "pageOf": "பக்கம் {page} / {total}",
     "kuralsRange": "குறள்கள் {start} - {end}"
   },

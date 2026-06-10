@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, View } from 'react-native';
+import { Platform, Pressable, View } from 'react-native';
 import { Bookmark } from 'lucide-react-native';
 
 import { useTheme } from 'src/theme/ThemeContextProvider';
@@ -36,6 +36,11 @@ export default React.memo(function KuralCardShell({
     await onBookmarkToggle(!Boolean(kural.is_bookmarked));
   };
 
+  const bookmarkWebProps =
+    Platform.OS === 'web'
+      ? { title: kural.is_bookmarked ? t('removeBookmark') : t('addBookmark') }
+      : {};
+
   const { kuralCard: cardToggle, sectionHeaders: headerToggle } = settings.langToggles;
   const preferredAuthorCode = settings.preferredAuthorCode;
 
@@ -58,6 +63,7 @@ export default React.memo(function KuralCardShell({
         <Pressable
           onPress={handleBookmarkPress}
           disabled={bookmarkLoading}
+          {...bookmarkWebProps}
           style={[
             componentStyles.kuralCardBookmarkButton,
             Boolean(kural.is_bookmarked) && componentStyles.kuralCardBookmarkButtonActive,

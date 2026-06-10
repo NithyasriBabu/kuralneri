@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
+import { Eraser, Pencil, Save, Trash2 } from 'lucide-react-native';
 
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { useSettings } from 'src/context/SettingsContext';
 import { KuralText } from 'src/components/common/KuralText';
 import { KuralInput } from 'src/components/common/KuralInput';
-import { KuralButton } from 'src/components/common/KuralButton';
+import { KuralIconButton } from 'src/components/common/KuralIconButton';
 import { AuthorNote } from 'src/types/types';
 import { deleteUserNote, saveUserNote } from 'src/data/services';
 import { useTranslation } from 'src/content/translation';
@@ -30,7 +31,7 @@ function formatDisplayDate(noteDate: string): string {
 export default React.memo(function KuralUserNotes({ kuralId, notes }: KuralUserNotesProps) {
   const { componentStyles } = useTheme();
   const { settings } = useSettings();
-  const { t } = useTranslation('uiChrome', 'cards');
+  const { t, pair } = useTranslation('uiChrome', 'cards');
   const today = getLocalDateString();
 
   const initialUserNotes = useMemo(
@@ -61,6 +62,7 @@ export default React.memo(function KuralUserNotes({ kuralId, notes }: KuralUserN
     () => sortedUserNotes.find((note) => note.note_date === today) ?? null,
     [sortedUserNotes, today],
   );
+  const isDirty = draft !== (currentNote?.note_text ?? '');
 
   const historyNotes = useMemo(
     () => sortedUserNotes.filter((note) => note.note_date !== today),
@@ -135,24 +137,42 @@ export default React.memo(function KuralUserNotes({ kuralId, notes }: KuralUserN
         />
 
         <View style={componentStyles.userNotesActionsRow}>
-          <KuralButton
-            title={currentNote ? t('editNote') : t('addNote')}
+          <KuralIconButton
+            icon={currentNote && !isDirty ? <Pencil /> : <Save />}
+            label={
+              currentNote
+                ? isDirty
+                  ? pair('saveNote').visible
+                  : pair('editNote').visible
+                : pair('addNote').visible
+            }
+            tooltip={
+              currentNote
+                ? isDirty
+                  ? pair('saveNote').hover
+                  : pair('editNote').hover
+                : pair('addNote').hover
+            }
             onPress={persist}
             loading={saving}
             disabled={!draft.trim().length}
           />
-          <KuralButton
-            title={t('clearNote')}
-            variant="secondary"
+          <KuralIconButton
+            icon={<Eraser />}
+            label={pair('clearNote').visible}
+            tooltip={pair('clearNote').hover}
             onPress={handleClear}
             disabled={!draft.trim().length || saving}
+            size="sm"
           />
           {currentNote ? (
-            <KuralButton
-              title={t('deleteNote')}
-              variant="secondary"
+            <KuralIconButton
+              icon={<Trash2 />}
+              label={pair('deleteNote').visible}
+              tooltip={pair('deleteNote').hover}
               onPress={removeTodayNote}
               loading={saving}
+              size="sm"
             />
           ) : null}
         </View>
