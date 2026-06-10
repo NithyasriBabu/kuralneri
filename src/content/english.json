@@ -142,5 +142,32 @@
     "sectionHeadersToggleLabel": "Section Headers",
     "tamilLanguage": "Tamil",
     "englishLanguage": "English"
+  },
+  "guru": {
+    "title": "Guru",
+    "subtitle": "Offline Moral Companion",
+    "body": "Ask about a feeling, a choice, or a situation. Replies stay anchored to the Thirukkural and the chat remains on-device.",
+    "sessionsHeader": "Sessions",
+    "newSession": "New Session",
+    "newSessionHint": "Start a fresh thread when one reaches its window.",
+    "summaryAction": "Summarize chat",
+    "deleteAction": "Delete session",
+    "deletePromptTitle": "Delete this session?",
+    "deletePromptBody": "This removes the conversation history from this device.",
+    "composerPlaceholder": "Ask about a verse, a feeling, or a life problem...",
+    "send": "Send",
+    "emptyTitle": "No session selected",
+    "emptyBody": "Create a session to begin.",
+    "noSessionsTitle": "No chats yet",
+    "noSessionsBody": "Start a new Guru session to begin.",
+    "limitTitle": "Context window reached",
+    "limitBody": "This session is full. Start a new one to continue.",
+    "summaryLabel": "Session summary",
+    "citationsLabel": "Verses",
+    "userLabel": "You",
+    "guruLabel": "Guru",
+    "closedLabel": "Closed",
+    "bridgeLabel": "Moral bridge",
+    "loading": "Loading chat..."
   }
 }

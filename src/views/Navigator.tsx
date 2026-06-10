@@ -15,6 +15,7 @@ import KuralListView from 'src/views/KuralListView';
 import BookmarksView from 'src/views/BookmarksView';
 import KuralOfTheDayView from 'src/views/KuralOfTheDayView';
 import KuralDetailView from 'src/views/KuralDetailView';
+import GuruView from 'src/views/GuruView';
 import SettingsView from 'src/views/SettingsView';
 
 // ─── navigator ───────────────────────────────────────────────────────────────
@@ -24,6 +25,7 @@ export default function TabNavigator() {
   const { t } = useTranslation('uiChrome', 'navigation');
   const { handleDetailBack, handleKuralPress, handleTabPress, isWidescreen, navTabs, routeState } =
     useNavigatorController();
+  const kuralNavigationProps = { onKuralPress: handleKuralPress };
   const routeResetKey =
     routeState.kind === 'tab' ? routeState.tabId : `KURAL-${routeState.kuralId}`;
 
@@ -44,9 +46,9 @@ export default function TabNavigator() {
           </View>
         );
       case TabType.Explore:
-        return <KuralListView onKuralPress={handleKuralPress} />;
+        return <KuralListView {...kuralNavigationProps} />;
       case TabType.Bookmarks:
-        return <BookmarksView onKuralPress={handleKuralPress} />;
+        return <BookmarksView {...kuralNavigationProps} />;
       case TabType.Learn:
         return (
           <FeaturePlaceholder
@@ -57,14 +59,7 @@ export default function TabNavigator() {
           />
         );
       case TabType.Guru:
-        return (
-          <FeaturePlaceholder
-            icon="🤖"
-            title={t('guruTitle')}
-            subtitle={t('guruSubtitle')}
-            body={t('guruBody')}
-          />
-        );
+        return <GuruView {...kuralNavigationProps} />;
       case TabType.Settings:
         return <SettingsView />;
       default:

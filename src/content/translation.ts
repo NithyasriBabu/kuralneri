@@ -11,7 +11,8 @@ export type TranslationNamespace =
   | 'pagination'
   | 'navigation'
   | 'cards'
-  | 'settings';
+  | 'settings'
+  | 'guru';
 export type TranslationKey = string;
 
 function formatTemplate(template: string, values: Record<string, string | number>): string {

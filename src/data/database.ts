@@ -98,6 +98,53 @@ const DATABASE_SCHEMA_SQL: string = `
       tamil INTEGER NOT NULL CHECK (tamil IN (0, 1)),
       english INTEGER NOT NULL CHECK (english IN (0, 1))
     );
+
+    CREATE TABLE IF NOT EXISTS chat_sessions (
+      session_id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      summary_text TEXT NOT NULL DEFAULT '',
+      summary_updated_at TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      last_active_at TEXT NOT NULL,
+      message_count INTEGER NOT NULL DEFAULT 0,
+      context_limit INTEGER NOT NULL DEFAULT 30,
+      is_closed INTEGER NOT NULL DEFAULT 0
+    );
+
+    CREATE TABLE IF NOT EXISTS chat_message_roles (
+      code TEXT PRIMARY KEY
+    );
+
+    CREATE TABLE IF NOT EXISTS chat_messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      session_id TEXT NOT NULL,
+      role TEXT NOT NULL,
+      content TEXT NOT NULL,
+      intent_label TEXT NOT NULL DEFAULT 'other',
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (role) REFERENCES chat_message_roles (code),
+      FOREIGN KEY (session_id) REFERENCES chat_sessions (session_id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS chat_citations (
+      message_id INTEGER NOT NULL,
+      kural_id INTEGER NOT NULL,
+      citation_order INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (message_id, kural_id),
+      FOREIGN KEY (message_id) REFERENCES chat_messages (id) ON DELETE CASCADE,
+      FOREIGN KEY (kural_id) REFERENCES kurals (id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_chat_messages_session_id
+      ON chat_messages (session_id, id DESC);
+
+    CREATE INDEX IF NOT EXISTS idx_chat_messages_session_created_at
+      ON chat_messages (session_id, created_at DESC);
+
+    CREATE INDEX IF NOT EXISTS idx_chat_citations_kural_id
+      ON chat_citations (kural_id);
   `;
 
 const AUTHOR_PRESETS = [
@@ -280,6 +327,20 @@ async function ensureUserNotesIndexes(targetDb: SQLite.SQLiteDatabase): Promise<
   targetDb.runSync(sql);
 }
 
+async function ensureChatMessageRoles(targetDb: SQLite.SQLiteDatabase): Promise<void> {
+  const insertSql = `
+    INSERT OR IGNORE INTO chat_message_roles (code)
+    VALUES (?), (?);
+  `;
+  const params = ['user', 'guru'];
+  if (Platform.OS === 'web') {
+    await targetDb.runAsync(insertSql, params);
+    return;
+  }
+
+  targetDb.runSync(insertSql, params);
+}
+
 export const setupDatabase = async (onLog: LogCallback) => {
   try {
     if (Platform.OS === 'web') {
@@ -302,6 +363,7 @@ export const setupDatabase = async (onLog: LogCallback) => {
         // Initialize core tables
         await targetDb.execAsync(DATABASE_SCHEMA_SQL);
         await ensureAuthorTamilNameColumn(targetDb);
+        await ensureChatMessageRoles(targetDb);
 
         // Utilize shared helper with async context wrapper
         const isSeeded = await isDatabaseAlreadySeeded(
@@ -330,6 +392,7 @@ export const setupDatabase = async (onLog: LogCallback) => {
       // Initialize core tables
       targetDb.execSync(DATABASE_SCHEMA_SQL);
       await ensureAuthorTamilNameColumn(targetDb);
+      await ensureChatMessageRoles(targetDb);
 
       // Utilize shared helper with sync context wrapper
       const isSeeded = await isDatabaseAlreadySeeded((sql) => targetDb.getFirstSync<any>(sql));
