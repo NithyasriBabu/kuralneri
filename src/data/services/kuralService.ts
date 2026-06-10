@@ -97,7 +97,10 @@ function assembleKuralFromRow(row: KuralByIdRow | undefined): KuralRecord | null
  * Safely routes execution to async engines on web and sync engines on mobile.
  * Web OPFS access is serialized via runWebDbTask to avoid concurrent handle errors.
  */
-async function executeSelect<T>(querySQL: string, args: any[] = []): Promise<T[]> {
+async function executeSelect<T>(
+  querySQL: string,
+  args: SQLite.SQLiteBindParams = [],
+): Promise<T[]> {
   return runWebDbTask(async () => {
     try {
       if (Platform.OS === 'web') {
@@ -113,7 +116,7 @@ async function executeSelect<T>(querySQL: string, args: any[] = []): Promise<T[]
   });
 }
 
-async function executeRun(querySQL: string, args: any[] = []): Promise<void> {
+async function executeRun(querySQL: string, args: SQLite.SQLiteBindParams = []): Promise<void> {
   await runWebDbTask(async () => {
     try {
       if (Platform.OS === 'web') {
@@ -129,7 +132,10 @@ async function executeRun(querySQL: string, args: any[] = []): Promise<void> {
   });
 }
 
-async function executeRunReturningResult(querySQL: string, args: any[] = []): Promise<RunResult> {
+async function executeRunReturningResult(
+  querySQL: string,
+  args: SQLite.SQLiteBindParams = [],
+): Promise<RunResult> {
   return runWebDbTask(async () => {
     if (Platform.OS === 'web') {
       const targetDb = await db;
@@ -140,7 +146,7 @@ async function executeRunReturningResult(querySQL: string, args: any[] = []): Pr
   });
 }
 
-function isActiveId(id?: number): boolean {
+function isActiveId(id?: number): id is number {
   return id != null && id > 0;
 }
 
@@ -149,10 +155,10 @@ function isActiveId(id?: number): boolean {
  */
 function buildFilterClause(filters?: KuralFilters & { isBookmarked?: boolean }): {
   whereClause: string;
-  args: any[];
+  args: SQLite.SQLiteBindValue[];
 } {
   const clauses: string[] = [];
-  const args: any[] = [];
+  const args: SQLite.SQLiteBindValue[] = [];
 
   if (!filters) return { whereClause: '', args };
 
@@ -161,17 +167,20 @@ function buildFilterClause(filters?: KuralFilters & { isBookmarked?: boolean }):
     clauses.push(`k.is_bookmarked = 1`);
   }
 
-  if (isActiveId(filters.paalId)) {
+  const paalId = filters.paalId;
+  if (isActiveId(paalId)) {
     clauses.push(`i.paal_id = ?`);
-    args.push(filters.paalId);
+    args.push(paalId);
   }
-  if (isActiveId(filters.iyalId)) {
+  const iyalId = filters.iyalId;
+  if (isActiveId(iyalId)) {
     clauses.push(`a.iyal_id = ?`);
-    args.push(filters.iyalId);
+    args.push(iyalId);
   }
-  if (isActiveId(filters.adhigaramId)) {
+  const adhigaramId = filters.adhigaramId;
+  if (isActiveId(adhigaramId)) {
     clauses.push(`k.adhikaram_id = ?`);
-    args.push(filters.adhigaramId);
+    args.push(adhigaramId);
   }
 
   const search = filters.search?.trim();

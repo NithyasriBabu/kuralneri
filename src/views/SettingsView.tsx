@@ -225,7 +225,7 @@ function LangToggleRow({ toggleKey }: { toggleKey: LangToggleKey }) {
 
 export default function SettingsView() {
   const { theme } = useTheme();
-  const { settings, updateSettings, resetSettings } = useSettings();
+  const { settings, settingsLoadWarning, updateSettings, resetSettings } = useSettings();
   const { t: tSettings, pair } = useTranslation('uiChrome', 'settings');
 
   const [nameInput, setNameInput] = useState(settings.userName);
@@ -348,6 +348,37 @@ export default function SettingsView() {
             {tSettings('settingsTitle')}
           </KuralText>
         </View>
+
+        {settingsLoadWarning ? (
+          <View
+            style={{
+              marginTop: 12,
+              marginBottom: 10,
+              padding: 14,
+              borderRadius: theme.layout.borderRadius.medium,
+              borderWidth: 1,
+              borderColor: theme.colors.border,
+              backgroundColor: theme.colors.surfaceElevated,
+              gap: 10,
+            }}
+          >
+            <KuralText
+              variant="bodyNormal"
+              style={{ color: theme.colors.primary, fontWeight: '700' }}
+            >
+              {tSettings('settingsLoadWarningTitle')}
+            </KuralText>
+            <KuralText variant="caption" style={{ color: theme.colors.textSecondary }}>
+              {tSettings('settingsLoadWarningBody')}
+            </KuralText>
+            <KuralButton
+              title={tSettings('restoreDefaults')}
+              variant="secondary"
+              onPress={resetSettings}
+              style={{ alignSelf: 'flex-start' }}
+            />
+          </View>
+        ) : null}
 
         {/* ── 1. Personal ─────────────────────────────────────── */}
         <SectionHeader label={tSettings('personal')} />

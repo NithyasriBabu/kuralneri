@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { useTheme } from 'src/theme/ThemeContextProvider';
@@ -21,19 +21,27 @@ export default React.memo(function KuralCommentary({
   const { t } = useTranslation('uiChrome', 'cards');
   const [othersExpanded, setOthersExpanded] = useState(false);
 
-  const seededNotes = (notes ?? []).filter((note) => note.note_source === 'seeded');
+  const { seededNotes, preferred, others, authorToggle } = useMemo(() => {
+    const nextSeededNotes = (notes ?? []).filter((note) => note.note_source === 'seeded');
+    const nextAuthorToggle = settings.langToggles.uiChrome;
+    const nextPreferred = preferredAuthorCode
+      ? nextSeededNotes.find((n) => n.author_code === preferredAuthorCode)
+      : null;
+    const nextOthers = preferredAuthorCode
+      ? nextSeededNotes.filter((n) => n.author_code !== preferredAuthorCode)
+      : nextSeededNotes;
+
+    return {
+      seededNotes: nextSeededNotes,
+      preferred: nextPreferred,
+      others: nextOthers,
+      authorToggle: nextAuthorToggle,
+    };
+  }, [notes, preferredAuthorCode, settings.langToggles.uiChrome]);
 
   if (seededNotes.length === 0) {
     return null;
   }
-
-  const preferred = preferredAuthorCode
-    ? seededNotes.find((n) => n.author_code === preferredAuthorCode)
-    : null;
-  const others = preferredAuthorCode
-    ? seededNotes.filter((n) => n.author_code !== preferredAuthorCode)
-    : seededNotes;
-  const authorToggle = settings.langToggles.uiChrome;
 
   const renderAuthorName = (note: AuthorNote): string => {
     const tamilName = note.author_name_tamil || note.author_name;

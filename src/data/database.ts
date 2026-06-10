@@ -154,10 +154,14 @@ const AUTHOR_PRESETS = [
   { code: 'mk', name: 'M. Karunanidhi', tamilName: 'மு. கருணாநிதி' },
 ];
 
+type DbRow = Record<string, unknown>;
+
 // Define custom signature types for our runner hooks
-type ExecRunner = (sql: string, params?: any[]) => number | Promise<number>;
-type FetchRunner = (sql: string) => any[] | Promise<any[]>;
-type SingleFetchRunner = (sql: string) => any | Promise<any>;
+type ExecRunner = (sql: string, params?: SQLite.SQLiteBindParams) => number | Promise<number>;
+type FetchRunner<Row extends DbRow = DbRow> = (sql: string) => Row[] | Promise<Row[]>;
+type SingleFetchRunner<Row extends DbRow = DbRow> = (
+  sql: string,
+) => Row | null | undefined | Promise<Row | null | undefined>;
 
 // Define the signature type for our new status callback logger
 type LogCallback = (message: string) => void;
@@ -166,7 +170,9 @@ type LogCallback = (message: string) => void;
  * Shared validator method. Checks if data records exist
  * without caring if the target database engine is sync or async.
  */
-async function isDatabaseAlreadySeeded(fetchFirst: SingleFetchRunner): Promise<boolean> {
+async function isDatabaseAlreadySeeded(
+  fetchFirst: SingleFetchRunner<{ count: number }>,
+): Promise<boolean> {
   const res = await fetchFirst('SELECT COUNT(*) as count FROM paals;');
   return !!(res && res.count > 0);
 }
@@ -175,7 +181,13 @@ async function isDatabaseAlreadySeeded(fetchFirst: SingleFetchRunner): Promise<b
  * This function handles pure data parsing. It doesn't know about Sync vs Async.
  * It simply executes commands through the runner hooks provided to it.
  */
-async function parseAndSeedDataset(execute: ExecRunner, fetchAll: FetchRunner, onLog: LogCallback) {
+type AdhikaramRangeRow = { id: number; start: number; end: number };
+
+async function parseAndSeedDataset(
+  execute: ExecRunner,
+  fetchAll: FetchRunner<AdhikaramRangeRow>,
+  onLog: LogCallback,
+) {
   const authorMap = new Map<string, number>();
 
   // A. Seed Authors
@@ -367,7 +379,7 @@ export const setupDatabase = async (onLog: LogCallback) => {
 
         // Utilize shared helper with async context wrapper
         const isSeeded = await isDatabaseAlreadySeeded(
-          async (sql) => await targetDb.getFirstAsync<any>(sql),
+          async (sql) => await targetDb.getFirstAsync<{ count: number }>(sql),
         );
         await ensureUserNotesIndexes(targetDb);
         if (isSeeded) {
@@ -379,8 +391,8 @@ export const setupDatabase = async (onLog: LogCallback) => {
         onLog('🌐 Web sandbox environment verified. Opening transaction channels...');
         await targetDb.withTransactionAsync(async () => {
           await parseAndSeedDataset(
-            async (sql, params) => (await targetDb.runAsync(sql, params || [])).lastInsertRowId,
-            async (sql) => await targetDb.getAllAsync<any>(sql),
+            async (sql, params) => (await targetDb.runAsync(sql, params ?? [])).lastInsertRowId,
+            async (sql) => await targetDb.getAllAsync<AdhikaramRangeRow>(sql),
             onLog,
           );
         });
@@ -395,7 +407,9 @@ export const setupDatabase = async (onLog: LogCallback) => {
       await ensureChatMessageRoles(targetDb);
 
       // Utilize shared helper with sync context wrapper
-      const isSeeded = await isDatabaseAlreadySeeded((sql) => targetDb.getFirstSync<any>(sql));
+      const isSeeded = await isDatabaseAlreadySeeded((sql) =>
+        targetDb.getFirstSync<{ count: number }>(sql),
+      );
       await ensureUserNotesIndexes(targetDb);
       if (isSeeded) {
         await ensureAuthorPresets(targetDb);
@@ -406,8 +420,8 @@ export const setupDatabase = async (onLog: LogCallback) => {
       onLog('🚀 Mobile storage verified. Locking write threads...');
       targetDb.withTransactionSync(() => {
         parseAndSeedDataset(
-          (sql, params) => targetDb.runSync(sql, params || []).lastInsertRowId,
-          (sql) => targetDb.getAllSync<any>(sql),
+          (sql, params) => targetDb.runSync(sql, params ?? []).lastInsertRowId,
+          (sql) => targetDb.getAllSync<AdhikaramRangeRow>(sql),
           onLog,
         );
       });

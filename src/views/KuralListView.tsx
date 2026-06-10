@@ -1,6 +1,6 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, FlatList, StyleProp, View, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, FlatList, ActivityIndicator } from 'react-native';
 import { usePaginatedKuralFeed } from 'src/hooks/usePaginatedKuralFeed';
 
 import { FilterHeader } from 'src/components/FilterHeader';
@@ -8,10 +8,49 @@ import KuralCardShell from 'src/components/KuralCard/KuralCardShell';
 import { setKuralBookmarkStatus } from 'src/data/services';
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { KuralPaginationBar } from 'src/components/common/KuralPaginationBar';
+import { KuralRecord } from 'src/types/types';
 
 interface KuralListViewProps {
   onKuralPress?: (kuralId: number) => void;
 }
+
+interface KuralListCardProps {
+  kural: KuralRecord;
+  baseWrapperStyle: StyleProp<ViewStyle>;
+  gridWrapperStyle: StyleProp<ViewStyle>;
+  onKuralPress?: (kuralId: number) => void;
+  updateKuralBookmarkStatus: (kuralId: number, newStatus: boolean) => void;
+}
+
+const KuralListCard = React.memo(function KuralListCard({
+  kural,
+  baseWrapperStyle,
+  gridWrapperStyle,
+  onKuralPress,
+  updateKuralBookmarkStatus,
+}: KuralListCardProps) {
+  const handlePress = useCallback(() => {
+    onKuralPress?.(kural.id);
+  }, [kural.id, onKuralPress]);
+
+  const handleBookmarkToggle = useCallback(
+    async (newStatus: boolean) => {
+      await setKuralBookmarkStatus(kural.id, newStatus);
+      updateKuralBookmarkStatus(kural.id, newStatus);
+    },
+    [kural.id, updateKuralBookmarkStatus],
+  );
+
+  return (
+    <View style={[baseWrapperStyle, gridWrapperStyle]}>
+      <KuralCardShell
+        kural={kural}
+        onPress={onKuralPress ? handlePress : undefined}
+        onBookmarkToggle={handleBookmarkToggle}
+      />
+    </View>
+  );
+});
 
 export default function KuralListView({ onKuralPress }: KuralListViewProps) {
   const [kuralsPerPage, setKuralsPerPage] = useState<number>(10);
@@ -69,11 +108,6 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
     listRef.current?.scrollToOffset({ offset: 0, animated: true });
   };
 
-  const onBookmarkToggleCallback = (kuralId: number) => async (newStatus: boolean) => {
-    await setKuralBookmarkStatus(kuralId, newStatus);
-    updateKuralBookmarkStatus(kuralId, newStatus);
-  };
-
   useEffect(() => {
     if (!totalRecords || totalRecords == 0) {
       setLimitOptions([]);
@@ -115,13 +149,13 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
           numColumns={columns}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
-            <View style={[componentStyles.kuralListCardWrapper, wrapperStyle]}>
-              <KuralCardShell
-                kural={item}
-                onPress={onKuralPress ? () => onKuralPress(item.id) : undefined}
-                onBookmarkToggle={onBookmarkToggleCallback(item.id)}
-              />
-            </View>
+            <KuralListCard
+              kural={item}
+              baseWrapperStyle={componentStyles.kuralListCardWrapper}
+              gridWrapperStyle={wrapperStyle}
+              onKuralPress={onKuralPress}
+              updateKuralBookmarkStatus={updateKuralBookmarkStatus}
+            />
           )}
           contentContainerStyle={componentStyles.kuralListPadding}
         />

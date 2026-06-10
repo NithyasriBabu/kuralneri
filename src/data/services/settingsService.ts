@@ -34,6 +34,10 @@ const SETTINGS_SCHEMA_SQL = `
 type SettingsDb = SQLite.SQLiteDatabase;
 type ScalarRow = { value: string };
 type ToggleRow = { tamil: number; english: number };
+interface ReadToggleRowResult {
+  value: LangToggle | null;
+  hadInvalidStoredValues: boolean;
+}
 
 const THEME_MODES: readonly ThemeMode[] = ['light', 'dark', 'system'];
 const TAMIL_FONTS: readonly TamilFont[] = ['MuktaMalar', 'Latha', 'Catamaran', 'ArimaMadurai'];
@@ -126,7 +130,10 @@ async function upsertScalarRow(targetDb: SettingsDb, key: string, value: string)
   targetDb.runSync(sql, [key, value]);
 }
 
-async function readToggleRow(targetDb: SettingsDb, key: LangToggleKey): Promise<LangToggle | null> {
+async function readToggleRow(
+  targetDb: SettingsDb,
+  key: LangToggleKey,
+): Promise<ReadToggleRowResult> {
   const row =
     Platform.OS === 'web'
       ? await targetDb.getFirstAsync<ToggleRow>(
@@ -138,12 +145,22 @@ async function readToggleRow(targetDb: SettingsDb, key: LangToggleKey): Promise<
           [key],
         );
 
-  if (!row) return null;
+  if (!row) return { value: null, hadInvalidStoredValues: false };
+
+  const hadInvalidStoredValues = ![0, 1].includes(row.tamil) || ![0, 1].includes(row.english);
 
   return {
-    tamil: coerceBoolean(row.tamil),
-    english: coerceBoolean(row.english),
+    value: {
+      tamil: coerceBoolean(row.tamil),
+      english: coerceBoolean(row.english),
+    },
+    hadInvalidStoredValues,
   };
+}
+
+export interface LoadSettingsResult {
+  settings: AppSettings;
+  hadInvalidStoredValues: boolean;
 }
 
 async function upsertToggleRow(
@@ -211,9 +228,10 @@ async function persistTogglePatch(
 
 // ─── public API ─────────────────────────────────────────────────────────────
 
-export async function loadSettings(): Promise<AppSettings> {
+export async function loadSettings(): Promise<LoadSettingsResult> {
   return withSettingsDb(async (targetDb) => {
     const loaded = buildDefaultSettings();
+    let hadInvalidStoredValues = false;
 
     for (const key of APP_SETTINGS_SCALAR_KEYS) {
       const rawValue = await readScalarRow(targetDb, key);
@@ -234,18 +252,23 @@ export async function loadSettings(): Promise<AppSettings> {
           break;
         case 'fallbackLanguage':
           if (isTranslationLocale(rawValue)) loaded.fallbackLanguage = rawValue;
+          else hadInvalidStoredValues = true;
           break;
         case 'themeMode':
           if (isThemeMode(rawValue)) loaded.themeMode = rawValue;
+          else hadInvalidStoredValues = true;
           break;
         case 'tamilFont':
           if (isTamilFont(rawValue)) loaded.tamilFont = rawValue;
+          else hadInvalidStoredValues = true;
           break;
         case 'englishFont':
           if (isEnglishFont(rawValue)) loaded.englishFont = rawValue;
+          else hadInvalidStoredValues = true;
           break;
         case 'fontSizeScale':
           if (isFontSizeScale(rawValue)) loaded.fontSizeScale = rawValue;
+          else hadInvalidStoredValues = true;
           break;
         case 'customBackground':
           loaded.customBackground = rawValue;
@@ -258,11 +281,12 @@ export async function loadSettings(): Promise<AppSettings> {
 
     for (const key of APP_SETTINGS_LANG_TOGGLE_KEYS) {
       const row = await readToggleRow(targetDb, key);
-      if (row === null) continue;
-      loaded.langToggles[key] = row;
+      hadInvalidStoredValues ||= row.hadInvalidStoredValues;
+      if (row.value === null) continue;
+      loaded.langToggles[key] = row.value;
     }
 
-    return loaded;
+    return { settings: loaded, hadInvalidStoredValues };
   });
 }
 

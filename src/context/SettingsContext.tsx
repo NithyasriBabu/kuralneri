@@ -19,6 +19,7 @@ import {
 interface SettingsContextType {
   settings: AppSettings;
   settingsReady: boolean;
+  settingsLoadWarning: boolean;
   updateSettings: (patch: Partial<AppSettings>) => void;
   setLangToggle: (key: LangToggleKey, field: 'tamil' | 'english', value: boolean) => void;
   resetSettings: () => void;
@@ -31,14 +32,16 @@ const SettingsContext = createContext<SettingsContextType | undefined>(undefined
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [settings, setSettings] = useState<AppSettings>({ ...DEFAULT_SETTINGS });
   const [settingsReady, setSettingsReady] = useState(false);
+  const [settingsLoadWarning, setSettingsLoadWarning] = useState(false);
 
   // Load once on mount
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const loaded = await loadSettings();
+      const { settings: loaded, hadInvalidStoredValues } = await loadSettings();
       if (!cancelled) {
         setSettings(loaded);
+        setSettingsLoadWarning(hadInvalidStoredValues);
         setSettingsReady(true);
       }
     })();
@@ -109,12 +112,20 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       langToggles: { ...DEFAULT_SETTINGS.langToggles },
     };
     setSettings(fresh);
+    setSettingsLoadWarning(false);
     void resetAllSettings();
   }, []);
 
   const value = useMemo<SettingsContextType>(
-    () => ({ settings, settingsReady, updateSettings, setLangToggle, resetSettings }),
-    [settings, settingsReady, updateSettings, setLangToggle, resetSettings],
+    () => ({
+      settings,
+      settingsReady,
+      settingsLoadWarning,
+      updateSettings,
+      setLangToggle,
+      resetSettings,
+    }),
+    [settings, settingsReady, settingsLoadWarning, updateSettings, setLangToggle, resetSettings],
   );
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;

@@ -46,7 +46,7 @@ type GuruDbQueryMode = 'select' | 'run' | 'runResult';
 async function queryGuruDb<T>(
   mode: GuruDbQueryMode,
   querySQL: string,
-  args: any[] = [],
+  args: SQLite.SQLiteBindParams = [],
 ): Promise<T> {
   return runWebDbTask(async () =>
     withGuruDb(async (targetDb) => {
