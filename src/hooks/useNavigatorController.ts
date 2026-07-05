@@ -5,6 +5,13 @@ import { useSettings } from 'src/context/SettingsContext';
 import { useTranslation } from 'src/content/translation';
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { TabType } from 'src/types/types';
+import {
+  DEFAULT_WEB_TAB,
+  formatWebRoute,
+  isSupportedWebRouteHash,
+  parseWebRoute,
+  type RouteState,
+} from 'src/data/webRoutes';
 
 const TABS = [
   { id: TabType.Home, titleKey: 'homeTitle', icon: '🏠' },
@@ -15,33 +22,12 @@ const TABS = [
   { id: TabType.Settings, titleKey: 'settingsTitle', icon: '⚙' },
 ] as const;
 
-type RouteState = { kind: 'tab'; tabId: TabType } | { kind: 'kural'; kuralId: number };
-
-const DEFAULT_TAB: TabType = TabType.Home;
-
-function parsePath(pathname: string): RouteState {
-  const path = pathname.replace(/^\/+|\/+$/g, '');
-  const segments = path ? path.split('/') : [];
-
-  if (segments[0]?.toUpperCase() === 'KURAL' && segments[1]) {
-    const kuralId = Number(segments[1]);
-    if (Number.isFinite(kuralId) && kuralId > 0) return { kind: 'kural', kuralId };
-  }
-
-  const candidate = segments[0]?.toUpperCase() as TabType | undefined;
-  if (candidate && TABS.some((tab) => tab.id === candidate)) {
-    return { kind: 'tab', tabId: candidate };
-  }
-
-  return { kind: 'tab', tabId: DEFAULT_TAB };
-}
-
 function getInitialRoute(): RouteState {
   if (Platform.OS === 'web' && typeof window !== 'undefined') {
-    return parsePath(window.location.pathname);
+    return parseWebRoute(window.location.hash);
   }
 
-  return { kind: 'tab', tabId: DEFAULT_TAB };
+  return { kind: 'tab', tabId: DEFAULT_WEB_TAB };
 }
 
 export function useNavigatorController() {
@@ -58,25 +44,34 @@ export function useNavigatorController() {
     if (Platform.OS !== 'web') return;
 
     const syncRoute = () => {
-      setRouteState(parsePath(window.location.pathname));
+      const nextRoute = parseWebRoute(window.location.hash);
+      setRouteState(nextRoute);
+
+      if (!window.location.hash || !isSupportedWebRouteHash(window.location.hash)) {
+        window.history.replaceState(
+          null,
+          '',
+          formatWebRoute({ kind: 'tab', tabId: DEFAULT_WEB_TAB }),
+        );
+      }
     };
 
     syncRoute();
-    window.addEventListener('popstate', syncRoute);
-    return () => window.removeEventListener('popstate', syncRoute);
+    window.addEventListener('hashchange', syncRoute);
+    return () => window.removeEventListener('hashchange', syncRoute);
   }, []);
 
   const handleTabPress = useCallback((tabId: TabType) => {
     setRouteState({ kind: 'tab', tabId });
     if (Platform.OS === 'web') {
-      window.history.pushState(null, '', `/${tabId}`);
+      window.location.hash = formatWebRoute({ kind: 'tab', tabId });
     }
   }, []);
 
   const handleKuralPress = useCallback((kuralId: number) => {
     setRouteState({ kind: 'kural', kuralId });
     if (Platform.OS === 'web') {
-      window.history.pushState(null, '', `/KURAL/${kuralId}`);
+      window.location.hash = formatWebRoute({ kind: 'kural', kuralId });
     }
   }, []);
 
