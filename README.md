@@ -6,6 +6,22 @@
 
 ---
 
+## 🚀 Run the App
+
+- Prerequisite: Node `>=22` and an Expo-compatible setup on your machine.
+- Install dependencies:
+  - `yarn install`
+- Start the Expo dev server:
+  - `yarn start`
+- Run on web:
+  - `yarn web`
+- Run on Android:
+  - `yarn android`
+- Run on iPhone / iOS Simulator:
+  - `yarn ios`
+
+---
+
 ## 👁️ Product Vision
 
 To provide a sanctuary for contemplation. Kuralneri bridges the gap between ancient antiquity and the 21st century by utilizing **Local RAG (Retrieval-Augmented Generation)** to ensure every insight provided by the AI is anchored strictly in the 1,330 couplets of the _Thirukkural_.
