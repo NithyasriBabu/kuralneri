@@ -19,7 +19,7 @@ void i18n.use(initReactI18next).init({
   lng: 'en',
   fallbackLng: 'en',
   defaultNS: 'common',
-  ns: ['common', 'filters', 'pagination', 'navigation', 'cards', 'settings', 'guru'],
+  ns: ['common', 'filters', 'pagination', 'navigation', 'cards', 'settings', 'guru', 'onboarding'],
   interpolation: {
     escapeValue: false,
   },

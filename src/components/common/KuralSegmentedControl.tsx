@@ -29,10 +29,12 @@ export function KuralSegmentedControl<T extends string>({
       style={[
         {
           flexDirection: 'row',
+          flexWrap: 'wrap',
+          width: '100%',
           backgroundColor: theme.colors.surface,
           borderRadius: theme.layout.borderRadius.medium,
           overflow: 'hidden',
-          alignSelf: 'flex-end',
+          alignSelf: 'stretch',
         },
         containerStyle,
       ]}
@@ -44,6 +46,9 @@ export function KuralSegmentedControl<T extends string>({
             key={opt.value}
             onPress={() => onSelect(opt.value)}
             style={{
+              flexGrow: 1,
+              flexBasis: 0,
+              minWidth: 0,
               paddingHorizontal: 12,
               paddingVertical: 8,
               backgroundColor: active ? theme.colors.accent : 'transparent',
@@ -51,9 +56,11 @@ export function KuralSegmentedControl<T extends string>({
           >
             <KuralText
               variant="caption"
+              numberOfLines={2}
               style={{
                 color: active ? theme.colors.textPrimary : theme.colors.textSecondary,
                 fontWeight: active ? '700' : '400',
+                textAlign: 'center',
               }}
             >
               {opt.label}

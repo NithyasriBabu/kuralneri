@@ -25,6 +25,7 @@ import { SourceSerifPro_400Regular } from '@expo-google-fonts/source-serif-pro';
 
 import { setupDatabase } from 'src/data/database';
 import TabNavigator from 'src/views/Navigator';
+import OnboardingView from 'src/views/OnboardingView';
 import { ThemeProvider, useTheme } from 'src/theme/ThemeContextProvider';
 import { SettingsProvider, useSettings } from 'src/context/SettingsContext';
 
@@ -33,9 +34,10 @@ import { APP_COPY } from 'src/app/app.constants';
 import i18n from 'src/content/i18n';
 import { isDevCrashRoute, navigateToHomeRoute } from 'src/dev/devCrash';
 import { getNativeThemeColors } from 'src/theme/nativeTheme.constants';
+import { OnboardingStatus } from 'src/types/settings';
 
 function ThemedApp() {
-  const { settingsReady } = useSettings();
+  const { settings, settingsReady } = useSettings();
   const [fontsLoaded] = useFonts({
     'MuktaMalar-Regular': MuktaMalar_400Regular,
     'MuktaMalar-Bold': MuktaMalar_700Bold,
@@ -49,15 +51,16 @@ function ThemedApp() {
     'SourceSerif-Bold': SourceSerifPro_400Regular,
   });
 
-  return <AppContent fontsLoaded={fontsLoaded} settingsReady={settingsReady} />;
+  return <AppContent fontsLoaded={fontsLoaded} settingsReady={settingsReady} onboardingStatus={settings.onboardingStatus} />;
 }
 
 interface AppContentProps {
   fontsLoaded: boolean;
   settingsReady: boolean;
+  onboardingStatus: OnboardingStatus;
 }
 
-function AppContent({ fontsLoaded, settingsReady }: AppContentProps) {
+function AppContent({ fontsLoaded, settingsReady, onboardingStatus }: AppContentProps) {
   const { theme, componentStyles } = useTheme();
 
   if (isDevCrashRoute('root')) {
@@ -75,6 +78,15 @@ function AppContent({ fontsLoaded, settingsReady }: AppContentProps) {
         <StatusBar style={theme.dark ? 'light' : 'dark'} backgroundColor={theme.colors.background} />
         <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
+    );
+  }
+
+  if (onboardingStatus !== 'completed' && onboardingStatus !== 'skipped') {
+    return (
+      <SafeAreaProvider>
+        <StatusBar style={theme.dark ? 'light' : 'dark'} backgroundColor={theme.colors.background} />
+        <OnboardingView />
+      </SafeAreaProvider>
     );
   }
 
@@ -185,7 +197,7 @@ export default function App() {
   const [appRemountKey, setAppRemountKey] = useState(0);
 
   return (
-      <ErrorBoundary
+    <ErrorBoundary
       onError={(error, errorInfo) => {
         console.error(APP_COPY.rootErrorBoundary, error, errorInfo.componentStack);
       }}

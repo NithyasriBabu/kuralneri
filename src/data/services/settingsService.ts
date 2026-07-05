@@ -13,6 +13,7 @@ import {
   FontSizeScale,
   LangToggle,
   LangToggleKey,
+  OnboardingStatus,
   TranslationLocale,
   TamilFont,
   ThemeMode,
@@ -42,6 +43,8 @@ const DEFAULT_SCALAR_SETTINGS: AppSettingsScalar = {
   fontSizeScale: DEFAULT_SETTINGS.fontSizeScale,
   customBackground: DEFAULT_SETTINGS.customBackground,
   customForeground: DEFAULT_SETTINGS.customForeground,
+  onboardingStatus: DEFAULT_SETTINGS.onboardingStatus,
+  onboardingStep: DEFAULT_SETTINGS.onboardingStep,
 };
 
 async function getSettingsDb(): Promise<SettingsDb> {
@@ -57,6 +60,10 @@ async function withSettingsDb<T>(operation: (targetDb: SettingsDb) => Promise<T>
 
 function isThemeMode(value: string): value is ThemeMode {
   return value === 'light' || value === 'dark' || value === 'system';
+}
+
+function isOnboardingStatus(value: string): value is OnboardingStatus {
+  return value === 'not_started' || value === 'in_progress' || value === 'completed' || value === 'skipped';
 }
 
 function isTamilFont(value: string): value is TamilFont {
@@ -254,6 +261,16 @@ export async function loadSettings(): Promise<LoadSettingsResult> {
         case 'customForeground':
           loaded.customForeground = rawValue;
           break;
+        case 'onboardingStatus':
+          if (isOnboardingStatus(rawValue)) loaded.onboardingStatus = rawValue;
+          else hadInvalidStoredValues = true;
+          break;
+        case 'onboardingStep': {
+          const step = Number(rawValue);
+          if (Number.isFinite(step) && step >= 0) loaded.onboardingStep = step;
+          else hadInvalidStoredValues = true;
+          break;
+        }
       }
     }
 

@@ -227,6 +227,7 @@ export default function SettingsView() {
   const { theme } = useTheme();
   const { settings, settingsLoadWarning, updateSettings, resetSettings } = useSettings();
   const { t: tSettings, pair } = useTranslation('uiChrome', 'settings');
+  const { t: tOnboarding } = useTranslation('uiChrome', 'onboarding');
 
   const [nameInput, setNameInput] = useState(settings.userName);
   const [nameInputTamil, setNameInputTamil] = useState(settings.userNameTamil);
@@ -664,6 +665,44 @@ export default function SettingsView() {
         </View>
 
         {/* ── 4. Reset ────────────────────────────────────────── */}
+        {settings.onboardingStatus === 'completed' || settings.onboardingStatus === 'skipped' ? (
+          <View
+            style={{
+              backgroundColor: theme.colors.surfaceElevated,
+              borderRadius: theme.layout.borderRadius.medium,
+              padding: 16,
+              borderWidth: 1,
+              borderColor: theme.colors.border,
+              marginTop: 10,
+              marginBottom: 16,
+              gap: 10,
+            }}
+          >
+            <KuralText variant="bodyNormal" style={{ color: theme.colors.textPrimary, fontWeight: '700' }}>
+              {settings.onboardingStatus === 'completed'
+                ? tOnboarding('restartTitle')
+                : tOnboarding('resumeTitle')}
+            </KuralText>
+            <KuralText variant="caption" style={{ color: theme.colors.textSecondary }}>
+              {settings.onboardingStatus === 'completed'
+                ? tOnboarding('restartBody')
+                : tOnboarding('resumeBody')}
+            </KuralText>
+            <KuralButton
+              title={settings.onboardingStatus === 'completed' ? tOnboarding('restartAction') : tOnboarding('resumeAction')}
+              variant="secondary"
+              onPress={() =>
+                updateSettings(
+                  settings.onboardingStatus === 'completed'
+                    ? { onboardingStatus: 'in_progress', onboardingStep: 0 }
+                    : { onboardingStatus: 'in_progress' },
+                )
+              }
+              style={{ alignSelf: 'flex-start' }}
+            />
+          </View>
+        ) : null}
+
         <SectionHeader label={tSettings('reset')} />
 
         {confirmReset !== 'none' && (

@@ -4,6 +4,7 @@
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 export type TranslationLocale = 'tamil' | 'english';
+export type OnboardingStatus = 'not_started' | 'in_progress' | 'completed' | 'skipped';
 
 export type TamilFont = 'MuktaMalar' | 'Latha' | 'Catamaran' | 'ArimaMadurai';
 
@@ -46,6 +47,8 @@ export interface AppSettings {
   customBackground: string;
   /** Custom foreground (text) color override — empty string = use theme default */
   customForeground: string;
+  onboardingStatus: OnboardingStatus;
+  onboardingStep: number;
   langToggles: LangToggles;
 }
 
@@ -64,6 +67,8 @@ export const APP_SETTINGS_SCALAR_KEYS = [
   'fontSizeScale',
   'customBackground',
   'customForeground',
+  'onboardingStatus',
+  'onboardingStep',
 ] as const satisfies readonly AppSettingsScalarKey[];
 
 export const APP_SETTINGS_LANG_TOGGLE_KEYS = [
@@ -96,6 +101,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   fontSizeScale: 'medium',
   customBackground: '',
   customForeground: '',
+  onboardingStatus: 'not_started',
+  onboardingStep: 0,
   langToggles: DEFAULT_LANG_TOGGLES,
 };
 
