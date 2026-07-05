@@ -16,6 +16,10 @@ import {
   TranslationLocale,
   TamilFont,
   ThemeMode,
+  ENGLISH_FONT_OPTIONS,
+  FONT_SIZE_SCALE_OPTIONS,
+  TAMIL_FONT_OPTIONS,
+  TRANSLATION_LOCALE_OPTIONS,
 } from 'src/types/settings';
 
 type SettingsDb = SQLite.SQLiteDatabase;
@@ -26,11 +30,6 @@ interface ReadToggleRowResult {
   hadInvalidStoredValues: boolean;
 }
 
-const THEME_MODES: readonly ThemeMode[] = ['light', 'dark', 'system'];
-const TAMIL_FONTS: readonly TamilFont[] = ['MuktaMalar', 'Latha', 'Catamaran', 'ArimaMadurai'];
-const ENGLISH_FONTS: readonly EnglishFont[] = ['Inter', 'Merriweather', 'SourceSerif'];
-const FONT_SIZE_SCALES: readonly FontSizeScale[] = ['small', 'medium', 'large', 'xlarge'];
-const TRANSLATION_LOCALES: readonly TranslationLocale[] = ['tamil', 'english'];
 const DEFAULT_SCALAR_SETTINGS: AppSettingsScalar = {
   userName: DEFAULT_SETTINGS.userName,
   userNameTamil: DEFAULT_SETTINGS.userNameTamil,
@@ -57,23 +56,23 @@ async function withSettingsDb<T>(operation: (targetDb: SettingsDb) => Promise<T>
 }
 
 function isThemeMode(value: string): value is ThemeMode {
-  return THEME_MODES.includes(value as ThemeMode);
+  return value === 'light' || value === 'dark' || value === 'system';
 }
 
 function isTamilFont(value: string): value is TamilFont {
-  return TAMIL_FONTS.includes(value as TamilFont);
+  return TAMIL_FONT_OPTIONS.includes(value as TamilFont);
 }
 
 function isEnglishFont(value: string): value is EnglishFont {
-  return ENGLISH_FONTS.includes(value as EnglishFont);
+  return ENGLISH_FONT_OPTIONS.includes(value as EnglishFont);
 }
 
 function isFontSizeScale(value: string): value is FontSizeScale {
-  return FONT_SIZE_SCALES.includes(value as FontSizeScale);
+  return FONT_SIZE_SCALE_OPTIONS.includes(value as FontSizeScale);
 }
 
 function isTranslationLocale(value: string): value is TranslationLocale {
-  return TRANSLATION_LOCALES.includes(value as TranslationLocale);
+  return TRANSLATION_LOCALE_OPTIONS.includes(value as TranslationLocale);
 }
 
 function coerceBoolean(value: unknown): boolean {

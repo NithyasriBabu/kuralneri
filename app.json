@@ -5,23 +5,25 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/kuralneri_icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/kuralneri_icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#344E41"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "userInterfaceStyle": "automatic"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/kuralneri_icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#344E41"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "userInterfaceStyle": "automatic"
     },
     "web": {
       "favicon": "./assets/kuralneri_icon.png"

@@ -10,6 +10,10 @@ export type TamilFont = 'MuktaMalar' | 'Latha' | 'Catamaran' | 'ArimaMadurai';
 export type EnglishFont = 'Inter' | 'Merriweather' | 'SourceSerif';
 
 export type FontSizeScale = 'small' | 'medium' | 'large' | 'xlarge';
+export const TAMIL_FONT_OPTIONS = ['MuktaMalar', 'Latha', 'Catamaran', 'ArimaMadurai'] as const satisfies readonly TamilFont[];
+export const ENGLISH_FONT_OPTIONS = ['Inter', 'Merriweather', 'SourceSerif'] as const satisfies readonly EnglishFont[];
+export const FONT_SIZE_SCALE_OPTIONS = ['small', 'medium', 'large', 'xlarge'] as const satisfies readonly FontSizeScale[];
+export const TRANSLATION_LOCALE_OPTIONS = ['tamil', 'english'] as const satisfies readonly TranslationLocale[];
 
 /** Per-section language visibility — at least one must be true */
 export interface LangToggle {

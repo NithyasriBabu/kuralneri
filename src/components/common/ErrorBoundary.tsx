@@ -1,6 +1,15 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View, type ViewStyle, type TextStyle } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useColorScheme,
+  type ViewStyle,
+  type TextStyle,
+} from 'react-native';
 import type { ErrorInfo } from 'react';
+import { NATIVE_THEME_COLORS } from 'src/theme/nativeTheme.constants';
 
 export interface ErrorBoundaryFallbackProps {
   error: Error;
@@ -47,6 +56,10 @@ export function ErrorFallback({
   secondaryActionLabel,
   onSecondaryAction,
 }: ErrorFallbackProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const styles = React.useMemo(() => createStyles(isDark), [isDark]);
+
   return (
     <View style={styles.shell}>
       <View style={styles.card}>
@@ -130,80 +143,84 @@ const DEFAULT_FALLBACK: Omit<ErrorFallbackProps, keyof ErrorBoundaryFallbackProp
   primaryActionLabel: 'Try again',
 };
 
-const styles = StyleSheet.create({
-  shell: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F7F3EB',
-    padding: 24,
-  },
-  card: {
-    width: '100%',
-    maxWidth: 520,
-    borderRadius: 16,
-    backgroundColor: '#FFFDF8',
-    borderWidth: 1,
-    borderColor: '#D1C4AF',
-    padding: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 2,
-  } as ViewStyle,
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1F2D26',
-    marginBottom: 8,
-  } as TextStyle,
-  message: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: '#536559',
-    marginBottom: 10,
-  } as TextStyle,
-  detail: {
-    fontSize: 13,
-    lineHeight: 18,
-    color: '#2F4A3D',
-    marginBottom: 16,
-  } as TextStyle,
-  actions: {
-    flexDirection: 'row',
-    gap: 12,
-    flexWrap: 'wrap',
-  },
-  primaryButton: {
-    minHeight: 44,
-    paddingHorizontal: 16,
-    borderRadius: 999,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#2F4A3D',
-  },
-  primaryButtonText: {
-    color: '#F7F3EB',
-    fontSize: 14,
-    fontWeight: '700',
-  } as TextStyle,
-  secondaryButton: {
-    minHeight: 44,
-    paddingHorizontal: 16,
-    borderRadius: 999,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#8EA47C',
-  },
-  secondaryButtonText: {
-    color: '#2F4A3D',
-    fontSize: 14,
-    fontWeight: '700',
-  } as TextStyle,
-  pressed: {
-    opacity: 0.85,
-  },
-});
+function createStyles(isDark: boolean) {
+  const palette = isDark ? NATIVE_THEME_COLORS.dark : NATIVE_THEME_COLORS.light;
+
+  return StyleSheet.create({
+    shell: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: palette.background,
+      padding: 24,
+    },
+    card: {
+      width: '100%',
+      maxWidth: 520,
+      borderRadius: 16,
+      backgroundColor: palette.surface,
+      borderWidth: 1,
+      borderColor: palette.border,
+      padding: 20,
+      shadowColor: '#000',
+      shadowOpacity: isDark ? 0.22 : 0.08,
+      shadowRadius: 16,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 2,
+    } as ViewStyle,
+    title: {
+      fontSize: 20,
+      fontWeight: '700',
+      color: palette.title,
+      marginBottom: 8,
+    } as TextStyle,
+    message: {
+      fontSize: 15,
+      lineHeight: 22,
+      color: palette.body,
+      marginBottom: 10,
+    } as TextStyle,
+    detail: {
+      fontSize: 13,
+      lineHeight: 18,
+      color: isDark ? palette.secondary : palette.primarySoft,
+      marginBottom: 16,
+    } as TextStyle,
+    actions: {
+      flexDirection: 'row',
+      gap: 12,
+      flexWrap: 'wrap',
+    },
+    primaryButton: {
+      minHeight: 44,
+      paddingHorizontal: 16,
+      borderRadius: 999,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: palette.primary,
+    },
+    primaryButtonText: {
+      color: palette.primaryInverse,
+      fontSize: 14,
+      fontWeight: '700',
+    } as TextStyle,
+    secondaryButton: {
+      minHeight: 44,
+      paddingHorizontal: 16,
+      borderRadius: 999,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'transparent',
+      borderWidth: 1,
+      borderColor: palette.borderAccent,
+    },
+    secondaryButtonText: {
+      color: isDark ? palette.title : palette.primary,
+      fontSize: 14,
+      fontWeight: '700',
+    } as TextStyle,
+    pressed: {
+      opacity: 0.85,
+    },
+  });
+}
