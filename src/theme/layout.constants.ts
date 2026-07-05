@@ -1,0 +1,1 @@
+export const COMPACT_NAV_BREAKPOINT = 600;

@@ -3,6 +3,7 @@ import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 
 import { useTheme } from 'src/theme/ThemeContextProvider';
+import { COMPACT_NAV_BREAKPOINT } from 'src/theme/layout.constants';
 import { KuralText } from './KuralText';
 import { useTranslation } from 'src/content/translation';
 import { KuralIconButton } from 'src/components/common/KuralIconButton';
@@ -36,6 +37,7 @@ export function KuralPaginationBar({
 }: KuralPaginationBarProps) {
   const { theme, componentStyles } = useTheme();
   const screenWidth = theme.layout.screenWidth;
+  const isCompactPagination = screenWidth < COMPACT_NAV_BREAKPOINT;
   const { t, pair, formatPageStatus, formatRangeStatus } = useTranslation('uiChrome', 'pagination');
   const visiblePageNumbers = useMemo(() => {
     const pages: number[] = [];
@@ -65,6 +67,7 @@ export function KuralPaginationBar({
           onPress={() => onPageJump(page - 1)}
           disabled={page === 1 || loading}
           size="sm"
+          showLabel={!isCompactPagination}
         />
 
         <ScrollView
@@ -102,25 +105,46 @@ export function KuralPaginationBar({
           onPress={() => onPageJump(page + 1)}
           disabled={!hasMore || loading}
           size="sm"
+          showLabel={!isCompactPagination}
         />
       </View>
 
-      <View style={componentStyles.kuralListMetaRow}>
-        <View style={componentStyles.kuralListMetaColumnLeft}>
-          {showRange && (
+      <View
+        style={[
+          componentStyles.kuralListMetaRow,
+          isCompactPagination && { flexDirection: 'column', gap: 8, alignItems: 'stretch' },
+        ]}
+      >
+        {showRange && !isCompactPagination ? (
+          <View style={componentStyles.kuralListMetaColumnLeft}>
             <KuralText style={componentStyles.kuralListMetaText}>
               {formatRangeStatus(rangeStart, rangeEnd)}
             </KuralText>
-          )}
-        </View>
-        <View style={componentStyles.kuralListMetaColumnCenter}>
+          </View>
+        ) : null}
+        <View
+          style={[
+            componentStyles.kuralListMetaColumnCenter,
+            isCompactPagination && { alignItems: 'center' },
+          ]}
+        >
           <KuralText style={componentStyles.kuralListMetaText}>
             {formatPageStatus(page, totalPages)}
           </KuralText>
         </View>
-        <View style={componentStyles.kuralListMetaColumnRight}>
+        <View
+          style={[
+            componentStyles.kuralListMetaColumnRight,
+            isCompactPagination && { alignItems: 'center' },
+          ]}
+        >
           {limitOptions.length > 0 && (
-            <View style={componentStyles.kuralListBadgeCluster}>
+            <View
+              style={[
+                componentStyles.kuralListBadgeCluster,
+                isCompactPagination && { justifyContent: 'center', flexWrap: 'wrap' },
+              ]}
+            >
               <KuralText style={componentStyles.kuralListLimitTitleText}>
                 {t(screenWidth > 520 ? 'kuralsPerPage' : 'perPage')}
               </KuralText>

@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Platform } from 'react-native';
 
 import { useSettings } from 'src/context/SettingsContext';
 import { useTranslation } from 'src/content/translation';
 import { useTheme } from 'src/theme/ThemeContextProvider';
+import { COMPACT_NAV_BREAKPOINT } from 'src/theme/layout.constants';
 import { TabType } from 'src/types/types';
 import {
   DEFAULT_WEB_TAB,
@@ -22,6 +23,16 @@ const TABS = [
   { id: TabType.Settings, titleKey: 'settingsTitle', icon: '⚙' },
 ] as const;
 
+interface NavigatorTabViewModel {
+  id: TabType;
+  icon: string;
+  label: string;
+  tooltip: string;
+  accessibilityLabel: string;
+  isActive: boolean;
+  isTamilLabel: boolean;
+}
+
 function getInitialRoute(): RouteState {
   if (Platform.OS === 'web' && typeof window !== 'undefined') {
     return parseWebRoute(window.location.hash);
@@ -38,6 +49,7 @@ export function useNavigatorController() {
 
   const activeTab = routeState.kind === 'kural' ? TabType.Explore : routeState.tabId;
   const isWidescreen = theme.layout.isWideScreen;
+  const isCompactNavigation = theme.layout.screenWidth < COMPACT_NAV_BREAKPOINT;
   const navLabelToggle = settings.langToggles.navLabels;
 
   useEffect(() => {
@@ -79,22 +91,30 @@ export function useNavigatorController() {
     handleTabPress(TabType.Explore);
   }, [handleTabPress]);
 
-  const navTabs = TABS.map((tab) => {
-    const label = navLabelToggle.tamil || navLabelToggle.english ? t(tab.titleKey) : null;
-    return {
-      id: tab.id,
-      icon: tab.icon,
-      label,
-      isActive: activeTab === tab.id,
-      isTamilLabel: navLabelToggle.tamil && !navLabelToggle.english,
-    };
-  });
+  const navTabs = useMemo<NavigatorTabViewModel[]>(
+    () =>
+      TABS.map((tab) => {
+        const label = t(tab.titleKey);
+        const showLabel = !isCompactNavigation && (navLabelToggle.tamil || navLabelToggle.english);
+        return {
+          id: tab.id,
+          icon: tab.icon,
+          label: showLabel ? label : '',
+          tooltip: label,
+          accessibilityLabel: label,
+          isActive: activeTab === tab.id,
+          isTamilLabel: navLabelToggle.tamil && !navLabelToggle.english,
+        };
+      }),
+    [activeTab, isCompactNavigation, navLabelToggle.english, navLabelToggle.tamil, t],
+  );
 
   return {
     activeTab,
     handleDetailBack,
     handleKuralPress,
     handleTabPress,
+    isCompactNavigation,
     isWidescreen,
     screenWidth: theme.layout.screenWidth,
     navTabs,

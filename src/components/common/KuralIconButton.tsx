@@ -22,6 +22,7 @@ interface KuralIconButtonProps {
   disabled?: boolean;
   loading?: boolean;
   size?: 'sm' | 'md';
+  showLabel?: boolean;
   style?: ViewStyle;
   labelStyle?: TextStyle;
 }
@@ -35,6 +36,7 @@ export function KuralIconButton({
   disabled = false,
   loading = false,
   size = 'md',
+  showLabel = true,
   style,
   labelStyle,
 }: KuralIconButtonProps) {
@@ -117,24 +119,26 @@ export function KuralIconButton({
                   )
                 : icon}
             </View>
-            <KuralText
-              variant="caption"
-              numberOfLines={1}
-              style={[
-                styles.label,
-                {
-                  color:
-                    variant === 'primary'
-                      ? colors.background
-                      : disabled
-                        ? colors.disabledText
-                        : colors.primary,
-                },
-                labelStyle,
-              ]}
-            >
-              {label}
-            </KuralText>
+            {showLabel ? (
+              <KuralText
+                variant="caption"
+                numberOfLines={1}
+                style={[
+                  styles.label,
+                  {
+                    color:
+                      variant === 'primary'
+                        ? colors.background
+                        : disabled
+                          ? colors.disabledText
+                          : colors.primary,
+                  },
+                  labelStyle,
+                ]}
+              >
+                {label}
+              </KuralText>
+            ) : null}
           </View>
         )}
       </Pressable>
