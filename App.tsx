@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
   useFonts,
@@ -19,24 +19,13 @@ import TabNavigator from 'src/views/Navigator';
 import { ThemeProvider, useTheme } from 'src/theme/ThemeContextProvider';
 import { SettingsProvider, useSettings } from 'src/context/SettingsContext';
 
-import { KuralText } from 'src/components/common/KuralText';
 import { ErrorBoundary, ErrorFallback } from 'src/components/common/ErrorBoundary';
-import { useTranslation } from 'src/content/translation';
+import i18n from 'src/content/i18n';
 import { isDevCrashRoute, navigateToHomeRoute } from 'src/dev/devCrash';
 
-// --------------------------------------------------------------------------
-// BOOT: waits for database, fonts, and settings before rendering the app
-// --------------------------------------------------------------------------
 function ThemedApp() {
   const { settingsReady } = useSettings();
-  const { t } = useTranslation('uiChrome', 'common');
-  const bootMessage = t('bootingEngine');
-  const databaseErrorMessage = t('couldNotLoadDatabaseLayers');
-  const [dbReady, setDbReady] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [logMessage, setLogMessage] = useState(bootMessage);
-
-  let [fontsLoaded] = useFonts({
+  const [fontsLoaded] = useFonts({
     'MuktaMalar-Regular': MuktaMalar_400Regular,
     'MuktaMalar-Bold': MuktaMalar_700Bold,
     'Catamaran-Regular': Catamaran_400Regular,
@@ -49,74 +38,22 @@ function ThemedApp() {
     'SourceSerif-Bold': SourceSerifPro_400Regular,
   });
 
-  useEffect(() => {
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
-
-    async function initApp() {
-      try {
-        await setupDatabase((msg) => {
-          setLogMessage(msg);
-          console.log(`[DB SYSTEM]: ${msg}`);
-        });
-        timeoutId = setTimeout(() => setDbReady(true), 600);
-      } catch {
-        setError(databaseErrorMessage);
-      }
-    }
-
-    initApp();
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, []);
-
-  return (
-    <ThemeProvider>
-      <AppContent
-        dbReady={dbReady}
-        fontsLoaded={fontsLoaded}
-        settingsReady={settingsReady}
-        error={error}
-        logMessage={logMessage}
-      />
-    </ThemeProvider>
-  );
+  return <AppContent fontsLoaded={fontsLoaded} settingsReady={settingsReady} />;
 }
 
-// --------------------------------------------------------------------------
-// INNER ROOT: renders loader / error / app
-// --------------------------------------------------------------------------
 interface AppContentProps {
-  dbReady: boolean;
   fontsLoaded: boolean;
   settingsReady: boolean;
-  error: string | null;
-  logMessage: string;
 }
 
-function AppContent({ dbReady, fontsLoaded, settingsReady, error, logMessage }: AppContentProps) {
+function AppContent({ fontsLoaded, settingsReady }: AppContentProps) {
   const { theme, componentStyles } = useTheme();
 
   if (isDevCrashRoute('root')) {
     throw new Error('Synthetic root crash for error boundary verification.');
   }
 
-  if (error) {
-    return (
-      <View
-        style={[
-          componentStyles.kuralOfTheDayCentered,
-          { backgroundColor: theme.colors.background },
-        ]}
-      >
-        <KuralText variant="bodyLarge" style={componentStyles.kuralOfTheDayErrorText}>
-          {error}
-        </KuralText>
-      </View>
-    );
-  }
-
-  if (!dbReady || !fontsLoaded || !settingsReady) {
+  if (!fontsLoaded || !settingsReady) {
     return (
       <View
         style={[
@@ -125,11 +62,6 @@ function AppContent({ dbReady, fontsLoaded, settingsReady, error, logMessage }: 
         ]}
       >
         <ActivityIndicator size="large" color={theme.colors.primary} />
-        {fontsLoaded && (
-          <KuralText variant="bodyNormal" style={styles.loadingText}>
-            {logMessage}
-          </KuralText>
-        )}
       </View>
     );
   }
@@ -141,9 +73,87 @@ function AppContent({ dbReady, fontsLoaded, settingsReady, error, logMessage }: 
   );
 }
 
-// --------------------------------------------------------------------------
-// APEX: SettingsProvider first so ThemedApp can read settings
-// --------------------------------------------------------------------------
+function DatabaseBootstrapGate({ children }: { children: React.ReactNode }) {
+  const loadingMessage = i18n.t('common:bootingEngine');
+  const databaseErrorMessage = i18n.t('common:couldNotLoadDatabaseLayers');
+  const retryLabel = i18n.t('common:retry');
+  const [bootKey, setBootKey] = useState(0);
+  const [bootStatus, setBootStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [logMessage, setLogMessage] = useState(loadingMessage);
+  const [bootError, setBootError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const initApp = async () => {
+      setBootStatus('loading');
+      setBootError(null);
+      setLogMessage(loadingMessage);
+
+      try {
+        const result = await setupDatabase((message) => {
+          if (cancelled) return;
+          setLogMessage(message);
+          console.log(`[DB SYSTEM]: ${message}`);
+        });
+
+        if (!cancelled) {
+          setBootStatus('ready');
+          console.log('[DB SYSTEM]:', result);
+        }
+      } catch (error) {
+        if (cancelled) return;
+        setBootStatus('error');
+        setBootError(error instanceof Error ? error : new Error(databaseErrorMessage));
+      }
+    };
+
+    void initApp();
+    return () => {
+      cancelled = true;
+    };
+  }, [bootKey, databaseErrorMessage, loadingMessage]);
+
+  if (bootStatus === 'error' && bootError) {
+    return (
+      <View style={styles.bootstrapShell}>
+        <View style={styles.bootstrapCard}>
+          <Text style={styles.bootstrapTitle}>{databaseErrorMessage}</Text>
+          <Text style={styles.bootstrapBody}>{bootError.message}</Text>
+          <Text style={styles.bootstrapLog}>{logMessage}</Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setBootKey((value) => value + 1)}
+            style={({ pressed }) => [
+              styles.bootstrapButton,
+              pressed && styles.bootstrapButtonPressed,
+            ]}
+          >
+            <Text style={styles.bootstrapButtonText}>{retryLabel}</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
+
+  if (bootStatus !== 'ready') {
+    return (
+      <View style={styles.bootstrapShell}>
+        <View style={styles.bootstrapCard}>
+          <ActivityIndicator size="large" color="#344E41" />
+          <Text style={styles.bootstrapLog}>{logMessage}</Text>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <SettingsProvider key={bootKey}>
+      <ThemeProvider>{children}</ThemeProvider>
+    </SettingsProvider>
+  );
+}
+
 export default function App() {
   const [appRemountKey, setAppRemountKey] = useState(0);
 
@@ -168,17 +178,53 @@ export default function App() {
         />
       )}
     >
-      <SettingsProvider key={appRemountKey}>
+      <DatabaseBootstrapGate key={appRemountKey}>
         <ThemedApp />
-      </SettingsProvider>
+      </DatabaseBootstrapGate>
     </ErrorBoundary>
   );
 }
 
 const styles = StyleSheet.create({
-  loadingText: {
-    marginTop: 12,
-    fontWeight: '500',
-    opacity: 0.8,
+  bootstrapShell: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+    backgroundColor: '#FAF9F6',
+  },
+  bootstrapCard: {
+    width: '100%',
+    maxWidth: 560,
+    borderRadius: 20,
+    padding: 24,
+    backgroundColor: '#DAD7CD',
+    borderWidth: 1,
+    borderColor: '#A3B18A',
+    gap: 12,
+  },
+  bootstrapTitle: {
+    color: '#344E41',
+  },
+  bootstrapBody: {
+    color: '#2A3F34',
+  },
+  bootstrapLog: {
+    color: '#3A5A40',
+  },
+  bootstrapButton: {
+    alignSelf: 'flex-start',
+    minHeight: 44,
+    paddingHorizontal: 18,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#344E41',
+  },
+  bootstrapButtonPressed: {
+    opacity: 0.9,
+  },
+  bootstrapButtonText: {
+    color: '#FAF9F6',
   },
 });

@@ -18,19 +18,6 @@ import {
   ThemeMode,
 } from 'src/types/settings';
 
-const SETTINGS_SCHEMA_SQL = `
-  CREATE TABLE IF NOT EXISTS app_settings (
-    key TEXT PRIMARY KEY,
-    value TEXT NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS app_settings_lang_toggles (
-    key TEXT PRIMARY KEY,
-    tamil INTEGER NOT NULL CHECK (tamil IN (0, 1)),
-    english INTEGER NOT NULL CHECK (english IN (0, 1))
-  );
-`;
-
 type SettingsDb = SQLite.SQLiteDatabase;
 type ScalarRow = { value: string };
 type ToggleRow = { tamil: number; english: number };
@@ -59,15 +46,7 @@ const DEFAULT_SCALAR_SETTINGS: AppSettingsScalar = {
 };
 
 async function getSettingsDb(): Promise<SettingsDb> {
-  if (Platform.OS === 'web') {
-    const targetDb = await db;
-    await targetDb.execAsync(SETTINGS_SCHEMA_SQL);
-    return targetDb;
-  }
-
-  const targetDb = db as SettingsDb;
-  targetDb.execSync(SETTINGS_SCHEMA_SQL);
-  return targetDb;
+  return (await db) as SettingsDb;
 }
 
 async function withSettingsDb<T>(operation: (targetDb: SettingsDb) => Promise<T> | T): Promise<T> {
@@ -327,16 +306,13 @@ export async function resetAllSettings(): Promise<void> {
 export async function clearAllBookmarks(): Promise<void> {
   return runWebDbTask(async () => {
     const sql = 'UPDATE kurals set is_bookmarked = 0;';
-    try {
-      if (Platform.OS === 'web') {
-        const targetDb = await db;
-        await targetDb.runAsync(sql);
-      } else {
-        const targetDb = db as SQLite.SQLiteDatabase;
-        targetDb.runSync(sql);
-      }
-    } catch (e) {
-      console.error('clearAllBookmarks failed:', e);
+    if (Platform.OS === 'web') {
+      const targetDb = await db;
+      await targetDb.runAsync(sql);
+      return;
     }
+
+    const targetDb = db as SQLite.SQLiteDatabase;
+    targetDb.runSync(sql);
   });
 }

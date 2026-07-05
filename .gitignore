@@ -39,3 +39,13 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# generated audio exports
+/audio
+/audio copy
+/tiruvalluva_1807_librivox
+/kural_split_preview
+/scripts
+
+# codex plans
+/docs
