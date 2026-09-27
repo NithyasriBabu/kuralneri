@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 
 import { useSettings } from 'src/context/SettingsContext';
 import { useTranslation } from 'src/content/translation';
+import { isGuruEnabled } from 'src/config/featureFlags';
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { COMPACT_NAV_BREAKPOINT } from 'src/theme/layout.constants';
 import { TabType } from 'src/types/types';
@@ -22,6 +23,18 @@ const TABS = [
   { id: TabType.Guru, titleKey: 'guruTitle', icon: '🤖' },
   { id: TabType.Settings, titleKey: 'settingsTitle', icon: '⚙' },
 ] as const;
+
+function isTabAvailable(tabId: TabType): boolean {
+  return tabId !== TabType.Guru || isGuruEnabled();
+}
+
+function sanitizeRouteState(routeState: RouteState): RouteState {
+  if (routeState.kind === 'tab' && !isTabAvailable(routeState.tabId)) {
+    return { kind: 'tab', tabId: DEFAULT_WEB_TAB };
+  }
+
+  return routeState;
+}
 
 interface NavigatorTabViewModel {
   id: TabType;
@@ -45,7 +58,9 @@ export function useNavigatorController() {
   const { theme } = useTheme();
   const { settings } = useSettings();
   const { t } = useTranslation('uiChrome', 'navigation');
-  const [routeState, setRouteState] = useState<RouteState>(getInitialRoute);
+  const [routeState, setRouteState] = useState<RouteState>(() =>
+    sanitizeRouteState(getInitialRoute()),
+  );
 
   const activeTab = routeState.kind === 'kural' ? TabType.Explore : routeState.tabId;
   const isWidescreen = theme.layout.isWideScreen;
@@ -56,15 +71,16 @@ export function useNavigatorController() {
     if (Platform.OS !== 'web') return;
 
     const syncRoute = () => {
-      const nextRoute = parseWebRoute(window.location.hash);
+      const rawRoute = parseWebRoute(window.location.hash);
+      const nextRoute = sanitizeRouteState(rawRoute);
       setRouteState(nextRoute);
 
-      if (!window.location.hash || !isSupportedWebRouteHash(window.location.hash)) {
-        window.history.replaceState(
-          null,
-          '',
-          formatWebRoute({ kind: 'tab', tabId: DEFAULT_WEB_TAB }),
-        );
+      const wasSanitized =
+        rawRoute.kind !== nextRoute.kind ||
+        (rawRoute.kind === 'tab' && nextRoute.kind === 'tab' && rawRoute.tabId !== nextRoute.tabId);
+
+      if (!window.location.hash || !isSupportedWebRouteHash(window.location.hash) || wasSanitized) {
+        window.history.replaceState(null, '', formatWebRoute(nextRoute));
       }
     };
 
@@ -74,6 +90,14 @@ export function useNavigatorController() {
   }, []);
 
   const handleTabPress = useCallback((tabId: TabType) => {
+    if (!isTabAvailable(tabId)) {
+      setRouteState({ kind: 'tab', tabId: DEFAULT_WEB_TAB });
+      if (Platform.OS === 'web') {
+        window.location.hash = formatWebRoute({ kind: 'tab', tabId: DEFAULT_WEB_TAB });
+      }
+      return;
+    }
+
     setRouteState({ kind: 'tab', tabId });
     if (Platform.OS === 'web') {
       window.location.hash = formatWebRoute({ kind: 'tab', tabId });
@@ -93,7 +117,7 @@ export function useNavigatorController() {
 
   const navTabs = useMemo<NavigatorTabViewModel[]>(
     () =>
-      TABS.map((tab) => {
+      TABS.filter((tab) => isTabAvailable(tab.id)).map((tab) => {
         const label = t(tab.titleKey);
         const showLabel = !isCompactNavigation && (navLabelToggle.tamil || navLabelToggle.english);
         return {

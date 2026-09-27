@@ -11,7 +11,7 @@ export default defineConfig([
   },
   js.configs.recommended,
   {
-    files: ['App.tsx', 'index.ts', 'src/**/*.{ts,tsx}'],
+    files: ['App.tsx', 'index.ts', 'app.config.ts', 'src/**/*.{ts,tsx}'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {

@@ -10,6 +10,7 @@ import { ErrorBoundary, ErrorFallback } from 'src/components/common/ErrorBoundar
 import { useTranslation } from 'src/content/translation';
 import { isDevCrashRoute, navigateToHomeRoute } from 'src/dev/devCrash';
 import { useNavigatorController } from 'src/hooks/useNavigatorController';
+import { isGuruEnabled } from 'src/config/featureFlags';
 
 import KuralListView from 'src/views/KuralListView';
 import BookmarksView from 'src/views/BookmarksView';
@@ -67,7 +68,7 @@ export default function TabNavigator() {
           />
         );
       case TabType.Guru:
-        return <GuruView {...kuralNavigationProps} />;
+        return isGuruEnabled() ? <GuruView {...kuralNavigationProps} /> : <KuralOfTheDayView />;
       case TabType.Settings:
         return <SettingsView />;
       default:

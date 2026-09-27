@@ -95,6 +95,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   }, [
     baseTheme,
     isWideScreen,
+    width,
     resolvedThemeMode,
     fontSizeScale,
     tamilFont,

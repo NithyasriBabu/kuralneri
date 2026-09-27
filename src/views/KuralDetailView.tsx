@@ -54,7 +54,7 @@ export default function KuralDetailView({ kuralId, onBack }: KuralDetailViewProp
     return () => {
       isMounted = false;
     };
-  }, [kuralId]);
+  }, [kuralId, tCards]);
 
   const handleBookmarkToggle = async (nextBookmarked: boolean) => {
     if (!kural) return;

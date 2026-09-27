@@ -10,6 +10,8 @@ import { useTheme } from 'src/theme/ThemeContextProvider';
 import { KuralPaginationBar } from 'src/components/common/KuralPaginationBar';
 import { KuralRecord } from 'src/types/types';
 
+const DEFAULT_LIMIT_OPTIONS = [10, 20, 30, 50, 100];
+
 interface KuralListViewProps {
   onKuralPress?: (kuralId: number) => void;
 }
@@ -54,7 +56,6 @@ const KuralListCard = React.memo(function KuralListCard({
 
 export default function KuralListView({ onKuralPress }: KuralListViewProps) {
   const [kuralsPerPage, setKuralsPerPage] = useState<number>(10);
-  const DEFAULT_LIMIT_OPTIONS = [10, 20, 30, 50, 100];
   const [limitOptions, setLimitOptions] = useState<number[]>(DEFAULT_LIMIT_OPTIONS);
 
   const { theme, componentStyles } = useTheme();

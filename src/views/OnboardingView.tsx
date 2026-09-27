@@ -1,3 +1,5 @@
+import { isGuruEnabled } from 'src/config/featureFlags';
+
 import React, { useMemo } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -119,11 +121,13 @@ export default function OnboardingView() {
     <OnboardingTourPage
       key="tour"
       title={tOnboarding('tourTitle')}
-      body={tOnboarding('tourBody')}
+      body={tOnboarding(isGuruEnabled() ? 'tourBody' : 'readerTourBody')}
       cards={[
         { title: tNavigation('exploreTitle'), body: tOnboarding('exploreCardBody') },
         { title: tNavigation('bookmarksTitle'), body: tOnboarding('bookmarksCardBody') },
-        { title: tNavigation('guruTitle'), body: tOnboarding('guruCardBody') },
+        ...(isGuruEnabled()
+          ? [{ title: tNavigation('guruTitle'), body: tOnboarding('guruCardBody') }]
+          : []),
         { title: tNavigation('settingsTitle'), body: tOnboarding('settingsCardBody') },
       ]}
     />,

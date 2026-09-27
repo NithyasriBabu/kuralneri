@@ -183,7 +183,7 @@ export function usePaginatedKuralFeed(userLimit: number = 30, isBookmarkedOnly: 
         setSelectedAdhigaram(0);
       }
     },
-    [adhigaramOptions, selectedPaal, selectedAdhigaram],
+    [adhigaramOptions, selectedAdhigaram],
   );
 
   const selectAdhigaram = useCallback((value: unknown) => {
