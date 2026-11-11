@@ -1,5 +1,6 @@
 {
   "common": {
+    "bookmarkSaveFailed": "Could not update your bookmark. Please try again.",
     "backToExplore": "Back to Explore",
     "addBookmark": "Add bookmark",
     "removeBookmark": "Remove bookmark",
@@ -58,6 +59,8 @@
     "featurePlaceholderBody": "This feature is still being shaped."
   },
   "cards": {
+    "noteSaveFailed": "Could not save your note. Your draft is still here. Please try again.",
+    "noteDeleteFailed": "Could not delete your note. Please try again.",
     "translation": "Translation",
     "explanation": "Explanation",
     "commentary": "Commentary",

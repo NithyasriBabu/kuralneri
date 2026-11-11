@@ -128,6 +128,7 @@ async function executeRun(querySQL: string, args: SQLite.SQLiteBindParams = []):
       targetDb.runSync(querySQL, args);
     } catch (error) {
       console.error(`❌ DB Write Failed for Query: "${querySQL.substring(0, 50)}..."`, error);
+      throw error;
     }
   });
 }

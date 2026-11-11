@@ -1,0 +1,69 @@
+import { Platform } from 'react-native';
+import { deleteUserNote, saveUserNote, setKuralBookmarkStatus } from '../kuralService';
+
+const mockWrite = jest.fn();
+const mockRead = jest.fn();
+jest.mock('src/data/database', () => ({
+  db: {
+    getAllSync: (...args: unknown[]) => mockRead(...args),
+    getAllAsync: async (...args: unknown[]) => mockRead(...args),
+    runSync: (...args: unknown[]) => mockWrite(...args),
+    runAsync: async (...args: unknown[]) => mockWrite(...args),
+  },
+}));
+
+const failure = new Error('Storage unavailable');
+const existing = {
+  id: 9,
+  author_id: 1,
+  author_name: 'Reader',
+  author_name_tamil: 'வாசகர்',
+  author_code: 'self',
+  note_text: 'Original',
+  created_at: '2026-09-27T00:00:00Z',
+};
+let logSpy: jest.SpyInstance;
+beforeEach(() => {
+  mockWrite.mockReset().mockReturnValue({ changes: 1, lastInsertRowId: 9 });
+  mockRead
+    .mockReset()
+    .mockImplementation((sql: string) => (sql.includes('FROM authors') ? [{ id: 1 }] : [existing]));
+  logSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+});
+afterEach(() => logSpy.mockRestore());
+
+describe.each(['ios', 'android', 'web'])('%s write failures', (platform) => {
+  beforeEach(() => Object.defineProperty(Platform, 'OS', { configurable: true, value: platform }));
+  it('rejects a failed bookmark write and permits a subsequent retry', async () => {
+    mockWrite.mockImplementationOnce(() => {
+      throw failure;
+    });
+    await expect(setKuralBookmarkStatus(423, true)).rejects.toBe(failure);
+    await expect(setKuralBookmarkStatus(423, true)).resolves.toBe(true);
+    expect(mockWrite).toHaveBeenLastCalledWith(expect.stringContaining('UPDATE kurals'), [1, 423]);
+  });
+  it('rejects a failed note update without returning an apparently saved note', async () => {
+    mockWrite.mockImplementationOnce(() => {
+      throw failure;
+    });
+    await expect(saveUserNote(423, 'Edited draft')).rejects.toBe(failure);
+    await expect(saveUserNote(423, 'Edited draft')).resolves.toMatchObject({
+      note_text: 'Edited draft',
+    });
+  });
+  it('rejects a failed new-note insert and permits a retry', async () => {
+    mockRead.mockImplementation((sql: string) => (sql.includes('FROM authors') ? [{ id: 1 }] : []));
+    mockWrite.mockImplementationOnce(() => {
+      throw failure;
+    });
+    await expect(saveUserNote(423, 'New draft')).rejects.toBe(failure);
+    await expect(saveUserNote(423, 'New draft')).resolves.toMatchObject({ note_text: 'New draft' });
+  });
+  it('rejects a failed deletion and permits a retry', async () => {
+    mockWrite.mockImplementationOnce(() => {
+      throw failure;
+    });
+    await expect(deleteUserNote(423)).rejects.toBe(failure);
+    await expect(deleteUserNote(423)).resolves.toBeUndefined();
+  });
+});

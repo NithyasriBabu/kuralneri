@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { Eraser, Pencil, Save, Trash2 } from 'lucide-react-native';
 
@@ -41,7 +41,8 @@ export default React.memo(function KuralUserNotes({ kuralId, notes }: KuralUserN
 
   const [draft, setDraft] = useState('');
   const [saving, setSaving] = useState(false);
-  const [statusText, setStatusText] = useState<string | null>(null);
+  const [statusKey, setStatusKey] = useState<string | null>(null);
+  const pending = useRef(false);
   const [userNotes, setUserNotes] = useState<AuthorNote[]>(initialUserNotes);
 
   useEffect(() => {
@@ -73,13 +74,16 @@ export default React.memo(function KuralUserNotes({ kuralId, notes }: KuralUserN
     setDraft(currentNote?.note_text ?? '');
   }, [currentNote?.note_text, currentNote?.note_date]);
 
-  const persist = async () => {
+  const persist = async (): Promise<void> => {
+    if (pending.current) return;
+    pending.current = true;
     setSaving(true);
+    setStatusKey(null);
     try {
       const saved = await saveUserNote(kuralId, draft);
       if (!saved) return;
 
-      setStatusText(t('notesSavedToday'));
+      setStatusKey('notesSavedToday');
       setUserNotes((current) => {
         const withoutToday = current.filter((note) => note.note_date !== saved.note_date);
         return [saved, ...withoutToday].sort((a, b) => {
@@ -88,46 +92,58 @@ export default React.memo(function KuralUserNotes({ kuralId, notes }: KuralUserN
           return left < right ? 1 : left > right ? -1 : 0;
         });
       });
+    } catch {
+      setStatusKey('noteSaveFailed');
     } finally {
+      pending.current = false;
       setSaving(false);
     }
   };
 
-  const removeTodayNote = async () => {
+  const removeTodayNote = async (): Promise<void> => {
+    if (pending.current) return;
+    pending.current = true;
     setSaving(true);
+    setStatusKey(null);
     try {
       await deleteUserNote(kuralId);
       setDraft('');
-      setStatusText(null);
+      setStatusKey(null);
       setUserNotes((current) => current.filter((note) => note.note_date !== today));
+    } catch {
+      setStatusKey('noteDeleteFailed');
     } finally {
+      pending.current = false;
       setSaving(false);
     }
   };
 
   const handleClear = () => {
     setDraft('');
-    setStatusText(null);
+    setStatusKey(null);
   };
 
   return (
     <View style={componentStyles.userNotesSection}>
       <View style={componentStyles.userNotesTitleRow}>
         <KuralText style={componentStyles.userNotesTitle}>{t('myNotes')}</KuralText>
-        {statusText ? (
-          <KuralText style={componentStyles.userNotesHistoryDate}>{statusText}</KuralText>
+        {statusKey ? (
+          <KuralText style={componentStyles.userNotesHistoryDate} accessibilityLiveRegion="polite">
+            {t(statusKey)}
+          </KuralText>
         ) : null}
       </View>
 
       <View style={componentStyles.userNotesEditorCard}>
         <KuralInput
           value={draft}
+          editable={!saving}
           multiline
           numberOfLines={4}
           placeholder={t('notePlaceholder')}
           onChangeText={(value) => {
             setDraft(value);
-            setStatusText(null);
+            setStatusKey(null);
           }}
           containerStyle={componentStyles.userNotesInput}
           textAlignVertical="top"
