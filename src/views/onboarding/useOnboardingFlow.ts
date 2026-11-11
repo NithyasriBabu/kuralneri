@@ -72,6 +72,7 @@ export function useOnboardingFlow(pageWidth: number) {
 
   const handleMomentumScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const nextStep = clampOnboardingPageIndex(Math.round(event.nativeEvent.contentOffset.x / pageWidth));
+    scrollRef.current?.scrollTo({ x: nextStep * pageWidth, animated: true });
     setActiveStep(nextStep);
     if (nextStep !== 0) {
       nameInputRef.current?.blur();

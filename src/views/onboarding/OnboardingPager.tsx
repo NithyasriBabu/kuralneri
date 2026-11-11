@@ -47,6 +47,7 @@ export function OnboardingPager({
       <Animated.ScrollView
         ref={scrollRef}
         horizontal
+        pagingEnabled
         style={{ flex: 1 }}
         snapToInterval={pageWidth}
         snapToAlignment="start"
