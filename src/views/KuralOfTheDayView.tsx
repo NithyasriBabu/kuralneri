@@ -35,6 +35,7 @@ export default function KuralOfTheDayView() {
 
   return (
     <ScrollView
+      testID="print-scroll-container"
       style={componentStyles.kuralOfTheDayScreen}
       contentContainerStyle={componentStyles.kuralOfTheDayContent}
     >

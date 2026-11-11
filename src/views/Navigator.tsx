@@ -89,14 +89,21 @@ export default function TabNavigator() {
     ));
 
   return (
-    <SafeAreaView style={componentStyles.navShell} edges={['top', 'left', 'right', 'bottom']}>
+    <SafeAreaView
+      testID="print-shell"
+      style={componentStyles.navShell}
+      edges={['top', 'left', 'right', 'bottom']}
+    >
       {isWidescreen && (
-        <View style={[componentStyles.navNavbarContainer, componentStyles.navTopPlacement]}>
+        <View
+          testID="app-navigation"
+          style={[componentStyles.navNavbarContainer, componentStyles.navTopPlacement]}
+        >
           {renderNavigationLinks()}
         </View>
       )}
 
-      <View style={componentStyles.navCanvasWrapper}>
+      <View testID="print-canvas" style={componentStyles.navCanvasWrapper}>
         <ErrorBoundary
           resetKeys={[routeState.kind, routeResetKey]}
           onError={(error, errorInfo) => {
@@ -117,12 +124,17 @@ export default function TabNavigator() {
             />
           )}
         >
-          <View style={componentStyles.navFullWidthColumn}>{renderActiveScreen()}</View>
+          <View testID="print-screen" style={componentStyles.navFullWidthColumn}>
+            {renderActiveScreen()}
+          </View>
         </ErrorBoundary>
       </View>
 
       {!isWidescreen && (
-        <View style={[componentStyles.navNavbarContainer, componentStyles.navBottomPlacement]}>
+        <View
+          testID="app-navigation"
+          style={[componentStyles.navNavbarContainer, componentStyles.navBottomPlacement]}
+        >
           {renderNavigationLinks()}
         </View>
       )}

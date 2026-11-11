@@ -124,6 +124,7 @@ export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
         />
       ) : (
         <FlatList
+          testID="print-scroll-container"
           ref={listRef}
           data={kurals}
           key={`bookmarks-grid-${columns}`}

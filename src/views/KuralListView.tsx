@@ -144,6 +144,7 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
         </View>
       ) : (
         <FlatList
+          testID="print-scroll-container"
           ref={listRef}
           data={kurals}
           key={`grid-${columns}`}

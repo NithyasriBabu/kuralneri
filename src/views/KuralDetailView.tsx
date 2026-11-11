@@ -69,6 +69,7 @@ export default function KuralDetailView({ kuralId, onBack }: KuralDetailViewProp
 
   return (
     <ScrollView
+      testID="print-scroll-container"
       style={componentStyles.kuralOfTheDayScreen}
       contentContainerStyle={componentStyles.kuralOfTheDayContent}
     >

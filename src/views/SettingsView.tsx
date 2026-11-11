@@ -334,6 +334,7 @@ export default function SettingsView() {
       edges={['top', 'left', 'right', 'bottom']}
     >
       <ScrollView
+        testID="print-scroll-container"
         contentContainerStyle={{
           padding: theme.layout.screenPadding,
           paddingBottom: 60,
