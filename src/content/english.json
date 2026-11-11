@@ -113,6 +113,7 @@
     "fontSize": "Font size",
     "tamilFont": "Tamil font",
     "englishFont": "English font",
+    "fontPreviewSample": "Sample",
     "backgroundColor": "Background color",
     "textColor": "Text color",
     "languageDisplay": "Language Display",

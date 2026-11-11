@@ -503,6 +503,7 @@ export default function SettingsView() {
           <KuralSegmentedControl
             options={THEME_OPTIONS}
             selected={settings.themeMode}
+            containerStyle={{ flex: 1, width: undefined }}
             onSelect={(v) => {
               updateSettings({ themeMode: v, customBackground: '', customForeground: '' });
             }}
@@ -514,6 +515,7 @@ export default function SettingsView() {
           <KuralSegmentedControl
             options={FONT_SIZE_OPTIONS}
             selected={settings.fontSizeScale}
+            containerStyle={{ flex: 1, width: undefined }}
             onSelect={(v) => updateSettings({ fontSizeScale: v })}
           />
         </View>
@@ -659,7 +661,7 @@ export default function SettingsView() {
               ]}
               selected={settings.fallbackLanguage}
               onSelect={(v) => updateSettings({ fallbackLanguage: v })}
-              containerStyle={{ alignSelf: 'center' }}
+              containerStyle={{ flex: 1, width: undefined, alignSelf: 'center' }}
             />
           </View>
         </View>
