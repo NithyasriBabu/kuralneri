@@ -21,6 +21,11 @@ export const createComponentStyles = (theme: AppTheme) => {
       shadowOpacity: 0.1,
       shadowRadius: 2,
     } as ViewStyle,
+    kuralCardCompact: {
+      padding: 14,
+      marginBottom: 8,
+      minHeight: 0,
+    } as ViewStyle,
     kuralCardPressable: {
       gap: 10,
       paddingRight: 42,
@@ -249,6 +254,34 @@ export const createComponentStyles = (theme: AppTheme) => {
       fontSize: 12,
       color: theme.colors.textSecondary,
       fontStyle: 'italic',
+    } as TextStyle,
+    filterPersistentSearch: {
+      paddingHorizontal: 16,
+      paddingTop: 14,
+    } as ViewStyle,
+    filterChipRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      paddingHorizontal: 16,
+      paddingTop: 10,
+    } as ViewStyle,
+    filterChip: {
+      maxWidth: 260,
+      minHeight: 36,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 10,
+      borderRadius: 18,
+      backgroundColor: theme.colors.accent,
+      borderWidth: 1,
+      borderColor: theme.colors.primary,
+    } as ViewStyle,
+    filterChipText: {
+      flexShrink: 1,
+      color: theme.colors.primary,
+      fontWeight: '700',
     } as TextStyle,
     clearButton: {
       paddingHorizontal: 16,

@@ -12,6 +12,7 @@ import { KuralRecord } from 'src/types/types';
 import { KuralButton } from 'src/components/common/KuralButton';
 import { KuralText } from 'src/components/common/KuralText';
 import { useTranslation } from 'src/content/translation';
+import { useSettings } from 'src/context/SettingsContext';
 
 const DEFAULT_LIMIT_OPTIONS = [10, 20, 30, 50, 100];
 
@@ -25,6 +26,8 @@ interface KuralListCardProps {
   gridWrapperStyle: StyleProp<ViewStyle>;
   onKuralPress?: (kuralId: number) => void;
   updateKuralBookmarkStatus: (kuralId: number, newStatus: boolean) => void;
+  compact: boolean;
+  searchQuery: string;
 }
 
 const KuralListCard = React.memo(function KuralListCard({
@@ -33,6 +36,8 @@ const KuralListCard = React.memo(function KuralListCard({
   gridWrapperStyle,
   onKuralPress,
   updateKuralBookmarkStatus,
+  compact,
+  searchQuery,
 }: KuralListCardProps) {
   const handlePress = useCallback(() => {
     onKuralPress?.(kural.id);
@@ -52,6 +57,8 @@ const KuralListCard = React.memo(function KuralListCard({
         kural={kural}
         onPress={onKuralPress ? handlePress : undefined}
         onBookmarkToggle={handleBookmarkToggle}
+        compact={compact}
+        searchQuery={searchQuery}
       />
     </View>
   );
@@ -62,6 +69,7 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
   const [limitOptions, setLimitOptions] = useState<number[]>(DEFAULT_LIMIT_OPTIONS);
 
   const { theme, componentStyles } = useTheme();
+  const { settings } = useSettings();
   const { t } = useTranslation('uiChrome', 'filters');
   const screenWidth = theme.layout.screenWidth;
 
@@ -108,6 +116,7 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
   };
 
   const { columns, wrapperStyle } = getGridConfig();
+  const compact = screenWidth <= 600 && settings.kuralListDisplayMode === 'compact';
 
   const handlePageJump = (targetPage: number) => {
     goToPage(targetPage);
@@ -172,6 +181,8 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
               gridWrapperStyle={wrapperStyle}
               onKuralPress={onKuralPress}
               updateKuralBookmarkStatus={updateKuralBookmarkStatus}
+              compact={compact}
+              searchQuery={searchQuery}
             />
           )}
           contentContainerStyle={componentStyles.kuralListPadding}

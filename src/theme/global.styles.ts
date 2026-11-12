@@ -62,6 +62,7 @@ export const createGlobalStyles = (theme: AppTheme) => {
     // Layout configuration containers for group placement
     dropdownContainer: {
       gap: theme.layout.gridGap,
+      flexWrap: 'wrap',
     } as ViewStyle,
 
     fieldGroup: {

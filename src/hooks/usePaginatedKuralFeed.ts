@@ -164,7 +164,11 @@ export function usePaginatedKuralFeed(userLimit: number = 30, isBookmarkedOnly: 
       const paalId = normalizeId(value);
       setSelectedPaal(paalId);
 
-      if (paalId === 0) return;
+      if (paalId === 0) {
+        setSelectedIyal(0);
+        setSelectedAdhigaram(0);
+        return;
+      }
 
       const validIyals = iyalOptions.filter((i) => i.paal_id === paalId);
       if (selectedIyal && !validIyals.some((i) => i.id === selectedIyal)) {
@@ -188,6 +192,7 @@ export function usePaginatedKuralFeed(userLimit: number = 30, isBookmarkedOnly: 
       const iyalId = normalizeId(value);
       if (iyalId === 0) {
         setSelectedIyal(0);
+        setSelectedAdhigaram(0);
         return;
       }
 

@@ -5,16 +5,34 @@
 export type ThemeMode = 'light' | 'dark' | 'system';
 export type TranslationLocale = 'tamil' | 'english';
 export type OnboardingStatus = 'not_started' | 'in_progress' | 'completed' | 'skipped';
+export type KuralListDisplayMode = 'full' | 'compact';
 
 export type TamilFont = 'MuktaMalar' | 'Latha' | 'Catamaran' | 'ArimaMadurai';
 
 export type EnglishFont = 'Inter' | 'Merriweather' | 'SourceSerif';
 
 export type FontSizeScale = 'small' | 'medium' | 'large' | 'xlarge';
-export const TAMIL_FONT_OPTIONS = ['MuktaMalar', 'Latha', 'Catamaran', 'ArimaMadurai'] as const satisfies readonly TamilFont[];
-export const ENGLISH_FONT_OPTIONS = ['Inter', 'Merriweather', 'SourceSerif'] as const satisfies readonly EnglishFont[];
-export const FONT_SIZE_SCALE_OPTIONS = ['small', 'medium', 'large', 'xlarge'] as const satisfies readonly FontSizeScale[];
-export const TRANSLATION_LOCALE_OPTIONS = ['tamil', 'english'] as const satisfies readonly TranslationLocale[];
+export const TAMIL_FONT_OPTIONS = [
+  'MuktaMalar',
+  'Latha',
+  'Catamaran',
+  'ArimaMadurai',
+] as const satisfies readonly TamilFont[];
+export const ENGLISH_FONT_OPTIONS = [
+  'Inter',
+  'Merriweather',
+  'SourceSerif',
+] as const satisfies readonly EnglishFont[];
+export const FONT_SIZE_SCALE_OPTIONS = [
+  'small',
+  'medium',
+  'large',
+  'xlarge',
+] as const satisfies readonly FontSizeScale[];
+export const TRANSLATION_LOCALE_OPTIONS = [
+  'tamil',
+  'english',
+] as const satisfies readonly TranslationLocale[];
 
 /** Per-section language visibility — at least one must be true */
 export interface LangToggle {
@@ -49,6 +67,12 @@ export interface AppSettings {
   customForeground: string;
   onboardingStatus: OnboardingStatus;
   onboardingStep: number;
+  kuralListDisplayMode: KuralListDisplayMode;
+  compactShowTamil: true;
+  compactShowTaxonomy: boolean;
+  compactShowTranslation: boolean;
+  compactShowExplanation: boolean;
+  compactShowBookmark: boolean;
   langToggles: LangToggles;
 }
 
@@ -69,6 +93,12 @@ export const APP_SETTINGS_SCALAR_KEYS = [
   'customForeground',
   'onboardingStatus',
   'onboardingStep',
+  'kuralListDisplayMode',
+  'compactShowTamil',
+  'compactShowTaxonomy',
+  'compactShowTranslation',
+  'compactShowExplanation',
+  'compactShowBookmark',
 ] as const satisfies readonly AppSettingsScalarKey[];
 
 export const APP_SETTINGS_LANG_TOGGLE_KEYS = [
@@ -103,6 +133,12 @@ export const DEFAULT_SETTINGS: AppSettings = {
   customForeground: '',
   onboardingStatus: 'not_started',
   onboardingStep: 0,
+  kuralListDisplayMode: 'full',
+  compactShowTamil: true,
+  compactShowTaxonomy: true,
+  compactShowTranslation: true,
+  compactShowExplanation: false,
+  compactShowBookmark: true,
   langToggles: DEFAULT_LANG_TOGGLES,
 };
 

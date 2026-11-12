@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, TouchableOpacity } from 'react-native';
-import { FilterX } from 'lucide-react-native';
+import { ChevronDown, ChevronUp, FilterX, X } from 'lucide-react-native';
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { PaalRecord, IyalRecord, AdhigaramRecord } from 'src/types/types';
 
@@ -83,6 +83,29 @@ export function FilterHeader({
     label: `${a.name} (${a.translation})`,
     value: a.id,
   }));
+  const selectedPaalLabel = mappedPaalOptions.find((item) => item.value === selectedPaal)?.label;
+  const selectedIyalLabel = mappedIyalOptions.find((item) => item.value === selectedIyal)?.label;
+  const selectedAdhigaramLabel = mappedAdhigaramOptions.find(
+    (item) => item.value === selectedAdhigaram,
+  )?.label;
+  const activeChips = [
+    searchQuery.trim()
+      ? { key: 'search', label: searchQuery.trim(), clear: () => setSearchQuery('') }
+      : null,
+    selectedPaal > 0
+      ? { key: 'paal', label: selectedPaalLabel ?? t('section'), clear: () => selectPaal(0, 0) }
+      : null,
+    selectedIyal > 0
+      ? { key: 'iyal', label: selectedIyalLabel ?? t('subsection'), clear: () => selectIyal(0, 0) }
+      : null,
+    selectedAdhigaram > 0
+      ? {
+          key: 'adhigaram',
+          label: selectedAdhigaramLabel ?? t('chapter'),
+          clear: () => selectAdhigaram(0, 0),
+        }
+      : null,
+  ].filter((chip): chip is NonNullable<typeof chip> => chip !== null);
 
   return (
     <View style={globalStyles.container}>
@@ -91,6 +114,9 @@ export function FilterHeader({
         style={componentStyles.accordionHeader}
         onPress={() => setIsExpanded(!isExpanded)}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: isExpanded }}
+        accessibilityLabel={t('advancedFilters')}
       >
         <View style={componentStyles.accordionLeft}>
           <KuralText variant="bodyNormal" style={componentStyles.accordionTitle}>
@@ -106,14 +132,51 @@ export function FilterHeader({
         </View>
 
         <View style={componentStyles.accordionRight}>
-          <KuralText variant="caption" style={componentStyles.counterText}>
+          <KuralText
+            variant="caption"
+            style={componentStyles.counterText}
+            accessibilityLiveRegion="polite"
+          >
             {t('found')} {totalRecords}
           </KuralText>
-          <KuralText variant="caption" style={componentStyles.chevronIcon}>
-            {isExpanded ? '▲' : '▼'}
-          </KuralText>
+          {isExpanded ? (
+            <ChevronUp size={16} color={theme.colors.textSecondary} />
+          ) : (
+            <ChevronDown size={16} color={theme.colors.textSecondary} />
+          )}
         </View>
       </TouchableOpacity>
+
+      <View style={componentStyles.filterPersistentSearch}>
+        <KuralText variant="caption" style={globalStyles.fieldLabel}>
+          {t('search')}
+        </KuralText>
+        <KuralInput
+          accessibilityLabel={t('search')}
+          placeholder={t('searchPlaceholder')}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+      </View>
+
+      {activeChips.length > 0 ? (
+        <View style={componentStyles.filterChipRow}>
+          {activeChips.map((chip) => (
+            <TouchableOpacity
+              key={chip.key}
+              onPress={chip.clear}
+              accessibilityRole="button"
+              accessibilityLabel={`${t('removeFilter')} ${chip.label}`}
+              style={componentStyles.filterChip}
+            >
+              <KuralText variant="caption" style={componentStyles.filterChipText} numberOfLines={1}>
+                {chip.label}
+              </KuralText>
+              <X size={14} color={theme.colors.primary} />
+            </TouchableOpacity>
+          ))}
+        </View>
+      ) : null}
 
       {/* Main Collapsible Filter Tray Box Section */}
       {Boolean(isExpanded) && (
@@ -124,19 +187,6 @@ export function FilterHeader({
               isWidescreen ? globalStyles.row : globalStyles.column,
             ]}
           >
-            {/* 🔍 Search Input Sub-Block */}
-            <View style={[globalStyles.fieldGroup, isWidescreen && globalStyles.flexItem]}>
-              <KuralText variant="caption" style={globalStyles.fieldLabel}>
-                {t('search')}
-              </KuralText>
-              <KuralInput
-                placeholder={t('searchPlaceholder')}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                onClear={() => setSearchQuery('')}
-              />
-            </View>
-
             {/* Tier 1: Section Selector (Paal) */}
             <KuralDropdown
               label={t('section')}
@@ -155,6 +205,9 @@ export function FilterHeader({
               selectedValue={selectedIyal}
               onValueChange={(val) => selectIyal(val, 0)}
               containerStyle={isWidescreen ? globalStyles.flexItem : undefined}
+              searchable
+              searchPlaceholder={t('searchOptions')}
+              closeLabel={t('close')}
             />
 
             {/* Tier 3: Chapter Selector (Adhigaram) */}
@@ -165,6 +218,9 @@ export function FilterHeader({
               selectedValue={selectedAdhigaram}
               onValueChange={(val) => selectAdhigaram(val, 0)}
               containerStyle={isWidescreen ? globalStyles.flexItem : undefined}
+              searchable
+              searchPlaceholder={t('searchOptions')}
+              closeLabel={t('close')}
             />
 
             {/* Clear Filters Action Trigger */}

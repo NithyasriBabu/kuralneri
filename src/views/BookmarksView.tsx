@@ -63,6 +63,7 @@ export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
   };
 
   const { columns, wrapperStyle } = getGridConfig();
+  const compact = theme.layout.screenWidth <= 600 && settings.kuralListDisplayMode === 'compact';
 
   useEffect(() => {
     if (!totalRecords) {
@@ -140,6 +141,8 @@ export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
                   const next = await setKuralBookmarkStatus(item.id, nextBookmarked);
                   updateKuralBookmarkStatus(item.id, next);
                 }}
+                compact={compact}
+                searchQuery={searchQuery}
               />
             </View>
           )}

@@ -257,6 +257,19 @@ export default function SettingsView() {
     { label: tSettings('xlarge'), value: 'xlarge' },
   ];
 
+  const KURAL_LIST_MODE_OPTIONS = [
+    { label: tSettings('fullView'), value: 'full' as const },
+    { label: tSettings('compactView'), value: 'compact' as const },
+  ];
+
+  const compactFields = [
+    { key: 'compactShowTamil' as const, label: tSettings('compactTamilVerse'), disabled: true },
+    { key: 'compactShowTaxonomy' as const, label: tSettings('compactTaxonomy') },
+    { key: 'compactShowTranslation' as const, label: tSettings('compactTranslation') },
+    { key: 'compactShowExplanation' as const, label: tSettings('compactExplanation') },
+    { key: 'compactShowBookmark' as const, label: tSettings('compactBookmark') },
+  ];
+
   const TAMIL_FONT_OPTIONS: { label: string; value: TamilFont }[] = [
     { label: 'Mukta Malar', value: 'MuktaMalar' },
     { label: 'Latha', value: 'Latha' },
@@ -528,6 +541,48 @@ export default function SettingsView() {
             borderBottomColor: theme.colors.surface,
           }}
         >
+          <RowLabel label={tSettings('mobileKuralView')} sub={tSettings('mobileKuralViewHelp')} />
+          <KuralSegmentedControl
+            options={KURAL_LIST_MODE_OPTIONS}
+            selected={settings.kuralListDisplayMode}
+            containerStyle={{ marginTop: 10 }}
+            onSelect={(value) => updateSettings({ kuralListDisplayMode: value })}
+          />
+          {settings.kuralListDisplayMode === 'compact' ? (
+            <View style={{ marginTop: 12, gap: 4 }}>
+              {compactFields.map((field) => (
+                <View key={field.key} style={row}>
+                  <RowLabel
+                    label={field.label}
+                    sub={field.disabled ? tSettings('compactTamilRequired') : undefined}
+                  />
+                  <Switch
+                    value={settings[field.key]}
+                    disabled={field.disabled}
+                    onValueChange={(value) => updateSettings({ [field.key]: value })}
+                    trackColor={{ false: theme.colors.border, true: theme.colors.accent }}
+                    thumbColor={
+                      settings[field.key] ? theme.colors.primary : theme.colors.disabledText
+                    }
+                    accessibilityLabel={field.label}
+                    accessibilityState={{
+                      disabled: Boolean(field.disabled),
+                      checked: settings[field.key],
+                    }}
+                  />
+                </View>
+              ))}
+            </View>
+          ) : null}
+        </View>
+
+        <View
+          style={{
+            paddingVertical: 10,
+            borderBottomWidth: 1,
+            borderBottomColor: theme.colors.surface,
+          }}
+        >
           <RowLabel label={tSettings('tamilFont')} sub={tSettings('affectsTamilRendering')} />
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
             {TAMIL_FONT_OPTIONS.map((opt) => {
@@ -681,7 +736,10 @@ export default function SettingsView() {
               gap: 10,
             }}
           >
-            <KuralText variant="bodyNormal" style={{ color: theme.colors.textPrimary, fontWeight: '700' }}>
+            <KuralText
+              variant="bodyNormal"
+              style={{ color: theme.colors.textPrimary, fontWeight: '700' }}
+            >
               {settings.onboardingStatus === 'completed'
                 ? tOnboarding('restartTitle')
                 : tOnboarding('resumeTitle')}
@@ -692,7 +750,11 @@ export default function SettingsView() {
                 : tOnboarding('resumeBody')}
             </KuralText>
             <KuralButton
-              title={settings.onboardingStatus === 'completed' ? tOnboarding('restartAction') : tOnboarding('resumeAction')}
+              title={
+                settings.onboardingStatus === 'completed'
+                  ? tOnboarding('restartAction')
+                  : tOnboarding('resumeAction')
+              }
               variant="secondary"
               onPress={() =>
                 updateSettings(

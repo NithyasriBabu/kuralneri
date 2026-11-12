@@ -18,6 +18,8 @@ export interface KuralCardShellProps {
   onPress?: () => void;
   onBookmarkToggle?: (nextBookmarked: boolean) => void | Promise<void>;
   bookmarkLoading?: boolean;
+  compact?: boolean;
+  searchQuery?: string;
 }
 
 export default React.memo(function KuralCardShell({
@@ -27,6 +29,8 @@ export default React.memo(function KuralCardShell({
   onPress,
   onBookmarkToggle,
   bookmarkLoading,
+  compact = false,
+  searchQuery,
 }: KuralCardShellProps) {
   const { theme, componentStyles } = useTheme();
   const { t } = useTranslation('uiChrome', 'common');
@@ -61,9 +65,20 @@ export default React.memo(function KuralCardShell({
   const preferredAuthorCode = settings.preferredAuthorCode;
 
   return (
-    <View style={componentStyles.kuralCard}>
+    <View style={[componentStyles.kuralCard, compact && componentStyles.kuralCardCompact]}>
       <Pressable onPress={onPress} disabled={!onPress} style={componentStyles.kuralCardPressable}>
-        <KuralCouplet kural={kural} cardToggle={cardToggle} headerToggle={headerToggle} />
+        <KuralCouplet
+          kural={kural}
+          cardToggle={cardToggle}
+          headerToggle={headerToggle}
+          compact={compact}
+          compactFields={{
+            taxonomy: settings.compactShowTaxonomy,
+            translation: settings.compactShowTranslation,
+            explanation: settings.compactShowExplanation,
+          }}
+          searchQuery={searchQuery}
+        />
       </Pressable>
 
       {showComments || showUserNotes ? (
@@ -81,7 +96,7 @@ export default React.memo(function KuralCardShell({
         </KuralText>
       )}
 
-      {onBookmarkToggle && (
+      {onBookmarkToggle && (!compact || settings.compactShowBookmark) && (
         <Pressable
           onPress={handleBookmarkPress}
           disabled={bookmarkBusy}

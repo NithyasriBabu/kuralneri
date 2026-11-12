@@ -88,3 +88,16 @@ it('excludes each facet from its own option query', async () => {
   );
   expect(feed.paalOptions).toHaveLength(2);
 });
+
+it('clears dependent filters when a parent returns to all', async () => {
+  await act(async () => {
+    feed.selectPaal(1);
+    feed.selectIyal(1);
+    feed.selectAdhigaram(1);
+  });
+  await act(async () => feed.selectPaal(0));
+
+  expect(feed.selectedPaal).toBe(0);
+  expect(feed.selectedIyal).toBe(0);
+  expect(feed.selectedAdhigaram).toBe(0);
+});

@@ -58,4 +58,10 @@ describe.each(['ios', 'web'])('%s settings persistence', (platform) => {
     expect(result.settings.themeMode).toBe(DEFAULT_SETTINGS.themeMode);
     expect(result.settings.onboardingStatus).toBe(DEFAULT_SETTINGS.onboardingStatus);
   });
+  it('keeps the Tamil compact-view field enabled for existing installs', async () => {
+    mockScalars.set('compactShowTamil', 'false');
+    const result = await loadSettings();
+    expect(result.settings.compactShowTamil).toBe(true);
+    expect(result.hadInvalidStoredValues).toBe(true);
+  });
 });

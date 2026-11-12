@@ -17,6 +17,7 @@ import {
   TranslationLocale,
   TamilFont,
   ThemeMode,
+  KuralListDisplayMode,
   ENGLISH_FONT_OPTIONS,
   FONT_SIZE_SCALE_OPTIONS,
   TAMIL_FONT_OPTIONS,
@@ -45,6 +46,12 @@ const DEFAULT_SCALAR_SETTINGS: AppSettingsScalar = {
   customForeground: DEFAULT_SETTINGS.customForeground,
   onboardingStatus: DEFAULT_SETTINGS.onboardingStatus,
   onboardingStep: DEFAULT_SETTINGS.onboardingStep,
+  kuralListDisplayMode: DEFAULT_SETTINGS.kuralListDisplayMode,
+  compactShowTamil: DEFAULT_SETTINGS.compactShowTamil,
+  compactShowTaxonomy: DEFAULT_SETTINGS.compactShowTaxonomy,
+  compactShowTranslation: DEFAULT_SETTINGS.compactShowTranslation,
+  compactShowExplanation: DEFAULT_SETTINGS.compactShowExplanation,
+  compactShowBookmark: DEFAULT_SETTINGS.compactShowBookmark,
 };
 
 async function getSettingsDb(): Promise<SettingsDb> {
@@ -63,7 +70,12 @@ function isThemeMode(value: string): value is ThemeMode {
 }
 
 function isOnboardingStatus(value: string): value is OnboardingStatus {
-  return value === 'not_started' || value === 'in_progress' || value === 'completed' || value === 'skipped';
+  return (
+    value === 'not_started' ||
+    value === 'in_progress' ||
+    value === 'completed' ||
+    value === 'skipped'
+  );
 }
 
 function isTamilFont(value: string): value is TamilFont {
@@ -80,6 +92,14 @@ function isFontSizeScale(value: string): value is FontSizeScale {
 
 function isTranslationLocale(value: string): value is TranslationLocale {
   return TRANSLATION_LOCALE_OPTIONS.includes(value as TranslationLocale);
+}
+
+function isKuralListDisplayMode(value: string): value is KuralListDisplayMode {
+  return value === 'full' || value === 'compact';
+}
+
+function readBoolean(rawValue: string): boolean {
+  return rawValue === '1' || rawValue === 'true';
 }
 
 function coerceBoolean(value: unknown): boolean {
@@ -233,7 +253,7 @@ export async function loadSettings(): Promise<LoadSettingsResult> {
           loaded.preferredAuthorCode = rawValue;
           break;
         case 'selfNotesEnabled':
-          loaded.selfNotesEnabled = rawValue === '1' || rawValue === 'true';
+          loaded.selfNotesEnabled = readBoolean(rawValue);
           break;
         case 'fallbackLanguage':
           if (isTranslationLocale(rawValue)) loaded.fallbackLanguage = rawValue;
@@ -271,6 +291,26 @@ export async function loadSettings(): Promise<LoadSettingsResult> {
           else hadInvalidStoredValues = true;
           break;
         }
+        case 'kuralListDisplayMode':
+          if (isKuralListDisplayMode(rawValue)) loaded.kuralListDisplayMode = rawValue;
+          else hadInvalidStoredValues = true;
+          break;
+        case 'compactShowTamil':
+          loaded.compactShowTamil = true;
+          if (!readBoolean(rawValue)) hadInvalidStoredValues = true;
+          break;
+        case 'compactShowTaxonomy':
+          loaded.compactShowTaxonomy = readBoolean(rawValue);
+          break;
+        case 'compactShowTranslation':
+          loaded.compactShowTranslation = readBoolean(rawValue);
+          break;
+        case 'compactShowExplanation':
+          loaded.compactShowExplanation = readBoolean(rawValue);
+          break;
+        case 'compactShowBookmark':
+          loaded.compactShowBookmark = readBoolean(rawValue);
+          break;
       }
     }
 
