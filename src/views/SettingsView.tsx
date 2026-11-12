@@ -77,6 +77,8 @@ function RowLabel({ label, sub }: { label: string; sub?: string }) {
   );
 }
 
+type SettingsSection = 'personal' | 'display' | 'language' | 'reset';
+
 // ─── color swatch picker ─────────────────────────────────────────────────────
 
 const BG_PRESETS_DARK = [
@@ -265,10 +267,12 @@ export default function SettingsView() {
   const [nameInput, setNameInput] = useState(settings.userName);
   const [nameInputTamil, setNameInputTamil] = useState(settings.userNameTamil);
   const [confirmReset, setConfirmReset] = useState<'none' | 'bookmarks' | 'all'>('none');
+  const [activeSection, setActiveSection] = useState<SettingsSection>('personal');
 
   const isDark = theme.dark;
   const backgroundColors = isDark ? BG_PRESETS_DARK : BG_PRESETS_LIGHT;
   const foregroundColors = isDark ? FG_PRESETS_DARK : FG_PRESETS_LIGHT;
+  const showSection = (section: SettingsSection) => activeSection === section;
 
   const AUTHORS = [
     { label: tSettings('allAuthors'), value: '' },
@@ -389,6 +393,53 @@ export default function SettingsView() {
           </KuralText>
         </View>
 
+        <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={{
+              marginTop: 12,
+              marginBottom: 4,
+              borderBottomWidth: 1,
+              borderBottomColor: theme.colors.border,
+            }}
+            contentContainerStyle={{ gap: 22, paddingHorizontal: 4 }}
+          >
+            {(
+              [
+                ['personal', tSettings('personal')],
+                ['display', tSettings('display')],
+                ['language', tSettings('languageDisplay')],
+                ['reset', tSettings('reset')],
+              ] as const
+            ).map(([section, label]) => {
+              const active = activeSection === section;
+              return (
+                <Pressable
+                  key={section}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: active }}
+                  onPress={() => setActiveSection(section)}
+                  style={{
+                    paddingHorizontal: 4,
+                    paddingVertical: 10,
+                    borderBottomWidth: 3,
+                    borderBottomColor: active ? theme.colors.primary : 'transparent',
+                  }}
+                >
+                  <KuralText
+                    variant="caption"
+                    style={{
+                      color: active ? theme.colors.primary : theme.colors.textSecondary,
+                      fontWeight: active ? '700' : '400',
+                    }}
+                  >
+                    {label}
+                  </KuralText>
+                </Pressable>
+              );
+            })}
+        </ScrollView>
+
         {settingsLoadWarning ? (
           <View
             style={{
@@ -420,8 +471,10 @@ export default function SettingsView() {
           </View>
         ) : null}
 
-        {/* ── 1. Personal ─────────────────────────────────────── */}
-        <SectionHeader label={tSettings('personal')} />
+        {showSection('personal') ? (
+          <>
+            {/* ── 1. Personal ─────────────────────────────────────── */}
+            <SectionHeader label={tSettings('personal')} />
 
         <View style={row}>
           <RowLabel label={tSettings('yourName')} sub={tSettings('usedToGreetYou')} />
@@ -500,20 +553,24 @@ export default function SettingsView() {
           />
         </View>
 
-        <View style={row}>
-          <RowLabel label={tSettings('selfNotes')} sub={tSettings('selfNotesHelp')} />
-          <Switch
-            value={settings.selfNotesEnabled}
-            onValueChange={(value) => updateSettings({ selfNotesEnabled: value })}
-            trackColor={{ false: theme.colors.border, true: theme.colors.accent }}
-            thumbColor={
-              settings.selfNotesEnabled ? theme.colors.primary : theme.colors.disabledText
-            }
-          />
-        </View>
+            <View style={row}>
+              <RowLabel label={tSettings('selfNotes')} sub={tSettings('selfNotesHelp')} />
+              <Switch
+                value={settings.selfNotesEnabled}
+                onValueChange={(value) => updateSettings({ selfNotesEnabled: value })}
+                trackColor={{ false: theme.colors.border, true: theme.colors.accent }}
+                thumbColor={
+                  settings.selfNotesEnabled ? theme.colors.primary : theme.colors.disabledText
+                }
+              />
+            </View>
+          </>
+        ) : null}
 
-        {/* ── 2. Display ──────────────────────────────────────── */}
-        <SectionHeader label={tSettings('display')} />
+        {showSection('display') ? (
+          <>
+            {/* ── 2. Display ──────────────────────────────────────── */}
+            <SectionHeader label={tSettings('display')} />
 
         <View style={row}>
           <RowLabel label={tSettings('theme')} />
@@ -630,18 +687,22 @@ export default function SettingsView() {
           />
         </View>
 
-        <View style={{ paddingVertical: 10 }}>
-          <RowLabel label={tSettings('textColor')} sub={tSettings('primaryTextApplies')} />
-          <KuralColorSwatches
-            presets={foregroundColors}
-            selected={settings.customForeground}
-            onSelect={(v) => updateSettings({ customForeground: v })}
-            defaultLabel={tSettings('defaultSwatchLabel')}
-          />
-        </View>
+            <View style={{ paddingVertical: 10 }}>
+              <RowLabel label={tSettings('textColor')} sub={tSettings('primaryTextApplies')} />
+              <KuralColorSwatches
+                presets={foregroundColors}
+                selected={settings.customForeground}
+                onSelect={(v) => updateSettings({ customForeground: v })}
+                defaultLabel={tSettings('defaultSwatchLabel')}
+              />
+            </View>
+          </>
+        ) : null}
 
-        {/* ── 3. Language visibility ───────────────────────────── */}
-        <SectionHeader label={tSettings('languageDisplay')} />
+        {showSection('language') ? (
+          <>
+            {/* ── 3. Language visibility ───────────────────────────── */}
+            <SectionHeader label={tSettings('languageDisplay')} />
         <KuralText
           variant="caption"
           style={{ color: theme.colors.textSecondary, marginBottom: 12 }}
@@ -651,7 +712,7 @@ export default function SettingsView() {
 
         <LanguageDisplayTable />
 
-        <View
+            <View
           style={{
             backgroundColor: theme.colors.surfaceElevated,
             borderRadius: theme.layout.borderRadius.medium,
@@ -686,10 +747,14 @@ export default function SettingsView() {
               }}
             />
           </View>
-        </View>
+            </View>
+          </>
+        ) : null}
 
-        {/* ── 4. Reset ────────────────────────────────────────── */}
-        {settings.onboardingStatus === 'completed' || settings.onboardingStatus === 'skipped' ? (
+        {showSection('reset') ? (
+          <>
+            {/* ── 4. Reset ────────────────────────────────────────── */}
+            {settings.onboardingStatus === 'completed' || settings.onboardingStatus === 'skipped' ? (
           <View
             style={{
               backgroundColor: theme.colors.surfaceElevated,
@@ -732,11 +797,11 @@ export default function SettingsView() {
               style={{ alignSelf: 'flex-start' }}
             />
           </View>
-        ) : null}
+            ) : null}
 
-        <SectionHeader label={tSettings('reset')} />
+            <SectionHeader label={tSettings('reset')} />
 
-        {confirmReset !== 'none' && (
+            {confirmReset !== 'none' && (
           <View
             style={{
               backgroundColor: theme.colors.surfaceElevated,
@@ -775,20 +840,22 @@ export default function SettingsView() {
           </View>
         )}
 
-        <View style={{ gap: 12 }}>
-          <KuralIconButton
-            icon={<Eraser />}
-            label={pair('clearAllBookmarks').visible}
-            tooltip={pair('clearAllBookmarks').hover}
-            onPress={() => handleConfirmReset('bookmarks')}
-          />
-          <KuralIconButton
-            icon={<RefreshCcw />}
-            label={pair('resetAllSettings').visible}
-            tooltip={pair('resetAllSettings').hover}
-            onPress={() => handleConfirmReset('all')}
-          />
-        </View>
+            <View style={{ gap: 12 }}>
+              <KuralIconButton
+                icon={<Eraser />}
+                label={pair('clearAllBookmarks').visible}
+                tooltip={pair('clearAllBookmarks').hover}
+                onPress={() => handleConfirmReset('bookmarks')}
+              />
+              <KuralIconButton
+                icon={<RefreshCcw />}
+                label={pair('resetAllSettings').visible}
+                tooltip={pair('resetAllSettings').hover}
+                onPress={() => handleConfirmReset('all')}
+              />
+            </View>
+          </>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );
