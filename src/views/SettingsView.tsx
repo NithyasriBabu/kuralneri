@@ -62,7 +62,7 @@ function SectionHeader({ label }: { label: string }) {
 function RowLabel({ label, sub }: { label: string; sub?: string }) {
   const { theme } = useTheme();
   return (
-    <View style={{ flex: 1, paddingRight: 12 }}>
+    <View style={{ flex: 1, paddingRight: theme.layout.isWideScreen ? 12 : 0 }}>
       <KuralText
         variant="bodyNormal"
         style={{ color: theme.colors.textPrimary, fontWeight: '600' }}
@@ -168,7 +168,14 @@ function LangToggleRow({ toggleKey }: { toggleKey: LangToggleKey }) {
         borderColor: theme.colors.border,
       }}
     >
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+      <View
+        style={{
+          flexDirection: theme.layout.isWideScreen ? 'row' : 'column',
+          justifyContent: 'space-between',
+          alignItems: theme.layout.isWideScreen ? 'center' : 'stretch',
+          gap: 12,
+        }}
+      >
         <View>
           <KuralText
             variant="bodyNormal"
@@ -182,7 +189,13 @@ function LangToggleRow({ toggleKey }: { toggleKey: LangToggleKey }) {
           </KuralText>
         </View>
 
-        <View style={{ flexDirection: 'row', gap: 20 }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: theme.layout.isWideScreen ? 'flex-end' : 'space-between',
+            gap: 20,
+          }}
+        >
           {/* Tamil toggle */}
           <View style={{ alignItems: 'center', gap: 4 }}>
             <KuralText variant="caption" isTamil style={{ color: theme.colors.textSecondary }}>
@@ -333,10 +346,11 @@ export default function SettingsView() {
   };
 
   const row = {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
+    flexDirection: theme.layout.isWideScreen ? ('row' as const) : ('column' as const),
+    alignItems: theme.layout.isWideScreen ? ('center' as const) : ('stretch' as const),
     justifyContent: 'space-between' as const,
-    paddingVertical: 10,
+    gap: 8,
+    paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.surface,
   };
@@ -408,7 +422,7 @@ export default function SettingsView() {
             placeholder={tSettings('namePlaceholder')}
             placeholderTextColor={theme.colors.disabledText}
             style={{
-              minWidth: 130,
+              width: theme.layout.isWideScreen ? 180 : '100%',
               height: 40,
               backgroundColor: theme.colors.surfaceElevated,
               borderRadius: theme.layout.borderRadius.medium,
@@ -436,7 +450,7 @@ export default function SettingsView() {
                 placeholderTextColor={theme.colors.disabledText}
                 style={{
                   flex: 1,
-                  minWidth: 130,
+                  minWidth: theme.layout.isWideScreen ? 130 : 0,
                   height: 40,
                   backgroundColor: theme.colors.surfaceElevated,
                   borderRadius: theme.layout.borderRadius.medium,
@@ -517,7 +531,7 @@ export default function SettingsView() {
           <KuralSegmentedControl
             options={THEME_OPTIONS}
             selected={settings.themeMode}
-            containerStyle={{ flex: 1, width: undefined }}
+            containerStyle={{ flex: 1, width: theme.layout.isWideScreen ? undefined : '100%' }}
             onSelect={(v) => {
               updateSettings({ themeMode: v, customBackground: '', customForeground: '' });
             }}
@@ -529,7 +543,7 @@ export default function SettingsView() {
           <KuralSegmentedControl
             options={FONT_SIZE_OPTIONS}
             selected={settings.fontSizeScale}
-            containerStyle={{ flex: 1, width: undefined }}
+            containerStyle={{ flex: 1, width: theme.layout.isWideScreen ? undefined : '100%' }}
             onSelect={(v) => updateSettings({ fontSizeScale: v })}
           />
         </View>
@@ -705,7 +719,13 @@ export default function SettingsView() {
             borderColor: theme.colors.border,
           }}
         >
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 16 }}>
+          <View
+            style={{
+              flexDirection: theme.layout.isWideScreen ? 'row' : 'column',
+              justifyContent: 'space-between',
+              gap: 12,
+            }}
+          >
             <RowLabel
               label={tSettings('fallbackLanguage')}
               sub={tSettings('fallbackLanguageHelp')}
@@ -717,7 +737,11 @@ export default function SettingsView() {
               ]}
               selected={settings.fallbackLanguage}
               onSelect={(v) => updateSettings({ fallbackLanguage: v })}
-              containerStyle={{ flex: 1, width: undefined, alignSelf: 'center' }}
+              containerStyle={{
+                flex: 1,
+                width: theme.layout.isWideScreen ? undefined : '100%',
+                alignSelf: theme.layout.isWideScreen ? 'center' : 'stretch',
+              }}
             />
           </View>
         </View>

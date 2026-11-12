@@ -14,6 +14,8 @@ interface KuralSegmentedControlProps<T extends string> {
   selected: T;
   onSelect: (value: T) => void;
   containerStyle?: ViewStyle;
+  itemMinWidth?: number;
+  labelNumberOfLines?: number;
 }
 
 export function KuralSegmentedControl<T extends string>({
@@ -21,6 +23,8 @@ export function KuralSegmentedControl<T extends string>({
   selected,
   onSelect,
   containerStyle,
+  itemMinWidth,
+  labelNumberOfLines = 2,
 }: KuralSegmentedControlProps<T>) {
   const { theme } = useTheme();
 
@@ -47,16 +51,16 @@ export function KuralSegmentedControl<T extends string>({
             onPress={() => onSelect(opt.value)}
             style={{
               flexGrow: 1,
-              flexBasis: 0,
-              minWidth: 0,
+              flexBasis: itemMinWidth ?? 0,
+              minWidth: itemMinWidth ?? 0,
               paddingHorizontal: 12,
-              paddingVertical: 8,
+              paddingVertical: itemMinWidth ? 10 : 8,
               backgroundColor: active ? theme.colors.accent : 'transparent',
             }}
           >
             <KuralText
               variant="caption"
-              numberOfLines={2}
+              numberOfLines={labelNumberOfLines}
               style={{
                 color: active ? theme.colors.textPrimary : theme.colors.textSecondary,
                 fontWeight: active ? '700' : '400',
