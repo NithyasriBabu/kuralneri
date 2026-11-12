@@ -1,7 +1,7 @@
 import { isGuruEnabled } from 'src/config/featureFlags';
 
 import React, { useMemo } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { KuralText } from 'src/components/common/KuralText';
@@ -147,42 +147,40 @@ export default function OnboardingView() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} edges={['top', 'left', 'right', 'bottom']}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <View style={[styles.shell, { backgroundColor: theme.colors.background }]}>
-          <View style={styles.headerRow}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={tOnboarding('skip')}
-              onPress={flow.skip}
-              style={[
-                styles.skipButton,
-                {
-                  backgroundColor: theme.colors.surfaceElevated,
-                  borderColor: theme.colors.border,
-                },
-              ]}
-            >
-              <KuralText variant="caption" style={{ color: theme.colors.primary, fontWeight: '700' }}>
-                {tOnboarding('skip')}
-              </KuralText>
-            </Pressable>
-          </View>
-
-          <OnboardingPager
-            pageWidth={pageWidth}
-            activeStep={flow.activeStep}
-            scrollX={flow.scrollX}
-            scrollRef={flow.scrollRef}
-            pages={pages}
-            finishLabel={tOnboarding('finish')}
-            stepLabel={tOnboarding('stepLabel')}
-            onFinish={flow.finish}
-            onStepPress={flow.goToStep}
-            onScrollBeginDrag={flow.handleScrollBeginDrag}
-            onMomentumScrollEnd={flow.handleMomentumScrollEnd}
-          />
+      <View style={[styles.shell, { backgroundColor: theme.colors.background }]}>
+        <View style={styles.headerRow}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={tOnboarding('skip')}
+            onPress={flow.skip}
+            style={[
+              styles.skipButton,
+              {
+                backgroundColor: theme.colors.surfaceElevated,
+                borderColor: theme.colors.border,
+              },
+            ]}
+          >
+            <KuralText variant="caption" style={{ color: theme.colors.primary, fontWeight: '700' }}>
+              {tOnboarding('skip')}
+            </KuralText>
+          </Pressable>
         </View>
-      </KeyboardAvoidingView>
+
+        <OnboardingPager
+          pageWidth={pageWidth}
+          activeStep={flow.activeStep}
+          scrollX={flow.scrollX}
+          scrollRef={flow.scrollRef}
+          pages={pages}
+          finishLabel={tOnboarding('finish')}
+          stepLabel={tOnboarding('stepLabel')}
+          onFinish={flow.finish}
+          onStepPress={flow.goToStep}
+          onScrollBeginDrag={flow.handleScrollBeginDrag}
+          onMomentumScrollEnd={flow.handleMomentumScrollEnd}
+        />
+      </View>
     </SafeAreaView>
   );
 }

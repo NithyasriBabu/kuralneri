@@ -36,8 +36,8 @@ export function OnboardingPageFrame({
         ]}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
+        automaticallyAdjustKeyboardInsets
         showsVerticalScrollIndicator={false}
-        nestedScrollEnabled
       >
         <KuralText variant="h2" style={{ color: theme.colors.primary, textAlign: 'center' }}>
           {title}
