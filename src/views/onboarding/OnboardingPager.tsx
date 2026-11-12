@@ -54,6 +54,8 @@ export function OnboardingPager({
         disableIntervalMomentum
         decelerationRate="fast"
         bounces={false}
+        directionalLockEnabled
+        nestedScrollEnabled
         overScrollMode="never"
         showsHorizontalScrollIndicator={false}
         keyboardDismissMode="on-drag"
