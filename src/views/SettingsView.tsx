@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import {
   Alert,
   Platform,
+  Pressable,
   ScrollView,
   Switch,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
-import { Eraser, RefreshCcw, Sparkles } from 'lucide-react-native';
+import { Check, Eraser, RefreshCcw, Sparkles } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useTheme } from 'src/theme/ThemeContextProvider';
@@ -26,7 +26,6 @@ import {
   FontSizeScale,
   ThemeMode,
   EnglishFont,
-  ENGLISH_FONT_FAMILIES,
 } from 'src/types/settings';
 import { clearAllBookmarks } from 'src/data/services/settingsService';
 
@@ -122,13 +121,21 @@ const FG_PRESETS_LIGHT = [
   '#212121',
 ];
 
-// ─── lang toggle row ─────────────────────────────────────────────────────────
+const LANG_TOGGLE_KEYS: LangToggleKey[] = [
+  'kuralCard',
+  'commentary',
+  'filterLabels',
+  'navLabels',
+  'uiChrome',
+  'sectionHeaders',
+];
 
-function LangToggleRow({ toggleKey }: { toggleKey: LangToggleKey }) {
+// ─── language display table ──────────────────────────────────────────────────
+
+function LanguageDisplayTable() {
   const { theme } = useTheme();
   const { settings, setLangToggle } = useSettings();
   const { t: tSettings } = useTranslation('uiChrome', 'settings');
-  const toggle = settings.langToggles[toggleKey];
   const labels: Record<LangToggleKey, { tamil: string; english: string }> = {
     kuralCard: {
       tamil: tSettings('kuralCardToggleLabel'),
@@ -155,81 +162,94 @@ function LangToggleRow({ toggleKey }: { toggleKey: LangToggleKey }) {
       english: 'Section Headers',
     },
   };
-  const label = labels[toggleKey];
 
   return (
     <View
       style={{
-        backgroundColor: theme.colors.surfaceElevated,
+        backgroundColor: theme.colors.surface,
         borderRadius: theme.layout.borderRadius.medium,
-        padding: 14,
-        marginBottom: 10,
         borderWidth: 1,
         borderColor: theme.colors.border,
+        overflow: 'hidden',
       }}
     >
       <View
         style={{
           flexDirection: theme.layout.isWideScreen ? 'row' : 'column',
-          justifyContent: 'space-between',
-          alignItems: theme.layout.isWideScreen ? 'center' : 'stretch',
-          gap: 12,
+          backgroundColor: theme.colors.surfaceElevated,
+          padding: 12,
         }}
       >
-        <View>
-          <KuralText
-            variant="bodyNormal"
-            isTamil
-            style={{ color: theme.colors.primary, fontWeight: '700' }}
-          >
-            {label.tamil}
-          </KuralText>
-          <KuralText variant="caption" style={{ color: theme.colors.textSecondary }}>
-            {label.english}
-          </KuralText>
-        </View>
-
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: theme.layout.isWideScreen ? 'flex-end' : 'space-between',
-            gap: 20,
-          }}
+        <View style={{ flex: 1 }} />
+        <KuralText
+          variant="caption"
+          isTamil
+          style={{ width: 76, color: theme.colors.textSecondary, textAlign: 'center' }}
         >
-          {/* Tamil toggle */}
-          <View style={{ alignItems: 'center', gap: 4 }}>
-            <KuralText variant="caption" isTamil style={{ color: theme.colors.textSecondary }}>
-              {tSettings('tamilLanguage')}
-            </KuralText>
-            <Switch
-              value={toggle.tamil}
-              onValueChange={(v) => setLangToggle(toggleKey, 'tamil', v)}
-              trackColor={{ false: theme.colors.border, true: theme.colors.accent }}
-              thumbColor={toggle.tamil ? theme.colors.primary : theme.colors.disabledText}
-            />
-          </View>
-
-          {/* English toggle */}
-          <View style={{ alignItems: 'center', gap: 4 }}>
-            <KuralText variant="caption" style={{ color: theme.colors.textSecondary }}>
-              {tSettings('englishLanguage')}
-            </KuralText>
-            <Switch
-              value={toggle.english}
-              onValueChange={(v) => setLangToggle(toggleKey, 'english', v)}
-              trackColor={{ false: theme.colors.border, true: theme.colors.accent }}
-              thumbColor={toggle.english ? theme.colors.primary : theme.colors.disabledText}
-            />
-          </View>
-        </View>
+          {tSettings('tamilLanguage')}
+        </KuralText>
+        <KuralText
+          variant="caption"
+          style={{ width: 76, color: theme.colors.textSecondary, textAlign: 'center' }}
+        >
+          {tSettings('englishLanguage')}
+        </KuralText>
       </View>
 
-      {/* At-least-one warning */}
-      {!toggle.tamil && !toggle.english && (
-        <KuralText variant="caption" style={{ color: theme.colors.error, marginTop: 6 }}>
-          {tSettings('atLeastOneLanguage')}
-        </KuralText>
-      )}
+      {LANG_TOGGLE_KEYS.map((toggleKey) => {
+        const toggle = settings.langToggles[toggleKey];
+        const label = labels[toggleKey];
+        return (
+          <View
+            key={toggleKey}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              minHeight: 64,
+              paddingHorizontal: 12,
+              borderTopWidth: 1,
+              borderTopColor: theme.colors.border,
+            }}
+          >
+            <View style={{ flex: 1, paddingRight: 8 }}>
+              <KuralText variant="bodyNormal" style={{ color: theme.colors.textPrimary, fontWeight: '600' }}>
+                {label.tamil}
+              </KuralText>
+              <KuralText variant="caption" style={{ color: theme.colors.textSecondary }}>
+                {label.english}
+              </KuralText>
+            </View>
+            {(['tamil', 'english'] as const).map((language) => {
+              const checked = toggle[language];
+              return (
+                <Pressable
+                  key={language}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked }}
+                  accessibilityLabel={`${label.english} ${language}`}
+                  onPress={() => setLangToggle(toggleKey, language, !checked)}
+                  style={{ width: 76, alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <View
+                    style={{
+                      width: 24,
+                      height: 24,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: 6,
+                      borderWidth: 2,
+                      borderColor: checked ? theme.colors.primary : theme.colors.border,
+                      backgroundColor: checked ? theme.colors.accent : 'transparent',
+                    }}
+                  >
+                    {checked ? <Check size={16} color={theme.colors.primary} strokeWidth={3} /> : null}
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+        );
+      })}
     </View>
   );
 }
@@ -294,15 +314,6 @@ export default function SettingsView() {
     { label: 'Inter', value: 'Inter' },
     { label: 'Merriweather', value: 'Merriweather' },
     { label: 'Source Serif', value: 'SourceSerif' },
-  ];
-
-  const LANG_TOGGLE_KEYS: LangToggleKey[] = [
-    'kuralCard',
-    'commentary',
-    'filterLabels',
-    'navLabels',
-    'uiChrome',
-    'sectionHeaders',
   ];
 
   const handleConfirmReset = (type: 'bookmarks' | 'all') => {
@@ -481,34 +492,12 @@ export default function SettingsView() {
         <View style={row}>
           <RowLabel label={tSettings('preferredAuthor')} sub={tSettings('commentaryShownFirst')} />
         </View>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingBottom: 10 }}>
-          {AUTHORS.map((a) => {
-            const active = a.value === settings.preferredAuthorCode;
-            return (
-              <TouchableOpacity
-                key={a.value}
-                onPress={() => updateSettings({ preferredAuthorCode: a.value })}
-                style={{
-                  paddingHorizontal: 12,
-                  paddingVertical: 8,
-                  borderRadius: theme.layout.borderRadius.medium,
-                  backgroundColor: active ? theme.colors.accent : theme.colors.surface,
-                  borderWidth: 1,
-                  borderColor: active ? theme.colors.primary : theme.colors.border,
-                }}
-              >
-                <KuralText
-                  variant="caption"
-                  style={{
-                    color: active ? theme.colors.primary : theme.colors.textSecondary,
-                    fontWeight: active ? '700' : '400',
-                  }}
-                >
-                  {a.label}
-                </KuralText>
-              </TouchableOpacity>
-            );
-          })}
+        <View style={{ paddingBottom: 10 }}>
+          <KuralSegmentedControl
+            options={AUTHORS}
+            selected={settings.preferredAuthorCode}
+            onSelect={(value) => updateSettings({ preferredAuthorCode: value })}
+          />
         </View>
 
         <View style={row}>
@@ -598,36 +587,12 @@ export default function SettingsView() {
           }}
         >
           <RowLabel label={tSettings('tamilFont')} sub={tSettings('affectsTamilRendering')} />
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
-            {TAMIL_FONT_OPTIONS.map((opt) => {
-              const active = opt.value === settings.tamilFont;
-              return (
-                <TouchableOpacity
-                  key={opt.value}
-                  onPress={() => updateSettings({ tamilFont: opt.value })}
-                  style={{
-                    paddingHorizontal: 14,
-                    paddingVertical: 10,
-                    borderRadius: theme.layout.borderRadius.medium,
-                    backgroundColor: active ? theme.colors.accent : theme.colors.surface,
-                    borderWidth: 1,
-                    borderColor: active ? theme.colors.primary : theme.colors.border,
-                  }}
-                >
-                  <KuralText
-                    isTamil
-                    variant="bodyNormal"
-                    style={{
-                      color: active ? theme.colors.primary : theme.colors.textPrimary,
-                      fontWeight: active ? '700' : '400',
-                    }}
-                  >
-                    {opt.label} — குறள்
-                  </KuralText>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+          <KuralSegmentedControl
+            options={TAMIL_FONT_OPTIONS.map((opt) => ({ label: `${opt.label} — குறள்`, value: opt.value }))}
+            selected={settings.tamilFont}
+            containerStyle={{ marginTop: 10 }}
+            onSelect={(value) => updateSettings({ tamilFont: value })}
+          />
         </View>
 
         <View
@@ -638,36 +603,15 @@ export default function SettingsView() {
           }}
         >
           <RowLabel label={tSettings('englishFont')} sub={tSettings('affectsEnglishRendering')} />
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
-            {ENGLISH_FONT_OPTIONS.map((opt) => {
-              const active = opt.value === settings.englishFont;
-              return (
-                <TouchableOpacity
-                  key={opt.value}
-                  onPress={() => updateSettings({ englishFont: opt.value })}
-                  style={{
-                    paddingHorizontal: 14,
-                    paddingVertical: 10,
-                    borderRadius: theme.layout.borderRadius.medium,
-                    backgroundColor: active ? theme.colors.accent : theme.colors.surface,
-                    borderWidth: 1,
-                    borderColor: active ? theme.colors.primary : theme.colors.border,
-                  }}
-                >
-                  <KuralText
-                    variant="bodyNormal"
-                    style={{
-                      color: active ? theme.colors.primary : theme.colors.textPrimary,
-                      fontWeight: active ? '700' : '400',
-                      fontFamily: ENGLISH_FONT_FAMILIES[opt.value],
-                    }}
-                  >
-                    {tSettings('fontPreviewSample')} — {opt.label}
-                  </KuralText>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+          <KuralSegmentedControl
+            options={ENGLISH_FONT_OPTIONS.map((opt) => ({
+              label: `${tSettings('fontPreviewSample')} — ${opt.label}`,
+              value: opt.value,
+            }))}
+            selected={settings.englishFont}
+            containerStyle={{ marginTop: 10 }}
+            onSelect={(value) => updateSettings({ englishFont: value })}
+          />
         </View>
 
         <View
@@ -705,9 +649,7 @@ export default function SettingsView() {
           {tSettings('languageDisplayHelp')}
         </KuralText>
 
-        {LANG_TOGGLE_KEYS.map((key) => (
-          <LangToggleRow key={key} toggleKey={key} />
-        ))}
+        <LanguageDisplayTable />
 
         <View
           style={{
