@@ -4,7 +4,13 @@ import { TextInput, View } from 'react-native';
 import { KuralSegmentedControl, KuralSegmentedOption } from 'src/components/common/KuralSegmentedControl';
 import { KuralText } from 'src/components/common/KuralText';
 import { useTheme } from 'src/theme/ThemeContextProvider';
-import { AppSettings, FontSizeScale, ThemeMode, TranslationLocale } from 'src/types/settings';
+import {
+  AppSettings,
+  FontSizeScale,
+  SetupLanguageChoice,
+  ThemeMode,
+  TranslationLocale,
+} from 'src/types/settings';
 
 import { OnboardingPageFrame } from 'src/views/onboarding/OnboardingPageFrame';
 
@@ -19,7 +25,8 @@ type OnboardingSetupPageProps = {
   themeLabel: string;
   fontSizeLabel: string;
   themeOptions: KuralSegmentedOption<ThemeMode>[];
-  languageOptions: KuralSegmentedOption<TranslationLocale>[];
+  languageOptions: KuralSegmentedOption<SetupLanguageChoice>[];
+  languageChoice: SetupLanguageChoice;
   fontSizeOptions: KuralSegmentedOption<FontSizeScale>[];
   authorOptions: KuralSegmentedOption<string>[];
   settings: Pick<
@@ -31,7 +38,7 @@ type OnboardingSetupPageProps = {
   isTextEditable: boolean;
   onNameChange: (value: string) => void;
   onNameCommit: (value: string) => void;
-  onLanguageChange: (value: TranslationLocale) => void;
+  onLanguageChange: (value: SetupLanguageChoice) => void;
   onPreferredAuthorChange: (value: string) => void;
   onThemeChange: (value: ThemeMode) => void;
   onFontSizeChange: (value: FontSizeScale) => void;
@@ -49,6 +56,7 @@ export function OnboardingSetupPage({
   fontSizeLabel,
   themeOptions,
   languageOptions,
+  languageChoice,
   fontSizeOptions,
   authorOptions,
   settings,
@@ -88,7 +96,7 @@ export function OnboardingSetupPage({
 
         <KuralSegmentedControl
           options={languageOptions}
-          selected={settings.fallbackLanguage}
+          selected={languageChoice}
           onSelect={onLanguageChange}
         />
 

@@ -151,6 +151,7 @@
     "namePlaceholder": "Enter name…",
     "defaultSwatchLabel": "Default",
     "allAuthors": "All Authors",
+    "bothLanguages": "Both Languages",
     "light": "Light",
     "dark": "Dark",
     "system": "System",
@@ -165,7 +166,8 @@
     "uiChromeToggleLabel": "UI Chrome",
     "sectionHeadersToggleLabel": "Section Headers",
     "tamilLanguage": "Tamil",
-    "englishLanguage": "English"
+    "englishLanguage": "English",
+    "bothLanguages": "Both Languages"
   },
   "guru": {
     "title": "Guru",

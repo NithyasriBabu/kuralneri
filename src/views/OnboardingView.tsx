@@ -8,7 +8,7 @@ import { KuralText } from 'src/components/common/KuralText';
 import { useTranslation } from 'src/content/translation';
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { KuralSegmentedOption } from 'src/components/common/KuralSegmentedControl';
-import { FontSizeScale, ThemeMode, TranslationLocale } from 'src/types/settings';
+import { FontSizeScale, SetupLanguageChoice, ThemeMode } from 'src/types/settings';
 
 import { OnboardingPager } from 'src/views/onboarding/OnboardingPager';
 import { OnboardingReviewPage } from 'src/views/onboarding/OnboardingReviewPage';
@@ -41,9 +41,10 @@ export default function OnboardingView() {
   const languageOptions = useMemo(
     () =>
       [
+        { label: tSettings('bothLanguages'), value: 'both' },
         { label: tSettings('tamilLanguage'), value: 'tamil' },
         { label: tSettings('englishLanguage'), value: 'english' },
-      ] as KuralSegmentedOption<TranslationLocale>[],
+      ] as KuralSegmentedOption<SetupLanguageChoice>[],
     [tSettings],
   );
 
@@ -71,14 +72,20 @@ export default function OnboardingView() {
   const selectedAuthorLabel =
     authorOptions.find((option) => option.value === flow.settings.preferredAuthorCode)?.label ??
     tSettings('allAuthors');
+  const languageChoice: SetupLanguageChoice =
+    flow.settings.langToggles.uiChrome.tamil && flow.settings.langToggles.uiChrome.english
+      ? 'both'
+      : flow.settings.langToggles.uiChrome.tamil
+        ? 'tamil'
+        : 'english';
   const selectedThemeLabel =
     themeOptions.find((option) => option.value === flow.settings.themeMode)?.label ?? tCommon('system');
   const selectedFontSizeLabel =
     fontSizeOptions.find((option) => option.value === flow.settings.fontSizeScale)?.label ??
     tCommon('medium');
   const selectedLanguageLabel =
-    languageOptions.find((option) => option.value === flow.settings.fallbackLanguage)?.label ??
-    tSettings('englishLanguage');
+    languageOptions.find((option) => option.value === languageChoice)?.label ??
+    tSettings('bothLanguages');
 
   const pages = [
     <OnboardingSetupPage
@@ -94,6 +101,7 @@ export default function OnboardingView() {
       fontSizeLabel={tOnboarding('fontSizeLabel')}
       themeOptions={themeOptions}
       languageOptions={languageOptions}
+      languageChoice={languageChoice}
       fontSizeOptions={fontSizeOptions}
       authorOptions={authorOptions}
       settings={flow.settings}
@@ -103,12 +111,15 @@ export default function OnboardingView() {
       onNameChange={flow.setNameInput}
       onNameCommit={(value) => flow.updateSettings({ userName: value.trim() })}
       onLanguageChange={(value) => {
+        const fallbackLanguage = value === 'tamil' ? 'tamil' : 'english';
+        const showTamil = value === 'both' || value === 'tamil';
+        const showEnglish = value === 'both' || value === 'english';
         flow.updateSettings({
-          fallbackLanguage: value,
+          fallbackLanguage,
           langToggles: {
             ...flow.settings.langToggles,
-            uiChrome: { tamil: value === 'tamil', english: value === 'english' },
-            navLabels: { tamil: value === 'tamil', english: value === 'english' },
+            uiChrome: { tamil: showTamil, english: showEnglish },
+            navLabels: { tamil: showTamil, english: showEnglish },
           },
         });
       }}

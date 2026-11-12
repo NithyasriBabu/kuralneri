@@ -157,6 +157,7 @@
     "namePlaceholder": "பெயரை உள்ளிடவும்…",
     "defaultSwatchLabel": "இயல்பு",
     "allAuthors": "அனைத்து உரையாசிரியர்கள்",
+    "bothLanguages": "இரு மொழிகளும்",
     "light": "ஒளி",
     "dark": "இருள்",
     "system": "கணினி அமைப்பு",
@@ -165,7 +166,8 @@
     "large": "பெரியது",
     "xlarge": "மிகப் பெரியது",
     "tamilLanguage": "தமிழ்",
-    "englishLanguage": "ஆங்கிலம்"
+    "englishLanguage": "ஆங்கிலம்",
+    "bothLanguages": "இரு மொழிகளும்"
   },
   "guru": {
     "title": "குரு",

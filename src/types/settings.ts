@@ -4,6 +4,7 @@
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 export type TranslationLocale = 'tamil' | 'english';
+export type SetupLanguageChoice = TranslationLocale | 'both';
 export type OnboardingStatus = 'not_started' | 'in_progress' | 'completed' | 'skipped';
 export type KuralListDisplayMode = 'full' | 'compact';
 
@@ -114,8 +115,8 @@ export const DEFAULT_LANG_TOGGLES: LangToggles = {
   kuralCard: { tamil: true, english: true },
   commentary: { tamil: false, english: true },
   filterLabels: { tamil: true, english: true },
-  navLabels: { tamil: false, english: true },
-  uiChrome: { tamil: false, english: true },
+  navLabels: { tamil: true, english: true },
+  uiChrome: { tamil: true, english: true },
   sectionHeaders: { tamil: true, english: true },
 };
 
