@@ -22,6 +22,7 @@ import {
   PAALS,
   IYALS,
   ADHIGARAMS,
+  KURAL_SEARCH_DOCUMENTS,
 } from 'src/data/queries';
 
 let taxonomy: Taxonomy | null = null;
@@ -151,6 +152,22 @@ function isActiveId(id?: number): id is number {
   return id != null && id > 0;
 }
 
+function buildFtsQuery(search: string): string {
+  return search
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((term) => `"${term.replace(/"/g, '""')}"*`)
+    .join(' AND ');
+}
+
+async function refreshKuralSearchEntry(kuralId: number): Promise<void> {
+  await executeRun('DELETE FROM kural_search WHERE kural_id = ?;', [kuralId]);
+  await executeRun(
+    `INSERT INTO kural_search (kural_id, search_text) ${KURAL_SEARCH_DOCUMENTS('WHERE k.id = ?')}`,
+    [kuralId],
+  );
+}
+
 /**
  * Builds the dynamic SQL WHERE clause and arguments array based on active user input filters
  */
@@ -190,24 +207,25 @@ function buildFilterClause(filters?: KuralFilters & { isBookmarked?: boolean }):
       clauses.push('k.id = ?');
       args.push(Number(search));
     } else {
-      clauses.push(
-        `(
-          k.line1 LIKE ? OR
-          k.line2 LIKE ? OR
-          k.translation LIKE ? OR
-          k.explanation LIKE ? OR
-          EXISTS (
-            SELECT 1 FROM notes n
-            WHERE n.kural_id = k.id AND n.text LIKE ?
-          ) OR
-          EXISTS (
-            SELECT 1 FROM user_notes un
-            WHERE un.kural_id = k.id AND un.text LIKE ?
-          )
-        )`,
-      );
-      const pattern = `%${search}%`;
-      args.push(pattern, pattern, pattern, pattern, pattern, pattern);
+      if (Platform.OS === 'web') {
+        clauses.push(
+          `k.id IN (
+            SELECT kural_id
+            FROM kural_search
+            WHERE search_text LIKE ?
+          )`,
+        );
+        args.push(`%${search}%`);
+      } else {
+        clauses.push(
+          `k.id IN (
+            SELECT CAST(kural_id AS INTEGER)
+            FROM kural_search
+            WHERE kural_search MATCH ?
+          )`,
+        );
+        args.push(buildFtsQuery(search));
+      }
     }
   }
 
@@ -355,6 +373,7 @@ export async function saveUserNote(kuralId: number, text: string): Promise<Autho
       `,
       [trimmed, timestamp, noteDate, existing[0].id],
     );
+    await refreshKuralSearchEntry(kuralId);
     return {
       author_id: existing[0].author_id,
       author_name: existing[0].author_name,
@@ -375,6 +394,7 @@ export async function saveUserNote(kuralId: number, text: string): Promise<Autho
     `,
     [kuralId, authorId, noteDate, trimmed, timestamp, timestamp],
   );
+  await refreshKuralSearchEntry(kuralId);
 
   return {
     author_id: authorId,
@@ -396,6 +416,7 @@ export async function deleteUserNote(kuralId: number): Promise<void> {
     'DELETE FROM user_notes WHERE kural_id = ? AND author_id = ? AND note_date = ?;',
     [kuralId, authorId, noteDate],
   );
+  await refreshKuralSearchEntry(kuralId);
 }
 
 /**

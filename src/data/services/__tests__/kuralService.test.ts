@@ -81,8 +81,34 @@ it('combines text search with taxonomy filters', async () => {
 
   expect(mockRead).toHaveBeenCalledWith(
     expect.stringMatching(
-      /i\.paal_id = \?[\s\S]*a\.iyal_id = \?[\s\S]*k\.adhikaram_id = \?[\s\S]*k\.line1 LIKE \?/,
+      /i\.paal_id = \?[\s\S]*a\.iyal_id = \?[\s\S]*k\.adhikaram_id = \?[\s\S]*kural_search MATCH \?/,
     ),
-    [1, 2, 3, '%love%', '%love%', '%love%', '%love%', '%love%', '%love%', 10, 0],
+    [1, 2, 3, '"love"*', 10, 0],
   );
+});
+
+it('builds a safe prefix query for multiple full-text terms', async () => {
+  Object.defineProperty(Platform, 'OS', { configurable: true, value: 'ios' });
+  mockRead.mockReturnValue([]);
+
+  await getPaginatedKurals(10, 0, { search: 'love "virtue"' });
+
+  expect(mockRead).toHaveBeenCalledWith(expect.stringContaining('kural_search MATCH ?'), [
+    '"love"* AND """virtue"""*',
+    10,
+    0,
+  ]);
+});
+
+it('uses the portable search document on web', async () => {
+  Object.defineProperty(Platform, 'OS', { configurable: true, value: 'web' });
+  mockRead.mockReturnValue([]);
+
+  await getPaginatedKurals(10, 0, { search: 'love' });
+
+  expect(mockRead).toHaveBeenCalledWith(expect.stringContaining('search_text LIKE ?'), [
+    '%love%',
+    10,
+    0,
+  ]);
 });

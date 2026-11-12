@@ -117,6 +117,35 @@ export const DISTINCT_KURAL_FILTER_IDS = (whereClause: string) => `
   ORDER BY p.id ASC, i.id ASC, a.id ASC;
 `;
 
+/** One searchable document per Kural for the FTS5 index. */
+export const KURAL_SEARCH_DOCUMENTS = (whereClause = '') => `
+  SELECT
+    k.id AS kural_id,
+    COALESCE(k.text, '') || ' ' ||
+    COALESCE(k.translation, '') || ' ' ||
+    COALESCE(k.couplet, '') || ' ' ||
+    COALESCE(k.explanation, '') || ' ' ||
+    COALESCE(k.transliteration1, '') || ' ' ||
+    COALESCE(k.transliteration2, '') || ' ' ||
+    COALESCE(a.name, '') || ' ' ||
+    COALESCE(a.translation, '') || ' ' ||
+    COALESCE(a.transliteration, '') || ' ' ||
+    COALESCE(i.name, '') || ' ' ||
+    COALESCE(i.translation, '') || ' ' ||
+    COALESCE(i.transliteration, '') || ' ' ||
+    COALESCE(p.name, '') || ' ' ||
+    COALESCE(p.translation, '') || ' ' ||
+    COALESCE(p.transliteration, '') || ' ' ||
+    COALESCE((SELECT GROUP_CONCAT(n.text, ' ') FROM notes n WHERE n.kural_id = k.id), '') || ' ' ||
+    COALESCE((SELECT GROUP_CONCAT(un.text, ' ') FROM user_notes un WHERE un.kural_id = k.id), '')
+      AS search_text
+  FROM kurals k
+  JOIN adhikarams a ON k.adhikaram_id = a.id
+  JOIN iyals i ON a.iyal_id = i.id
+  JOIN paals p ON i.paal_id = p.id
+  ${whereClause};
+`;
+
 /**
  * Primary Tier 1 List
  */

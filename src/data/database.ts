@@ -4,10 +4,11 @@ import * as SQLite from 'expo-sqlite';
 import { runWebDbTask } from 'src/data/webDbQueue';
 import detailData from 'api/detail.json';
 import thirukkuralData from 'api/thirukkural.json';
+import { KURAL_SEARCH_DOCUMENTS } from 'src/data/queries';
 
 const DB_NAME = 'kuralneri.db';
 
-export const CURRENT_SCHEMA_VERSION = 2;
+export const CURRENT_SCHEMA_VERSION = 3;
 export const CURRENT_CONTENT_VERSION = 1;
 
 export type SeedStatus = 'empty' | 'in_progress' | 'ready';
@@ -257,6 +258,13 @@ const MIGRATIONS: readonly DatabaseMigrationStep[] = [
       await ensureKuralBookmarkColumn(database);
     },
   },
+  {
+    toVersion: 3,
+    run: async (database) => {
+      await ensureKuralSearchIndex(database);
+      await rebuildKuralSearchIndex(database);
+    },
+  },
 ];
 
 function nowIso(): string {
@@ -408,6 +416,38 @@ async function ensureKuralBookmarkColumn(database: SQLite.SQLiteDatabase): Promi
 
   await executeSql(database, 'ALTER TABLE kurals ADD COLUMN is_bookmarked INTEGER DEFAULT 0;');
   await executeSql(database, 'UPDATE kurals SET is_bookmarked = 0 WHERE is_bookmarked IS NULL;');
+}
+
+async function ensureKuralSearchIndex(database: SQLite.SQLiteDatabase): Promise<void> {
+  if (Platform.OS === 'web') {
+    await executeSql(
+      database,
+      `CREATE TABLE IF NOT EXISTS kural_search (
+        kural_id INTEGER PRIMARY KEY,
+        search_text TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_kural_search_text ON kural_search (search_text);`,
+    );
+    return;
+  }
+
+  await executeSql(
+    database,
+    `CREATE VIRTUAL TABLE IF NOT EXISTS kural_search USING fts5(
+        kural_id UNINDEXED,
+        search_text,
+        tokenize = 'unicode61'
+      );`,
+  );
+}
+
+async function rebuildKuralSearchIndex(database: SQLite.SQLiteDatabase): Promise<void> {
+  await ensureKuralSearchIndex(database);
+  await executeSql(database, 'DELETE FROM kural_search;');
+  await executeSql(
+    database,
+    `INSERT INTO kural_search (kural_id, search_text) ${KURAL_SEARCH_DOCUMENTS()}`,
+  );
 }
 
 async function ensureChatMessageRoles(database: SQLite.SQLiteDatabase): Promise<void> {
@@ -586,6 +626,7 @@ async function upsertCorpusRows(database: SQLite.SQLiteDatabase): Promise<void> 
   }
 
   await restoreBookmarkIds(database, bookmarkIds);
+  await rebuildKuralSearchIndex(database);
 }
 
 async function runSchemaMigrations(
