@@ -641,6 +641,22 @@ export const createComponentStyles = (theme: AppTheme) => {
       justifyContent: 'center',
       alignItems: 'center',
     } as ViewStyle,
+    kuralListEmptyState: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 32,
+      gap: 12,
+    } as ViewStyle,
+    kuralListEmptyTitle: {
+      color: theme.colors.primary,
+      textAlign: 'center',
+    } as TextStyle,
+    kuralListEmptyBody: {
+      color: theme.colors.textSecondary,
+      textAlign: 'center',
+      maxWidth: 440,
+    } as TextStyle,
     kuralListPaginationContainer: {
       backgroundColor: theme.colors.background,
       position: 'absolute',

@@ -60,7 +60,6 @@ export function FilterHeader({
 
   const hasActiveFilters =
     searchQuery.trim().length > 0 || selectedPaal > 0 || selectedIyal > 0 || selectedAdhigaram > 0;
-  const hasSearchQuery = searchQuery.trim().length > 0;
 
   const activeFilterCount = [
     searchQuery.trim().length > 0,
@@ -127,10 +126,7 @@ export function FilterHeader({
           >
             {/* 🔍 Search Input Sub-Block */}
             <View style={[globalStyles.fieldGroup, isWidescreen && globalStyles.flexItem]}>
-              <KuralText
-                variant="caption"
-                style={[globalStyles.fieldLabel, hasSearchQuery && globalStyles.disabledLabel]}
-              >
+              <KuralText variant="caption" style={globalStyles.fieldLabel}>
                 {t('search')}
               </KuralText>
               <KuralInput
@@ -148,7 +144,6 @@ export function FilterHeader({
               items={mappedPaalOptions}
               selectedValue={selectedPaal}
               onValueChange={(val) => selectPaal(val, 0)}
-              disabled={hasSearchQuery}
               containerStyle={isWidescreen ? globalStyles.flexItem : undefined}
             />
 
@@ -159,7 +154,6 @@ export function FilterHeader({
               items={mappedIyalOptions}
               selectedValue={selectedIyal}
               onValueChange={(val) => selectIyal(val, 0)}
-              disabled={hasSearchQuery}
               containerStyle={isWidescreen ? globalStyles.flexItem : undefined}
             />
 
@@ -170,7 +164,6 @@ export function FilterHeader({
               items={mappedAdhigaramOptions}
               selectedValue={selectedAdhigaram}
               onValueChange={(val) => selectAdhigaram(val, 0)}
-              disabled={hasSearchQuery}
               containerStyle={isWidescreen ? globalStyles.flexItem : undefined}
             />
 

@@ -9,6 +9,9 @@ import { setKuralBookmarkStatus } from 'src/data/services';
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { KuralPaginationBar } from 'src/components/common/KuralPaginationBar';
 import { KuralRecord } from 'src/types/types';
+import { KuralButton } from 'src/components/common/KuralButton';
+import { KuralText } from 'src/components/common/KuralText';
+import { useTranslation } from 'src/content/translation';
 
 const DEFAULT_LIMIT_OPTIONS = [10, 20, 30, 50, 100];
 
@@ -59,6 +62,7 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
   const [limitOptions, setLimitOptions] = useState<number[]>(DEFAULT_LIMIT_OPTIONS);
 
   const { theme, componentStyles } = useTheme();
+  const { t } = useTranslation('uiChrome', 'filters');
   const screenWidth = theme.layout.screenWidth;
 
   const {
@@ -68,6 +72,7 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
     hasMore,
     totalPages,
     totalRecords,
+    searchPending,
 
     // Filtering parameters
     searchQuery,
@@ -138,9 +143,19 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
         totalRecords={totalRecords}
       />
 
-      {loading ? (
+      {loading || searchPending ? (
         <View style={componentStyles.kuralListCenteredLoader}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
+        </View>
+      ) : totalRecords === 0 && hasActiveFilters ? (
+        <View style={componentStyles.kuralListEmptyState} accessibilityRole="alert">
+          <KuralText variant="h2" style={componentStyles.kuralListEmptyTitle}>
+            {t('noMatchesTitle')}
+          </KuralText>
+          <KuralText variant="bodyNormal" style={componentStyles.kuralListEmptyBody}>
+            {t('noMatchesBody')}
+          </KuralText>
+          <KuralButton title={t('clearAllFilters')} variant="secondary" onPress={clearAllFilters} />
         </View>
       ) : (
         <FlatList
@@ -162,19 +177,21 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
           contentContainerStyle={componentStyles.kuralListPadding}
         />
       )}
-      <KuralPaginationBar
-        page={page}
-        totalPages={totalPages}
-        hasMore={hasMore}
-        loading={loading}
-        onPageJump={handlePageJump}
-        showRange={!hasActiveFilters}
-        rangeStart={kuralFrom}
-        rangeEnd={kuralTo}
-        limitOptions={limitOptions}
-        selectedLimit={kuralsPerPage}
-        onSelectLimit={setKuralsPerPage}
-      />
+      {totalRecords > 0 && (
+        <KuralPaginationBar
+          page={page}
+          totalPages={totalPages}
+          hasMore={hasMore}
+          loading={loading}
+          onPageJump={handlePageJump}
+          showRange={!hasActiveFilters}
+          rangeStart={kuralFrom}
+          rangeEnd={kuralTo}
+          limitOptions={limitOptions}
+          selectedLimit={kuralsPerPage}
+          onSelectLimit={setKuralsPerPage}
+        />
+      )}
     </SafeAreaView>
   );
 }

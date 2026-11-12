@@ -1,5 +1,10 @@
 import { Platform } from 'react-native';
-import { deleteUserNote, saveUserNote, setKuralBookmarkStatus } from '../kuralService';
+import {
+  deleteUserNote,
+  getPaginatedKurals,
+  saveUserNote,
+  setKuralBookmarkStatus,
+} from '../kuralService';
 
 const mockWrite = jest.fn();
 const mockRead = jest.fn();
@@ -66,4 +71,18 @@ describe.each(['ios', 'android', 'web'])('%s write failures', (platform) => {
     await expect(deleteUserNote(423)).rejects.toBe(failure);
     await expect(deleteUserNote(423)).resolves.toBeUndefined();
   });
+});
+
+it('combines text search with taxonomy filters', async () => {
+  Object.defineProperty(Platform, 'OS', { configurable: true, value: 'ios' });
+  mockRead.mockReturnValue([]);
+
+  await getPaginatedKurals(10, 0, { search: 'love', paalId: 1, iyalId: 2, adhigaramId: 3 });
+
+  expect(mockRead).toHaveBeenCalledWith(
+    expect.stringMatching(
+      /i\.paal_id = \?[\s\S]*a\.iyal_id = \?[\s\S]*k\.adhikaram_id = \?[\s\S]*k\.line1 LIKE \?/,
+    ),
+    [1, 2, 3, '%love%', '%love%', '%love%', '%love%', '%love%', '%love%', 10, 0],
+  );
 });

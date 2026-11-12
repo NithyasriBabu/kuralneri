@@ -28,6 +28,8 @@
     "searchAndFilterVerses": "Search & Filter Verses",
     "searchAndFiltersActive": "Search & Filters Active",
     "searchPlaceholder": "Search Kurals by text, meaning, or ID (1-1330)...",
+    "noMatchesTitle": "Nothing matched",
+    "noMatchesBody": "Try another word, choose broader categories, or clear the current search and filters.",
     "allSections": "All Sections",
     "allSubsections": "All Sub-sections",
     "allChapters": "All Chapters",

@@ -32,6 +32,7 @@ export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
     hasMore,
     totalPages,
     totalRecords,
+    searchPending,
     searchQuery,
     setSearchQuery,
     selectedPaal,
@@ -81,7 +82,7 @@ export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
     listRef.current?.scrollToOffset({ offset: 0, animated: true });
   };
 
-  if (loading) {
+  if (loading || searchPending) {
     return (
       <SafeAreaView
         style={componentStyles.kuralListScreen}

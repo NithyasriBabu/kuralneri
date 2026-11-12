@@ -16,6 +16,18 @@ import {
 } from 'src/types/types';
 
 const normalizeId = (value: unknown): number => Number(value) || 0;
+const SEARCH_DEBOUNCE_MS = 300;
+
+function useDebouncedValue<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(timeout);
+  }, [delay, value]);
+
+  return debouncedValue;
+}
 
 export function usePaginatedKuralFeed(userLimit: number = 30, isBookmarkedOnly: boolean = false) {
   const [kurals, setKurals] = useState<KuralRecord[]>([]);
@@ -32,19 +44,20 @@ export function usePaginatedKuralFeed(userLimit: number = 30, isBookmarkedOnly: 
   const [selectedPaal, setSelectedPaal] = useState(0);
   const [selectedIyal, setSelectedIyal] = useState(0);
   const [selectedAdhigaram, setSelectedAdhigaram] = useState(0);
+  const debouncedSearchQuery = useDebouncedValue(searchQuery.trim(), SEARCH_DEBOUNCE_MS);
 
   const fetchIdRef = useRef(0);
 
   // Merge the isBookmarked condition into the underlying active query filters
   const activeFilters = useMemo<KuralFilters & { isBookmarked?: boolean }>(
     () => ({
-      search: searchQuery.trim() || undefined,
+      search: debouncedSearchQuery || undefined,
       paalId: selectedPaal || undefined,
       iyalId: selectedIyal || undefined,
       adhigaramId: selectedAdhigaram || undefined,
       isBookmarked: isBookmarkedOnly || undefined, // Handled by service query layer
     }),
-    [searchQuery, selectedPaal, selectedIyal, selectedAdhigaram, isBookmarkedOnly],
+    [debouncedSearchQuery, selectedPaal, selectedIyal, selectedAdhigaram, isBookmarkedOnly],
   );
 
   const filteredIyalOptions = useMemo(
@@ -66,10 +79,14 @@ export function usePaginatedKuralFeed(userLimit: number = 30, isBookmarkedOnly: 
   const syncFilterOptions = useCallback(
     async (filters: KuralFilters & { isBookmarked?: boolean }) => {
       const taxonomy = await loadTaxonomy();
-      const rows = await getDistinctKuralFilterIds(filters);
-      const paalIdSet = new Set(rows.map((row) => row.paal_id));
-      const iyalIdSet = new Set(rows.map((row) => row.iyal_id));
-      const adhigaramIdSet = new Set(rows.map((row) => row.adhigaram_id));
+      const [paalRows, iyalRows, adhigaramRows] = await Promise.all([
+        getDistinctKuralFilterIds({ ...filters, paalId: undefined }),
+        getDistinctKuralFilterIds({ ...filters, iyalId: undefined }),
+        getDistinctKuralFilterIds({ ...filters, adhigaramId: undefined }),
+      ]);
+      const paalIdSet = new Set(paalRows.map((row) => row.paal_id));
+      const iyalIdSet = new Set(iyalRows.map((row) => row.iyal_id));
+      const adhigaramIdSet = new Set(adhigaramRows.map((row) => row.adhigaram_id));
 
       setPaalOptions(taxonomy.paals.filter((item) => paalIdSet.has(item.id)));
       setIyalOptions(taxonomy.iyals.filter((item) => iyalIdSet.has(item.id)));
@@ -252,6 +269,7 @@ export function usePaginatedKuralFeed(userLimit: number = 30, isBookmarkedOnly: 
     kuralFrom: kuralRange.from,
     kuralTo: kuralRange.to,
     totalRecords,
+    searchPending: searchQuery.trim() !== debouncedSearchQuery,
 
     searchQuery,
     setSearchQuery,
