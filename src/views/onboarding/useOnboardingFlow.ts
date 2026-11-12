@@ -18,6 +18,9 @@ export function useOnboardingFlow(pageWidth: number) {
   const { settings, updateSettings } = useSettings();
   const scrollRef = useRef<React.ElementRef<typeof ScrollView>>(null);
   const nameInputRef = useRef<React.ElementRef<typeof TextInput>>(null);
+  const activeStepRef = useRef<OnboardingPageIndex>(
+    clampOnboardingPageIndex(settings.onboardingStep),
+  );
   const [scrollX] = useState(() => new Animated.Value(0));
   const [nameInput, setNameInput] = useState(settings.userName);
   const [activeStep, setActiveStep] = useState<OnboardingPageIndex>(
@@ -29,10 +32,11 @@ export function useOnboardingFlow(pageWidth: number) {
   }, [settings.userName]);
 
   useEffect(() => {
-    const nextStep = clampOnboardingPageIndex(settings.onboardingStep);
-    setActiveStep(nextStep);
-    scrollRef.current?.scrollTo({ x: nextStep * pageWidth, animated: false });
-  }, [pageWidth, settings.onboardingStep]);
+    scrollRef.current?.scrollTo({
+      x: activeStepRef.current * pageWidth,
+      animated: false,
+    });
+  }, [pageWidth]);
 
   useEffect(() => {
     if (activeStep !== 0) {
@@ -51,6 +55,7 @@ export function useOnboardingFlow(pageWidth: number) {
   const goToStep = (step: number) => {
     const nextStep = clampOnboardingPageIndex(step);
     persistProgress(nextStep, 'in_progress');
+    activeStepRef.current = nextStep;
     setActiveStep(nextStep);
     if (nextStep !== 0) {
       nameInputRef.current?.blur();
@@ -73,7 +78,7 @@ export function useOnboardingFlow(pageWidth: number) {
 
   const handleMomentumScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const nextStep = clampOnboardingPageIndex(Math.round(event.nativeEvent.contentOffset.x / pageWidth));
-    scrollRef.current?.scrollTo({ x: nextStep * pageWidth, animated: true });
+    activeStepRef.current = nextStep;
     setActiveStep(nextStep);
     if (nextStep !== 0) {
       nameInputRef.current?.blur();
