@@ -138,8 +138,6 @@ export function OnboardingSetupPage({
             options={authorOptions}
             selected={settings.preferredAuthorCode}
             onSelect={onPreferredAuthorChange}
-            itemMinWidth={120}
-            labelNumberOfLines={3}
           />
         </View>
 

@@ -14,8 +14,6 @@ interface KuralSegmentedControlProps<T extends string> {
   selected: T;
   onSelect: (value: T) => void;
   containerStyle?: ViewStyle;
-  itemMinWidth?: number;
-  labelNumberOfLines?: number;
 }
 
 export function KuralSegmentedControl<T extends string>({
@@ -23,10 +21,11 @@ export function KuralSegmentedControl<T extends string>({
   selected,
   onSelect,
   containerStyle,
-  itemMinWidth,
-  labelNumberOfLines = 2,
 }: KuralSegmentedControlProps<T>) {
   const { theme } = useTheme();
+  const useSingleColumnMobileGrid =
+    !theme.layout.isWideScreen && theme.layout.screenWidth > 0 && theme.layout.screenWidth < 360 && options.length > 2;
+  const useTwoColumnMobileGrid = !theme.layout.isWideScreen && options.length > 2 && !useSingleColumnMobileGrid;
 
   return (
     <View
@@ -51,17 +50,28 @@ export function KuralSegmentedControl<T extends string>({
             onPress={() => onSelect(opt.value)}
             style={{
               flexGrow: 1,
-              flexBasis: itemMinWidth ?? 0,
-              minWidth: itemMinWidth ?? 0,
+              flexBasis: useSingleColumnMobileGrid
+                ? '100%'
+                : useTwoColumnMobileGrid
+                  ? '50%'
+                  : 0,
+              minWidth: useSingleColumnMobileGrid
+                ? '100%'
+                : useTwoColumnMobileGrid
+                  ? '50%'
+                  : 0,
+              alignItems: 'center',
+              justifyContent: 'center',
               paddingHorizontal: 12,
-              paddingVertical: itemMinWidth ? 10 : 8,
+              paddingVertical: 10,
               backgroundColor: active ? theme.colors.accent : 'transparent',
             }}
           >
             <KuralText
               variant="caption"
-              numberOfLines={labelNumberOfLines}
               style={{
+                width: '100%',
+                flexShrink: 1,
                 color: active ? theme.colors.textPrimary : theme.colors.textSecondary,
                 fontWeight: active ? '700' : '400',
                 textAlign: 'center',
