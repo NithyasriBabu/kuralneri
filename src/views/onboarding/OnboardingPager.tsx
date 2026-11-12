@@ -41,11 +41,13 @@ export function OnboardingPager({
   onMomentumScrollEnd,
 }: OnboardingPagerProps) {
   const { theme } = useTheme();
+  const [pagerHeight, setPagerHeight] = React.useState(0);
 
   return (
     <>
       <Animated.ScrollView
         ref={scrollRef}
+        onLayout={(event) => setPagerHeight(event.nativeEvent.layout.height)}
         horizontal
         pagingEnabled
         style={{ flex: 1 }}
@@ -68,7 +70,14 @@ export function OnboardingPager({
         contentContainerStyle={{ flexGrow: 1 }}
       >
         {pages.map((page, index) => (
-          <View key={`page-${index}`} style={{ width: pageWidth, paddingHorizontal: 4 }}>
+          <View
+            key={`page-${index}`}
+            style={{
+              width: pageWidth,
+              height: pagerHeight || undefined,
+              paddingHorizontal: 4,
+            }}
+          >
             {page}
             {index === ONBOARDING_PAGE_COUNT - 1 ? (
               <KuralButton title={finishLabel} variant="primary" onPress={onFinish} style={{ alignSelf: 'stretch' }} />
