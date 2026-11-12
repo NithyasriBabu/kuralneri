@@ -1,4 +1,3 @@
-/** @jest-environment jsdom */
 import React from 'react';
 import { act, create, ReactTestRenderer } from 'react-test-renderer';
 import { Platform } from 'react-native';

@@ -1,3 +1,4 @@
+import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -15,8 +16,8 @@ import { clampOnboardingPageIndex, OnboardingPageIndex } from 'src/views/onboard
 
 export function useOnboardingFlow(pageWidth: number) {
   const { settings, updateSettings } = useSettings();
-  const scrollRef = useRef<ScrollView>(null);
-  const nameInputRef = useRef<TextInput>(null);
+  const scrollRef = useRef<React.ElementRef<typeof ScrollView>>(null);
+  const nameInputRef = useRef<React.ElementRef<typeof TextInput>>(null);
   const [scrollX] = useState(() => new Animated.Value(0));
   const [nameInput, setNameInput] = useState(settings.userName);
   const [activeStep, setActiveStep] = useState<OnboardingPageIndex>(

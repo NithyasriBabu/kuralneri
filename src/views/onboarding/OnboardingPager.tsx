@@ -17,7 +17,7 @@ type OnboardingPagerProps = {
   pageWidth: number;
   activeStep: number;
   scrollX: Animated.Value;
-  scrollRef: React.RefObject<ScrollView | null>;
+  scrollRef: React.RefObject<React.ElementRef<typeof ScrollView> | null>;
   pages: React.ReactNode[];
   finishLabel: string;
   stepLabel: string;

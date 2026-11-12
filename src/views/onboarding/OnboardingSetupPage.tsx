@@ -27,7 +27,7 @@ type OnboardingSetupPageProps = {
     'fallbackLanguage' | 'preferredAuthorCode' | 'themeMode' | 'fontSizeScale'
   >;
   nameInput: string;
-  nameInputRef: React.RefObject<TextInput | null>;
+  nameInputRef: React.RefObject<React.ElementRef<typeof TextInput> | null>;
   isTextEditable: boolean;
   onNameChange: (value: string) => void;
   onNameCommit: (value: string) => void;
@@ -130,6 +130,8 @@ export function OnboardingSetupPage({
             options={authorOptions}
             selected={settings.preferredAuthorCode}
             onSelect={onPreferredAuthorChange}
+            itemMinWidth={120}
+            labelNumberOfLines={3}
           />
         </View>
 

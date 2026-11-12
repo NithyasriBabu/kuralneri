@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "குறள்நெறி",
-    "slug": "குறள்நெறி",
+    "slug": "kuralneri",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/kuralneri_icon.png",
@@ -28,6 +28,6 @@
     "web": {
       "favicon": "./assets/kuralneri_icon.png"
     },
-    "plugins": ["expo-sqlite", "expo-font"]
+    "plugins": ["expo-sqlite", "expo-font", "expo-status-bar"]
   }
 }

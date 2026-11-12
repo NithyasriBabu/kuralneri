@@ -47,7 +47,7 @@ export default function GuruView({ onKuralPress }: GuruViewProps) {
     summaryLoading,
   } = useGuruController();
 
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<React.ElementRef<typeof ScrollView>>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
 
   useEffect(() => {

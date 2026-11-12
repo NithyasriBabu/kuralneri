@@ -75,7 +75,7 @@ function AppContent({ fontsLoaded, settingsReady, onboardingStatus }: AppContent
           { backgroundColor: theme.colors.background },
         ]}
       >
-        <StatusBar style={theme.dark ? 'light' : 'dark'} backgroundColor={theme.colors.background} />
+        <StatusBar style={theme.dark ? 'light' : 'dark'} />
         <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
@@ -84,7 +84,7 @@ function AppContent({ fontsLoaded, settingsReady, onboardingStatus }: AppContent
   if (onboardingStatus !== 'completed' && onboardingStatus !== 'skipped') {
     return (
       <SafeAreaProvider>
-        <StatusBar style={theme.dark ? 'light' : 'dark'} backgroundColor={theme.colors.background} />
+        <StatusBar style={theme.dark ? 'light' : 'dark'} />
         <OnboardingView />
       </SafeAreaProvider>
     );
@@ -92,7 +92,7 @@ function AppContent({ fontsLoaded, settingsReady, onboardingStatus }: AppContent
 
   return (
     <SafeAreaProvider>
-      <StatusBar style={theme.dark ? 'light' : 'dark'} backgroundColor={theme.colors.background} />
+      <StatusBar style={theme.dark ? 'light' : 'dark'} />
       <TabNavigator />
     </SafeAreaProvider>
   );
@@ -145,10 +145,7 @@ function DatabaseBootstrapGate({ children }: { children: React.ReactNode }) {
   if (bootStatus === 'error' && bootError) {
     return (
       <View style={bootstrapStyles.shell(isDark)}>
-        <StatusBar
-          style={isDark ? 'light' : 'dark'}
-          backgroundColor={nativeTheme.background}
-        />
+        <StatusBar style={isDark ? 'light' : 'dark'} />
         <View style={bootstrapStyles.card(isDark)}>
           <Text style={bootstrapStyles.title(isDark)}>{databaseErrorMessage}</Text>
           <Text style={bootstrapStyles.body(isDark)}>{bootError.message}</Text>
@@ -171,10 +168,7 @@ function DatabaseBootstrapGate({ children }: { children: React.ReactNode }) {
   if (bootStatus !== 'ready') {
     return (
       <View style={bootstrapStyles.shell(isDark)}>
-        <StatusBar
-          style={isDark ? 'light' : 'dark'}
-          backgroundColor={nativeTheme.background}
-        />
+        <StatusBar style={isDark ? 'light' : 'dark'} />
         <View style={bootstrapStyles.card(isDark)}>
           <ActivityIndicator
             size="large"
