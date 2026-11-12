@@ -205,9 +205,6 @@ export function FilterHeader({
               selectedValue={selectedIyal}
               onValueChange={(val) => selectIyal(val, 0)}
               containerStyle={isWidescreen ? globalStyles.flexItem : undefined}
-              searchable
-              searchPlaceholder={t('searchOptions')}
-              closeLabel={t('close')}
             />
 
             {/* Tier 3: Chapter Selector (Adhigaram) */}
@@ -218,9 +215,6 @@ export function FilterHeader({
               selectedValue={selectedAdhigaram}
               onValueChange={(val) => selectAdhigaram(val, 0)}
               containerStyle={isWidescreen ? globalStyles.flexItem : undefined}
-              searchable
-              searchPlaceholder={t('searchOptions')}
-              closeLabel={t('close')}
             />
 
             {/* Clear Filters Action Trigger */}
