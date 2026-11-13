@@ -19,7 +19,6 @@ const TABS = [
   { id: TabType.Home, titleKey: 'homeTitle', icon: '🏠' },
   { id: TabType.Explore, titleKey: 'exploreTitle', icon: '🔍' },
   { id: TabType.Bookmarks, titleKey: 'bookmarksTitle', icon: '🔖' },
-  { id: TabType.Learn, titleKey: 'learnTitle', icon: '📈' },
   { id: TabType.Guru, titleKey: 'guruTitle', icon: '🤖' },
   { id: TabType.Settings, titleKey: 'settingsTitle', icon: '⚙' },
 ] as const;
