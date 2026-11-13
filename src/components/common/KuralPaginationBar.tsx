@@ -57,6 +57,42 @@ export function KuralPaginationBar({
     return pages;
   }, [page, totalPages, screenWidth]);
 
+  if (isCompactPagination) {
+    return (
+      <View style={componentStyles.kuralListCompactPagination}>
+        <TouchableOpacity
+          style={componentStyles.kuralListCompactPageButton}
+          onPress={() => onPageJump(page - 1)}
+          disabled={page === 1 || loading}
+          accessibilityRole="button"
+          accessibilityLabel={pair('previousPage').visible}
+          accessibilityState={{ disabled: page === 1 || loading }}
+        >
+          <ChevronLeft
+            size={20}
+            color={page === 1 || loading ? theme.colors.disabledText : theme.colors.primary}
+          />
+        </TouchableOpacity>
+        <KuralText style={componentStyles.kuralListCompactPageStatus}>
+          {page} / {totalPages}
+        </KuralText>
+        <TouchableOpacity
+          style={componentStyles.kuralListCompactPageButton}
+          onPress={() => onPageJump(page + 1)}
+          disabled={!hasMore || loading}
+          accessibilityRole="button"
+          accessibilityLabel={pair('nextPage').visible}
+          accessibilityState={{ disabled: !hasMore || loading }}
+        >
+          <ChevronRight
+            size={20}
+            color={!hasMore || loading ? theme.colors.disabledText : theme.colors.primary}
+          />
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View style={componentStyles.kuralListPaginationContainer}>
       <View style={componentStyles.kuralListRibbonRow}>

@@ -99,7 +99,7 @@ function isTranslationLocale(value: string): value is TranslationLocale {
 }
 
 function isKuralListDisplayMode(value: string): value is KuralListDisplayMode {
-  return value === 'full' || value === 'compact';
+  return value === 'responsive' || value === 'full' || value === 'compact';
 }
 
 function readBoolean(rawValue: string): boolean {

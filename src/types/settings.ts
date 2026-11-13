@@ -17,7 +17,7 @@ export type ColorScheme =
 export type TranslationLocale = 'tamil' | 'english';
 export type SetupLanguageChoice = TranslationLocale | 'both';
 export type OnboardingStatus = 'not_started' | 'in_progress' | 'completed' | 'skipped';
-export type KuralListDisplayMode = 'full' | 'compact';
+export type KuralListDisplayMode = 'responsive' | 'full' | 'compact';
 
 export type TamilFont = 'MuktaMalar' | 'Latha' | 'Catamaran' | 'ArimaMadurai';
 
@@ -56,7 +56,7 @@ export interface LangToggle {
 export type LangToggleKey =
   | 'kuralCard' // Tamil couplet lines + English translation on cards
   | 'commentary' // Commentary/notes section in detail view
-  | 'filterLabels' // Dropdown labels (பால் / Paal etc.)
+  | 'filterLabels' // Filter dropdown labels and toolbar controls
   | 'navLabels' // Bottom/top nav tab labels
   | 'uiChrome' // App chrome, controls, empty states, and dialogs
   | 'sectionHeaders'; // Section headers (இன்றைய அதிகாரம் / Wisdom of the Day)
@@ -140,10 +140,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
   fontSizeScale: 'medium',
   onboardingStatus: 'not_started',
   onboardingStep: 0,
-  kuralListDisplayMode: 'full',
+  kuralListDisplayMode: 'responsive',
   compactShowTamil: true,
   compactShowTaxonomy: true,
-  compactShowTranslation: true,
+  compactShowTranslation: false,
   compactShowExplanation: false,
   compactShowBookmark: true,
   langToggles: DEFAULT_LANG_TOGGLES,

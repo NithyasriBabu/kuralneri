@@ -66,7 +66,14 @@ export default React.memo(function KuralCardShell({
 
   return (
     <View style={[componentStyles.kuralCard, compact && componentStyles.kuralCardCompact]}>
-      <Pressable onPress={onPress} disabled={!onPress} style={componentStyles.kuralCardPressable}>
+      <Pressable
+        onPress={onPress}
+        disabled={!onPress}
+        style={[
+          componentStyles.kuralCardPressable,
+          compact && componentStyles.kuralCardPressableCompact,
+        ]}
+      >
         <KuralCouplet
           kural={kural}
           cardToggle={cardToggle}

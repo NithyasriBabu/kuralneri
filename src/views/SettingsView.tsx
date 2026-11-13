@@ -119,7 +119,7 @@ function LanguageDisplayTable() {
     },
     filterLabels: {
       tamil: tSettings('filterLabelsToggleLabel'),
-      english: 'Filter Labels',
+      english: 'Filters & Controls',
     },
     navLabels: {
       tamil: tSettings('navLabelsToggleLabel'),
@@ -238,7 +238,7 @@ export default function SettingsView() {
   const [nameInputTamil, setNameInputTamil] = useState(settings.userNameTamil);
   const [confirmReset, setConfirmReset] = useState<'none' | 'all'>('none');
   const [activeSection, setActiveSection] = useState<SettingsSection>('personal');
-  const [showSettingsTabs, setShowSettingsTabs] = useState(true);
+  const [showSettingsTabs, setShowSettingsTabs] = useState(theme.layout.isWideScreen);
 
   const showSection = (section: SettingsSection) => activeSection === section;
 
@@ -276,6 +276,7 @@ export default function SettingsView() {
   ];
 
   const KURAL_LIST_MODE_OPTIONS = [
+    { label: tSettings('responsiveView'), value: 'responsive' as const },
     { label: tSettings('fullView'), value: 'full' as const },
     { label: tSettings('compactView'), value: 'compact' as const },
   ];
@@ -594,7 +595,8 @@ export default function SettingsView() {
             helperText={tSettings('mobileKuralViewHelp')}
             onSelect={(value) => updateSettings({ kuralListDisplayMode: value })}
           />
-          {settings.kuralListDisplayMode === 'compact' ? (
+          {settings.kuralListDisplayMode === 'compact' ||
+          (settings.kuralListDisplayMode === 'responsive' && theme.layout.screenWidth <= 600) ? (
             <View style={{ marginTop: 12, gap: 4 }}>
               {compactFields.map((field) => (
                 <View key={field.key} style={row}>

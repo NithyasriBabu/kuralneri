@@ -1,6 +1,7 @@
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Platform, Pressable, View } from 'react-native';
+import { Bookmark, Bot, Home, Search, Settings } from 'lucide-react-native';
 
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { TabType } from 'src/types/types';
@@ -144,6 +145,7 @@ export default function TabNavigator() {
 
 interface NavTabButtonProps {
   tab: {
+    id: TabType;
     icon: string;
     label: string;
     tooltip: string;
@@ -160,7 +162,20 @@ interface NavTabButtonProps {
 function NavTabButton({ tab, compact, onPress, componentStyles, theme }: NavTabButtonProps) {
   const [isHovered, setIsHovered] = React.useState(false);
   const showTooltip = compact && Platform.OS === 'web' && isHovered;
-  const hasLabel = !compact && tab.label.length > 0;
+  const hasLabel = tab.label.length > 0;
+  const iconProps = {
+    size: 20,
+    strokeWidth: tab.isActive ? 2.5 : 2,
+    color: tab.isActive ? theme.colors.primary : theme.colors.textSecondary,
+  };
+  const iconByTab = {
+    [TabType.Home]: <Home {...iconProps} />,
+    [TabType.Explore]: <Search {...iconProps} />,
+    [TabType.Bookmarks]: <Bookmark {...iconProps} />,
+    [TabType.Guru]: <Bot {...iconProps} />,
+    [TabType.Settings]: <Settings {...iconProps} />,
+    [TabType.Learn]: <Search {...iconProps} />,
+  };
 
   return (
     <View style={{ flex: 1, position: 'relative' }}>
@@ -201,12 +216,7 @@ function NavTabButton({ tab, compact, onPress, componentStyles, theme }: NavTabB
         ]}
       >
         <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-          <KuralText
-            variant="caption"
-            style={[componentStyles.navTabIcon, tab.isActive && componentStyles.navTabTextActive]}
-          >
-            {tab.icon}
-          </KuralText>
+          {iconByTab[tab.id]}
           {hasLabel ? (
             <KuralText
               variant="caption"

@@ -118,7 +118,7 @@ export function useNavigatorController() {
     () =>
       TABS.filter((tab) => isTabAvailable(tab.id)).map((tab) => {
         const label = t(tab.titleKey);
-        const showLabel = !isCompactNavigation && (navLabelToggle.tamil || navLabelToggle.english);
+        const showLabel = navLabelToggle.tamil || navLabelToggle.english;
         return {
           id: tab.id,
           icon: tab.icon,
@@ -129,7 +129,7 @@ export function useNavigatorController() {
           isTamilLabel: navLabelToggle.tamil && !navLabelToggle.english,
         };
       }),
-    [activeTab, isCompactNavigation, navLabelToggle.english, navLabelToggle.tamil, t],
+    [activeTab, navLabelToggle.english, navLabelToggle.tamil, t],
   );
 
   return {

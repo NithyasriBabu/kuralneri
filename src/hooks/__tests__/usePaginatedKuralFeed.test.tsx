@@ -42,9 +42,12 @@ function Harness(): null {
 
 beforeEach(async () => {
   jest.useFakeTimers();
-  mockGetPaginatedKurals.mockClear();
-  mockGetKuralsCount.mockClear();
-  mockGetDistinctKuralFilterIds.mockClear();
+  mockGetPaginatedKurals.mockReset().mockResolvedValue([]);
+  mockGetKuralsCount.mockReset().mockResolvedValue(0);
+  mockGetDistinctKuralFilterIds.mockReset().mockResolvedValue([
+    { paal_id: 1, iyal_id: 1, adhigaram_id: 1 },
+    { paal_id: 2, iyal_id: 2, adhigaram_id: 2 },
+  ]);
   await act(async () => {
     renderer = create(<Harness />);
   });
@@ -99,4 +102,20 @@ it('clears dependent filters when a parent returns to all', async () => {
   expect(feed.selectedPaal).toBe(0);
   expect(feed.selectedIyal).toBe(0);
   expect(feed.selectedAdhigaram).toBe(0);
+});
+
+it('appends the next page without duplicating existing kurals', async () => {
+  mockGetKuralsCount.mockResolvedValue(20);
+  mockGetPaginatedKurals.mockImplementation(async (_limit, offset) => [
+    { id: offset + 1 },
+    { id: offset + 2 },
+  ]);
+
+  await act(async () => feed.selectPaal(1));
+  expect(feed.kurals.map((kural) => kural.id)).toEqual([1, 2]);
+
+  await act(async () => feed.loadNextPage());
+
+  expect(mockGetPaginatedKurals).toHaveBeenLastCalledWith(10, 10, expect.any(Object));
+  expect(feed.kurals.map((kural) => kural.id)).toEqual([1, 2, 11, 12]);
 });

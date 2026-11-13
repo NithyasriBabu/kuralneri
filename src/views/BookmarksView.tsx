@@ -32,6 +32,7 @@ export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
   const {
     kurals,
     loading,
+    loadingMore,
     page,
     hasMore,
     totalPages,
@@ -50,6 +51,7 @@ export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
     adhigaramOptions,
     clearAllFilters,
     goToPage,
+    loadNextPage,
     refresh,
     kuralFrom,
     kuralTo,
@@ -58,6 +60,7 @@ export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
 
   const hasActiveFilters =
     searchQuery.trim().length > 0 || selectedPaal > 0 || selectedIyal > 0 || selectedAdhigaram > 0;
+  const useInfiniteScroll = theme.layout.screenWidth <= 600;
 
   const getGridConfig = () => {
     if (theme.layout.screenWidth > 1024)
@@ -67,8 +70,13 @@ export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
     return { columns: 1, wrapperStyle: componentStyles.kuralListGridColumnFull };
   };
 
-  const { columns, wrapperStyle } = getGridConfig();
-  const compact = theme.layout.screenWidth <= 600 && settings.kuralListDisplayMode === 'compact';
+  const compact =
+    settings.kuralListDisplayMode === 'compact' ||
+    (settings.kuralListDisplayMode === 'responsive' && theme.layout.screenWidth <= 600);
+  const gridConfig = compact
+    ? { columns: 1, wrapperStyle: componentStyles.kuralListGridColumnFull }
+    : getGridConfig();
+  const { columns, wrapperStyle } = gridConfig;
 
   useEffect(() => {
     if (!totalRecords) {
@@ -169,7 +177,14 @@ export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
           numColumns={columns}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
-            <View style={[componentStyles.kuralListCardWrapper, wrapperStyle]}>
+            <View
+              style={[
+                compact
+                  ? componentStyles.kuralListCompactWrapper
+                  : componentStyles.kuralListCardWrapper,
+                wrapperStyle,
+              ]}
+            >
               <KuralCardShell
                 kural={item}
                 onPress={onKuralPress ? () => onKuralPress(item.id) : undefined}
@@ -182,10 +197,19 @@ export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
               />
             </View>
           )}
+          onEndReached={useInfiniteScroll ? loadNextPage : undefined}
+          onEndReachedThreshold={0.45}
+          ListFooterComponent={
+            useInfiniteScroll && loadingMore ? (
+              <View style={componentStyles.kuralListLoadMoreIndicator}>
+                <ActivityIndicator size="small" color={theme.colors.primary} />
+              </View>
+            ) : undefined
+          }
           contentContainerStyle={componentStyles.kuralListPadding}
         />
       )}
-      {totalRecords > 0 && (
+      {totalRecords > 0 && !useInfiniteScroll && (
         <KuralPaginationBar
           page={page}
           totalPages={totalPages}

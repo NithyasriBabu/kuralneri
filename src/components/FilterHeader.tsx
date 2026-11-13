@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity } from 'react-native';
-import { ChevronDown, ChevronUp, FilterX, X } from 'lucide-react-native';
+import { Pressable, View } from 'react-native';
+import { Search, SlidersHorizontal, X } from 'lucide-react-native';
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { PaalRecord, IyalRecord, AdhigaramRecord } from 'src/types/types';
 
@@ -8,7 +8,6 @@ import { PaalRecord, IyalRecord, AdhigaramRecord } from 'src/types/types';
 import { KuralText } from 'src/components/common/KuralText';
 import { KuralInput } from 'src/components/common/KuralInput';
 import { KuralDropdown } from 'src/components/common/KuralDropdown';
-import { KuralIconButton } from 'src/components/common/KuralIconButton';
 import { useTranslation } from 'src/content/translation';
 
 interface FilterHeaderProps {
@@ -54,9 +53,10 @@ export function FilterHeader({
   const { theme, globalStyles, componentStyles } = useTheme();
 
   const isWidescreen = theme.layout.isWideScreen;
-  const [isExpanded, setIsExpanded] = useState(isWidescreen);
+  const [isExpanded, setIsExpanded] = useState(false);
 
-  const { t, pair } = useTranslation('uiChrome', 'filters');
+  const { t: tChrome } = useTranslation('uiChrome', 'filters');
+  const { t: tFilter } = useTranslation('filterLabels', 'filters');
 
   const hasActiveFilters =
     searchQuery.trim().length > 0 || selectedPaal > 0 || selectedIyal > 0 || selectedAdhigaram > 0;
@@ -83,100 +83,73 @@ export function FilterHeader({
     label: `${a.name} (${a.translation})`,
     value: a.id,
   }));
-  const selectedPaalLabel = mappedPaalOptions.find((item) => item.value === selectedPaal)?.label;
-  const selectedIyalLabel = mappedIyalOptions.find((item) => item.value === selectedIyal)?.label;
-  const selectedAdhigaramLabel = mappedAdhigaramOptions.find(
-    (item) => item.value === selectedAdhigaram,
-  )?.label;
-  const activeChips = [
-    searchQuery.trim()
-      ? { key: 'search', label: searchQuery.trim(), clear: () => setSearchQuery('') }
-      : null,
-    selectedPaal > 0
-      ? { key: 'paal', label: selectedPaalLabel ?? t('section'), clear: () => selectPaal(0, 0) }
-      : null,
-    selectedIyal > 0
-      ? { key: 'iyal', label: selectedIyalLabel ?? t('subsection'), clear: () => selectIyal(0, 0) }
-      : null,
-    selectedAdhigaram > 0
-      ? {
-          key: 'adhigaram',
-          label: selectedAdhigaramLabel ?? t('chapter'),
-          clear: () => selectAdhigaram(0, 0),
-        }
-      : null,
-  ].filter((chip): chip is NonNullable<typeof chip> => chip !== null);
-
   return (
     <View style={globalStyles.container}>
-      {/* Accordion Expansion Trigger Bar */}
-      <TouchableOpacity
-        style={componentStyles.accordionHeader}
-        onPress={() => setIsExpanded(!isExpanded)}
-        activeOpacity={0.7}
-        accessibilityRole="button"
-        accessibilityState={{ expanded: isExpanded }}
-        accessibilityLabel={t('advancedFilters')}
-      >
-        <View style={componentStyles.accordionLeft}>
-          <KuralText variant="bodyNormal" style={componentStyles.accordionTitle}>
-            {hasActiveFilters ? t('searchAndFiltersActive') : t('searchAndFilterVerses')}
+      <View style={componentStyles.filterToolbar}>
+        <View style={componentStyles.filterResultCountContainer}>
+          <KuralText
+            variant="caption"
+            style={componentStyles.filterResultCount}
+            accessibilityLabel={`${totalRecords}. ${tChrome('resultCountTooltip')}`}
+            accessibilityLiveRegion="polite"
+          >
+            {totalRecords}
           </KuralText>
-          {Boolean(hasActiveFilters) && (
-            <View style={componentStyles.filterBadge}>
-              <KuralText variant="caption" style={componentStyles.filterBadgeText}>
+        </View>
+        <View style={componentStyles.filterSearchShell}>
+          <Search size={18} color={theme.colors.textSecondary} />
+          <KuralInput
+            accessibilityLabel={tChrome('search')}
+            placeholder={tChrome('searchPlaceholder')}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            containerStyle={componentStyles.filterSearchInput}
+          />
+        </View>
+        <Pressable
+          onPress={() => setIsExpanded((value) => !value)}
+          style={({ pressed }) => [
+            componentStyles.filterToggleButton,
+            isExpanded && componentStyles.filterToggleButtonActive,
+            pressed && { opacity: 0.75 },
+          ]}
+          accessibilityRole="button"
+          accessibilityState={{ expanded: isExpanded }}
+          accessibilityLabel={tFilter('advancedFilters')}
+        >
+          <SlidersHorizontal size={20} color={theme.colors.primary} />
+          {isWidescreen ? (
+            <KuralText variant="caption" style={componentStyles.filterToolbarButtonText}>
+              {tFilter('filterButton')}
+            </KuralText>
+          ) : null}
+          {activeFilterCount > 0 ? (
+            <View style={componentStyles.filterToggleBadge}>
+              <KuralText style={componentStyles.filterToggleBadgeText}>
                 {activeFilterCount}
               </KuralText>
             </View>
-          )}
-        </View>
-
-        <View style={componentStyles.accordionRight}>
-          <KuralText
-            variant="caption"
-            style={componentStyles.counterText}
-            accessibilityLiveRegion="polite"
+          ) : null}
+        </Pressable>
+        {hasActiveFilters ? (
+          <Pressable
+            onPress={clearAllFilters}
+            accessibilityRole="button"
+            accessibilityLabel={tFilter('clear')}
+            style={({ pressed }) => [
+              componentStyles.filterClearButton,
+              pressed && { opacity: 0.75 },
+            ]}
           >
-            {t('found')} {totalRecords}
-          </KuralText>
-          {isExpanded ? (
-            <ChevronUp size={16} color={theme.colors.textSecondary} />
-          ) : (
-            <ChevronDown size={16} color={theme.colors.textSecondary} />
-          )}
-        </View>
-      </TouchableOpacity>
-
-      <View style={componentStyles.filterPersistentSearch}>
-        <KuralText variant="caption" style={globalStyles.fieldLabel}>
-          {t('search')}
-        </KuralText>
-        <KuralInput
-          accessibilityLabel={t('search')}
-          placeholder={t('searchPlaceholder')}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-      </View>
-
-      {activeChips.length > 0 ? (
-        <View style={componentStyles.filterChipRow}>
-          {activeChips.map((chip) => (
-            <TouchableOpacity
-              key={chip.key}
-              onPress={chip.clear}
-              accessibilityRole="button"
-              accessibilityLabel={`${t('removeFilter')} ${chip.label}`}
-              style={componentStyles.filterChip}
-            >
-              <KuralText variant="caption" style={componentStyles.filterChipText} numberOfLines={1}>
-                {chip.label}
+            <X size={20} color={theme.colors.primary} />
+            {isWidescreen ? (
+              <KuralText variant="caption" style={componentStyles.filterClearButtonText}>
+                {tFilter('clear')}
               </KuralText>
-              <X size={14} color={theme.colors.primary} />
-            </TouchableOpacity>
-          ))}
-        </View>
-      ) : null}
+            ) : null}
+          </Pressable>
+        ) : null}
+      </View>
 
       {/* Main Collapsible Filter Tray Box Section */}
       {Boolean(isExpanded) && (
@@ -189,45 +162,42 @@ export function FilterHeader({
           >
             {/* Tier 1: Section Selector (Paal) */}
             <KuralDropdown
-              label={t('section')}
-              placeholder={t('allSections')}
+              label={tFilter('section')}
+              placeholder={tFilter('allSections')}
+              placeholderValue={0}
               items={mappedPaalOptions}
               selectedValue={selectedPaal}
               onValueChange={(val) => selectPaal(val, 0)}
-              containerStyle={isWidescreen ? globalStyles.flexItem : undefined}
+              containerStyle={
+                isWidescreen ? globalStyles.flexItem : componentStyles.filterDropdown
+              }
             />
 
             {/* Tier 2: Sub-section Selector (Iyal) */}
             <KuralDropdown
-              label={t('subsection')}
-              placeholder={t('allSubsections')}
+              label={tFilter('subsection')}
+              placeholder={tFilter('allSubsections')}
+              placeholderValue={0}
               items={mappedIyalOptions}
               selectedValue={selectedIyal}
               onValueChange={(val) => selectIyal(val, 0)}
-              containerStyle={isWidescreen ? globalStyles.flexItem : undefined}
+              containerStyle={
+                isWidescreen ? globalStyles.flexItem : componentStyles.filterDropdown
+              }
             />
 
             {/* Tier 3: Chapter Selector (Adhigaram) */}
             <KuralDropdown
-              label={t('chapter')}
-              placeholder={t('allChapters')}
+              label={tFilter('chapter')}
+              placeholder={tFilter('allChapters')}
+              placeholderValue={0}
               items={mappedAdhigaramOptions}
               selectedValue={selectedAdhigaram}
               onValueChange={(val) => selectAdhigaram(val, 0)}
-              containerStyle={isWidescreen ? globalStyles.flexItem : undefined}
+              containerStyle={
+                isWidescreen ? globalStyles.flexItem : componentStyles.filterDropdown
+              }
             />
-
-            {/* Clear Filters Action Trigger */}
-            {Boolean(hasActiveFilters) && (
-              <KuralIconButton
-                icon={<FilterX />}
-                label={pair('clearAllFilters').visible}
-                tooltip={pair('clearAllFilters').hover}
-                onPress={clearAllFilters}
-                size="sm"
-                style={isWidescreen ? { marginTop: 22 } : { marginTop: 8 }}
-              />
-            )}
           </View>
         </View>
       )}

@@ -32,6 +32,7 @@ function useDebouncedValue<T>(value: T, delay: number): T {
 export function usePaginatedKuralFeed(userLimit: number = 30, isBookmarkedOnly: boolean = false) {
   const [kurals, setKurals] = useState<KuralRecord[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
 
@@ -47,6 +48,7 @@ export function usePaginatedKuralFeed(userLimit: number = 30, isBookmarkedOnly: 
   const debouncedSearchQuery = useDebouncedValue(searchQuery.trim(), SEARCH_DEBOUNCE_MS);
 
   const fetchIdRef = useRef(0);
+  const loadingMoreRef = useRef(false);
 
   // Merge the isBookmarked condition into the underlying active query filters
   const activeFilters = useMemo<KuralFilters & { isBookmarked?: boolean }>(
@@ -96,9 +98,16 @@ export function usePaginatedKuralFeed(userLimit: number = 30, isBookmarkedOnly: 
   );
 
   const fetchPageData = useCallback(
-    async (targetPage: number) => {
+    async (targetPage: number, append: boolean = false) => {
+      if (append && loadingMoreRef.current) return;
+
       const requestId = ++fetchIdRef.current;
-      setLoading(true);
+      if (append) {
+        loadingMoreRef.current = true;
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
 
       const offset = (targetPage - 1) * userLimit;
 
@@ -114,10 +123,17 @@ export function usePaginatedKuralFeed(userLimit: number = 30, isBookmarkedOnly: 
         if (requestId !== fetchIdRef.current) return;
 
         setTotalRecords(count);
-        setKurals(records);
+        setKurals((current) => {
+          if (!append) return records;
+          const existingIds = new Set(current.map((record) => record.id));
+          return [...current, ...records.filter((record) => !existingIds.has(record.id))];
+        });
         setPage(targetPage);
       } finally {
-        if (requestId === fetchIdRef.current) {
+        if (append) {
+          loadingMoreRef.current = false;
+          setLoadingMore(false);
+        } else if (requestId === fetchIdRef.current) {
           setLoading(false);
         }
       }
@@ -242,6 +258,11 @@ export function usePaginatedKuralFeed(userLimit: number = 30, isBookmarkedOnly: 
     return { from, to };
   }, [page, userLimit, totalRecords]);
 
+  const loadNextPage = useCallback(() => {
+    if (loading || loadingMoreRef.current || page >= totalPages) return;
+    void fetchPageData(page + 1, true);
+  }, [fetchPageData, loading, page, totalPages]);
+
   // Context-aware bookmark updater
   const updateKuralBookmarkStatus = useCallback(
     (kuralId: number, isBookmarked: boolean) => {
@@ -268,6 +289,7 @@ export function usePaginatedKuralFeed(userLimit: number = 30, isBookmarkedOnly: 
   return {
     kurals,
     loading,
+    loadingMore,
     page,
     hasMore: page < totalPages,
     totalPages,
@@ -291,6 +313,7 @@ export function usePaginatedKuralFeed(userLimit: number = 30, isBookmarkedOnly: 
     adhigaramOptions: filteredAdhigaramOptions,
 
     nextPage: () => fetchPageData(page + 1),
+    loadNextPage,
     prevPage: () => fetchPageData(page - 1),
     goToPage: (pageNumber: number) => fetchPageData(pageNumber),
     refresh: () => fetchPageData(1),

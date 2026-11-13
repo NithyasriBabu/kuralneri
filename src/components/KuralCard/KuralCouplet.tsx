@@ -31,9 +31,67 @@ export default React.memo(function KuralCouplet({
   const { componentStyles } = useTheme();
   const { t } = useTranslation('uiChrome', 'cards');
 
+  if (compact) {
+    const tamilTaxonomy = `${kural.paal_name} › ${kural.iyal_name} › ${kural.adhikaram_name}`;
+    const englishTaxonomy = `${kural.paal_english_name} › ${kural.iyal_english_name} › ${kural.adhikaram_english_name}`;
+    const taxonomy =
+      headerToggle.tamil && headerToggle.english
+        ? `${tamilTaxonomy} · ${englishTaxonomy}`
+        : headerToggle.tamil
+          ? tamilTaxonomy
+          : englishTaxonomy;
+
+    return (
+      <View style={componentStyles.compactKuralLayout}>
+        <View style={componentStyles.compactKuralNumberBadge}>
+          <KuralText style={componentStyles.compactKuralNumber}>{kural.id}</KuralText>
+        </View>
+        <View style={componentStyles.compactKuralBody}>
+          <HighlightedText
+            text={kural.line1}
+            query={searchQuery}
+            isTamil
+            style={componentStyles.compactKuralTamil}
+          />
+          <HighlightedText
+            text={kural.line2}
+            query={searchQuery}
+            isTamil
+            style={componentStyles.compactKuralTamil}
+          />
+
+          {compactFields?.taxonomy ? (
+            <HighlightedText
+              text={taxonomy}
+              query={searchQuery}
+              style={componentStyles.compactKuralTaxonomy}
+              numberOfLines={1}
+            />
+          ) : null}
+          {cardToggle.english && compactFields?.translation ? (
+            <HighlightedText
+              text={kural.translation}
+              query={searchQuery}
+              style={componentStyles.compactKuralSupportingText}
+              numberOfLines={2}
+            />
+          ) : null}
+          {cardToggle.english && compactFields?.explanation ? (
+            <HighlightedText
+              text={kural.explanation}
+              query={searchQuery}
+              style={componentStyles.compactKuralSupportingText}
+              numberOfLines={2}
+            />
+          ) : null}
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View>
-      {headerToggle.tamil && (!compact || compactFields?.taxonomy) && (
+      {headerToggle.tamil && (
         <View style={componentStyles.kuralCardHeaderRow}>
           <HighlightedText
             text={`குறள் #${kural.id} • ${kural.paal_name} • ${kural.iyal_name} • ${kural.adhikaram_name}`}
@@ -42,7 +100,7 @@ export default React.memo(function KuralCouplet({
           />
         </View>
       )}
-      {headerToggle.english && (!compact || compactFields?.taxonomy) && (
+      {headerToggle.english && (
         <View style={componentStyles.kuralCardHeaderRow}>
           <HighlightedText
             text={`Kural #${kural.id} • ${kural.paal_english_name} • ${kural.iyal_english_name} • ${kural.adhikaram_english_name}`}
@@ -65,7 +123,7 @@ export default React.memo(function KuralCouplet({
         style={componentStyles.kuralCardTamil}
       />
 
-      {cardToggle.english && (!compact || compactFields?.translation) && (
+      {cardToggle.english && (
         <>
           <KuralText style={componentStyles.kuralCardTranslation}>{t('translation')}</KuralText>
           <HighlightedText
@@ -75,7 +133,7 @@ export default React.memo(function KuralCouplet({
           />
         </>
       )}
-      {cardToggle.english && (!compact || compactFields?.explanation) && (
+      {cardToggle.english && (
         <>
           <KuralText style={componentStyles.kuralCardTranslation}>{t('explanation')}</KuralText>
           <HighlightedText

@@ -72,10 +72,12 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
   const { settings } = useSettings();
   const { t } = useTranslation('uiChrome', 'filters');
   const screenWidth = theme.layout.screenWidth;
+  const useInfiniteScroll = screenWidth <= 600;
 
   const {
     kurals,
     loading,
+    loadingMore,
     page,
     hasMore,
     totalPages,
@@ -99,6 +101,7 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
 
     // Pagination callbacks
     goToPage,
+    loadNextPage,
     kuralFrom,
     kuralTo,
   } = usePaginatedKuralFeed(kuralsPerPage, false);
@@ -115,8 +118,13 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
     return { columns: 1, wrapperStyle: componentStyles.kuralListGridColumnFull };
   };
 
-  const { columns, wrapperStyle } = getGridConfig();
-  const compact = screenWidth <= 600 && settings.kuralListDisplayMode === 'compact';
+  const compact =
+    settings.kuralListDisplayMode === 'compact' ||
+    (settings.kuralListDisplayMode === 'responsive' && screenWidth <= 600);
+  const gridConfig = compact
+    ? { columns: 1, wrapperStyle: componentStyles.kuralListGridColumnFull }
+    : getGridConfig();
+  const { columns, wrapperStyle } = gridConfig;
 
   const handlePageJump = (targetPage: number) => {
     goToPage(targetPage);
@@ -177,7 +185,11 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
           renderItem={({ item }) => (
             <KuralListCard
               kural={item}
-              baseWrapperStyle={componentStyles.kuralListCardWrapper}
+              baseWrapperStyle={
+                compact
+                  ? componentStyles.kuralListCompactWrapper
+                  : componentStyles.kuralListCardWrapper
+              }
               gridWrapperStyle={wrapperStyle}
               onKuralPress={onKuralPress}
               updateKuralBookmarkStatus={updateKuralBookmarkStatus}
@@ -185,10 +197,19 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
               searchQuery={searchQuery}
             />
           )}
+          onEndReached={useInfiniteScroll ? loadNextPage : undefined}
+          onEndReachedThreshold={0.45}
+          ListFooterComponent={
+            useInfiniteScroll && loadingMore ? (
+              <View style={componentStyles.kuralListLoadMoreIndicator}>
+                <ActivityIndicator size="small" color={theme.colors.primary} />
+              </View>
+            ) : undefined
+          }
           contentContainerStyle={componentStyles.kuralListPadding}
         />
       )}
-      {totalRecords > 0 && (
+      {totalRecords > 0 && !useInfiniteScroll && (
         <KuralPaginationBar
           page={page}
           totalPages={totalPages}

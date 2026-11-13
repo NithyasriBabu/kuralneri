@@ -139,26 +139,87 @@ export const createGlobalStyles = (theme: AppTheme) => {
       color: theme.colors.textPrimary,
     } as ViewStyle,
 
-    pickerWrapper: {
+    pickerPlaceholderText: {
+      color: theme.colors.textSecondary,
+    } as TextStyle,
+    dropdownField: {
+      minHeight: theme.layout.minHeights.input,
       backgroundColor: theme.colors.surfaceElevated,
-      borderRadius: theme.layout.borderRadius.medium,
+      borderColor: theme.colors.border,
       borderWidth: 1,
-      borderColor: theme.colors.surface,
-      overflow: 'hidden',
-      height: theme.layout.minHeights.input,
-      justifyContent: 'center',
+      borderRadius: theme.layout.borderRadius.medium,
+      paddingHorizontal: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 8,
     } as ViewStyle,
-
-    pickerPrimitive: {
-      width: '100%',
-      height: theme.layout.minHeights.input,
-      backgroundColor: 'transparent',
+    dropdownFieldOpen: {
+      borderColor: theme.colors.primary,
+      borderWidth: 2,
     } as ViewStyle,
-
-    disabledPicker: {
+    dropdownFieldDisabled: {
       backgroundColor: theme.colors.interactive.card.disabled,
-      opacity: 0.6,
+      opacity: 0.5,
     } as ViewStyle,
+    dropdownFieldPressed: {
+      opacity: 0.8,
+    } as ViewStyle,
+    dropdownFieldText: {
+      flex: 1,
+      color: theme.colors.textPrimary,
+      fontSize: theme.typography.sizes.bodyNormal,
+      fontFamily: theme.typography.fonts.english,
+    } as TextStyle,
+    dropdownOverlay: {
+      flex: 1,
+    } as ViewStyle,
+    dropdownBackdrop: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    } as ViewStyle,
+    dropdownMenu: {
+      position: 'absolute',
+      backgroundColor: theme.colors.surfaceElevated,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      borderRadius: theme.layout.borderRadius.medium,
+      elevation: 8,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.18,
+      shadowRadius: 8,
+      overflow: 'hidden',
+    } as ViewStyle,
+    dropdownOption: {
+      minHeight: theme.layout.minHeights.input,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 8,
+    } as ViewStyle,
+    dropdownOptionBorder: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: theme.colors.border,
+    } as ViewStyle,
+    dropdownOptionText: {
+      flex: 1,
+      color: theme.colors.textPrimary,
+      fontSize: theme.typography.sizes.bodyNormal,
+    } as TextStyle,
+    dropdownOptionSelected: {
+      backgroundColor: theme.colors.accent,
+    } as ViewStyle,
+    dropdownOptionSelectedText: {
+      color: theme.colors.primary,
+      fontWeight: '700',
+    } as TextStyle,
+    dropdownOptionPressed: { opacity: 0.75 } as ViewStyle,
 
     /* ==========================================================================
        ADAPTIVE GRID COLUMN SPATIAL SYSTEMS
