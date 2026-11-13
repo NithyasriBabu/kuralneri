@@ -22,6 +22,7 @@ import {
   ColorScheme,
   ThemeMode,
   EnglishFont,
+  FONT_SIZE_MULTIPLIERS,
 } from 'src/types/settings';
 
 // ─── sub-components ──────────────────────────────────────────────────────────
@@ -518,6 +519,12 @@ export default function SettingsView() {
                       label={tSettings('fontSize')}
                       onSelect={(v) => updateSettings({ fontSizeScale: v })}
                       shrinkToContent
+                      optionFontSizes={{
+                        small: Math.round(12 * FONT_SIZE_MULTIPLIERS.small),
+                        medium: Math.round(12 * FONT_SIZE_MULTIPLIERS.medium),
+                        large: Math.round(12 * FONT_SIZE_MULTIPLIERS.large),
+                        xlarge: Math.round(12 * FONT_SIZE_MULTIPLIERS.xlarge),
+                      }}
                     />
                   </View>
                 </CoachTarget>

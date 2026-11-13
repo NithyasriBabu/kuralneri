@@ -8,6 +8,7 @@ import {
 import { KuralDropdown } from 'src/components/common/KuralDropdown';
 import { KuralText } from 'src/components/common/KuralText';
 import { useTheme } from 'src/theme/ThemeContextProvider';
+import { FONT_SIZE_MULTIPLIERS } from 'src/types/settings';
 import { getColorSchemeSwatches } from 'src/theme/styles';
 import {
   AppSettings,
@@ -127,6 +128,12 @@ export function OnboardingSetupPage({
           label={fontSizeLabel}
           onSelect={onFontSizeChange}
           shrinkToContent
+          optionFontSizes={{
+            small: Math.round(12 * FONT_SIZE_MULTIPLIERS.small),
+            medium: Math.round(12 * FONT_SIZE_MULTIPLIERS.medium),
+            large: Math.round(12 * FONT_SIZE_MULTIPLIERS.large),
+            xlarge: Math.round(12 * FONT_SIZE_MULTIPLIERS.xlarge),
+          }}
         />
 
         <View style={{ gap: 8 }}>

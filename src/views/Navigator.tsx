@@ -1,6 +1,7 @@
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
+  Animated,
   PanResponder,
   Platform,
   Pressable,
@@ -115,6 +116,10 @@ export default function TabNavigator({ onNativeKuralPress }: TabNavigatorProps) 
   const [visitedTabs, setVisitedTabs] = React.useState<Set<TabType>>(
     () => new Set([routeState.kind === 'tab' ? routeState.tabId : TabType.Explore]),
   );
+  const tabTransitionX = React.useRef(new Animated.Value(0)).current;
+  const previousTabRef = React.useRef<TabType | null>(
+    routeState.kind === 'tab' ? routeState.tabId : null,
+  );
   const coachStep = settings.onboardingStep;
   const coachIndex = COACH_STEPS.findIndex((step) => step.value === coachStep);
   const coach =
@@ -133,11 +138,23 @@ export default function TabNavigator({ onNativeKuralPress }: TabNavigatorProps) 
 
   React.useEffect(() => {
     if (routeState.kind !== 'tab') return;
+    const previousTab = previousTabRef.current;
+    if (previousTab !== null && previousTab !== routeState.tabId) {
+      const previousIndex = navTabs.findIndex((tab) => tab.id === previousTab);
+      const nextIndex = navTabs.findIndex((tab) => tab.id === routeState.tabId);
+      tabTransitionX.setValue(nextIndex > previousIndex ? 32 : -32);
+      Animated.timing(tabTransitionX, {
+        toValue: 0,
+        duration: 220,
+        useNativeDriver: true,
+      }).start();
+    }
+    previousTabRef.current = routeState.tabId;
     setVisitedTabs((current) => {
       if (current.has(routeState.tabId)) return current;
       return new Set([...current, routeState.tabId]);
     });
-  }, [routeState]);
+  }, [navTabs, routeState, tabTransitionX]);
 
   const renderTabScreen = (tabId: TabType) => {
     if (isDevCrashRoute('screen')) {
@@ -272,7 +289,13 @@ export default function TabNavigator({ onNativeKuralPress }: TabNavigatorProps) 
             />
           )}
         >
-          <View testID="print-screen" style={componentStyles.navFullWidthColumn}>
+          <Animated.View
+            testID="print-screen"
+            style={[
+              componentStyles.navFullWidthColumn,
+              { transform: [{ translateX: tabTransitionX }] },
+            ]}
+          >
             {routeState.kind === 'kural' ? <KuralDetailView kuralId={routeState.kuralId} /> : null}
             {navTabs.map((tab) =>
               visitedTabs.has(tab.id) ? (
@@ -288,7 +311,7 @@ export default function TabNavigator({ onNativeKuralPress }: TabNavigatorProps) 
                 </View>
               ) : null,
             )}
-          </View>
+          </Animated.View>
         </ErrorBoundary>
       </View>
 

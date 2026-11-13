@@ -17,6 +17,7 @@ interface KuralSegmentedControlProps<T extends string> {
   label?: string;
   helperText?: string;
   shrinkToContent?: boolean;
+  optionFontSizes?: Partial<Record<T, number>>;
 }
 
 export function KuralSegmentedControl<T extends string>({
@@ -26,6 +27,7 @@ export function KuralSegmentedControl<T extends string>({
   label,
   helperText,
   shrinkToContent = false,
+  optionFontSizes,
 }: KuralSegmentedControlProps<T>) {
   const { theme } = useTheme();
   const useSingleColumnMobileGrid =
@@ -42,8 +44,7 @@ export function KuralSegmentedControl<T extends string>({
           width: '100%',
           backgroundColor: theme.colors.surface,
           borderRadius: theme.layout.borderRadius.medium,
-          overflow: shrinkToContent ? 'visible' : 'hidden',
-          gap: shrinkToContent ? 6 : 0,
+          overflow: 'hidden',
           alignSelf: 'stretch',
           alignItems: 'stretch',
         }}
@@ -55,18 +56,14 @@ export function KuralSegmentedControl<T extends string>({
             key={opt.value}
             onPress={() => onSelect(opt.value)}
             style={{
-              flexGrow: shrinkToContent ? 0 : 1,
+              flexGrow: 1,
               flexShrink: 1,
               flexBasis: useSingleColumnMobileGrid
                 ? '100%'
-                : shrinkToContent
-                  ? 'auto'
-                  : 0,
+                : 0,
               minWidth: useSingleColumnMobileGrid
                 ? '100%'
-                : shrinkToContent
-                  ? undefined
-                  : 0,
+                : 0,
               alignSelf: 'stretch',
               minHeight: theme.layout.minHeights.button,
               alignItems: 'center',
@@ -79,11 +76,12 @@ export function KuralSegmentedControl<T extends string>({
             <KuralText
               variant="caption"
               style={{
-                width: shrinkToContent ? undefined : '100%',
+                width: '100%',
                 flexShrink: 1,
                 color: active ? theme.colors.textPrimary : theme.colors.textSecondary,
                 fontWeight: active ? '700' : '400',
                 textAlign: 'center',
+                fontSize: optionFontSizes?.[opt.value],
               }}
             >
               {opt.label}

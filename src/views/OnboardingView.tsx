@@ -98,7 +98,7 @@ export default function OnboardingView() {
           body={tOnboarding('setupBody')}
           setupTitle={tOnboarding('setupTitle')}
           setupBody={tOnboarding('preferencesBody')}
-          languageLabel={`${tOnboardingSingle('languageLabel', 'tamil')} / ${tOnboardingSingle('languageLabel', 'english')}`}
+          languageLabel={tOnboardingSingle('languageLabel', flow.settings.fallbackLanguage)}
           nameLabel={tOnboarding('nameLabel')}
           namePlaceholder={tOnboarding('namePlaceholder')}
           preferredAuthorLabel={tOnboarding('preferredAuthorLabel')}

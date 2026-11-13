@@ -53,7 +53,7 @@ it('stacks multi-option segmented controls in one column on small screens', () =
   act(() => renderer.unmount());
 });
 
-it('can shrink short options to their text content', () => {
+it('distributes compact options evenly across the control', () => {
   let renderer!: ReactTestRenderer;
   act(() => {
     renderer = create(
@@ -72,8 +72,12 @@ it('can shrink short options to their text content', () => {
   });
 
   const optionButtons = renderer.root.findAll(
-    (node) => typeof node.props.onPress === 'function' && node.props.style?.flexBasis === 'auto',
+    (node) => typeof node.props.onPress === 'function' && node.props.style?.flexBasis === 0,
   );
   expect(optionButtons).toHaveLength(4);
+  for (const button of optionButtons) {
+    expect(button.props.style.flexGrow).toBe(1);
+    expect(button.props.style.minWidth).toBe(0);
+  }
   act(() => renderer.unmount());
 });
