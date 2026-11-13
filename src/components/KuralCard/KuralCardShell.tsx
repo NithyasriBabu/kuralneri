@@ -66,7 +66,10 @@ export default React.memo(function KuralCardShell({
       ? { title: kural.is_bookmarked ? t('removeBookmark') : t('addBookmark') }
       : {};
 
-  const { kuralCard: cardToggle } = settings.langToggles;
+  const cardToggle = {
+    tamil: settings.fallbackLanguage === 'tamil',
+    english: settings.fallbackLanguage === 'english',
+  };
   const preferredAuthorCode = settings.preferredAuthorCode;
 
   return (

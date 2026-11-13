@@ -19,8 +19,8 @@ export default function KuralOfTheDayView({
   const { kural, loading, error } = useKuralOfTheDay();
   const { theme, componentStyles } = useTheme();
   const { settings } = useSettings();
-  const { kuralCard: headerToggle } = settings.langToggles;
-  const { tSingle } = useTranslation('kuralCard', 'cards');
+  const { t } = useTranslation('kuralCard', 'cards');
+  const showTamil = settings.fallbackLanguage === 'tamil';
   const userNameTamil = settings.userNameTamil || settings.userName;
 
   const [displayKural, setDisplayKural] = useState<KuralRecord | null>(null);
@@ -62,28 +62,28 @@ export default function KuralOfTheDayView({
             paddingBottom: 10,
           }}
         >
-          {headerToggle.tamil && (
+          {showTamil && (
             <KuralText style={componentStyles.kuralOfTheDayTamilHeader}>
-              {tSingle(greetingKey, 'tamil')}, {userNameTamil}!
+              {t(greetingKey)}, {userNameTamil}!
             </KuralText>
           )}
-          {headerToggle.english && (
+          {!showTamil && (
             <KuralText style={componentStyles.kuralOfTheDayEnglishHeader}>
-              {tSingle(greetingKey, 'english')}, {settings.userName}
+              {t(greetingKey)}, {settings.userName}
             </KuralText>
           )}
         </View>
       )}
 
       <View style={componentStyles.kuralOfTheDayHeader}>
-        {headerToggle.tamil && (
+        {showTamil && (
           <KuralText style={componentStyles.kuralOfTheDayTamilHeader}>
-            {tSingle('kuralOfTheDay', 'tamil')}
+              {t('kuralOfTheDay')}
           </KuralText>
         )}
-        {headerToggle.english && (
+        {!showTamil && (
           <KuralText style={componentStyles.kuralOfTheDayEnglishHeader}>
-            {tSingle('kuralOfTheDay', 'english')}
+              {t('kuralOfTheDay')}
           </KuralText>
         )}
       </View>

@@ -17,8 +17,8 @@ interface KuralDetailViewProps {
 export default function KuralDetailView({ kuralId }: KuralDetailViewProps) {
   const { theme, componentStyles } = useTheme();
   const { settings } = useSettings();
-  const { kuralCard: headerToggle } = settings.langToggles;
-  const { t: tCards, tSingle } = useTranslation('kuralCard', 'cards');
+  const { t: tCards } = useTranslation('kuralCard', 'cards');
+  const showTamil = settings.fallbackLanguage === 'tamil';
   const [kural, setKural] = useState<KuralRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -77,14 +77,14 @@ export default function KuralDetailView({ kuralId }: KuralDetailViewProps) {
         contentContainerStyle={componentStyles.kuralOfTheDayContent}
       >
         <View style={componentStyles.kuralOfTheDayHeader}>
-          {headerToggle.tamil && (
+          {showTamil && (
             <KuralText style={componentStyles.kuralOfTheDayTamilHeader}>
-              {tSingle('kuralDetail', 'tamil')} #{kuralId}
+              {tCards('kuralDetail')} #{kuralId}
             </KuralText>
           )}
-          {headerToggle.english && (
+          {!showTamil && (
             <KuralText style={componentStyles.kuralOfTheDayEnglishHeader}>
-              {tSingle('kuralDetail', 'english')} #{kuralId}
+              {tCards('kuralDetail')} #{kuralId}
             </KuralText>
           )}
         </View>

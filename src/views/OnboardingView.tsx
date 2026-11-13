@@ -86,9 +86,7 @@ export default function OnboardingView() {
   );
 
   const languageChoice: Exclude<SetupLanguageChoice, 'both'> =
-    flow.settings.langToggles.uiChrome.tamil && !flow.settings.langToggles.uiChrome.english
-      ? 'tamil'
-      : 'english';
+    flow.settings.fallbackLanguage === 'tamil' ? 'tamil' : 'english';
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: theme.colors.background }}

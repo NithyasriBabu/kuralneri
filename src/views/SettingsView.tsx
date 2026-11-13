@@ -56,14 +56,9 @@ const LANG_TOGGLE_KEYS: LangToggleKey[] = [
 // ─── language table ──────────────────────────────────────────────────
 
 function LanguageTable() {
-  const { settings, setLangToggle } = useSettings();
+  const { settings, updateSettings, setLangToggle } = useSettings();
   const { t, tSingle } = useTranslation('uiChrome', 'settings');
-  const selected =
-    settings.langToggles.uiChrome.tamil && !settings.langToggles.uiChrome.english
-      ? 'tamil'
-      : settings.langToggles.uiChrome.english && !settings.langToggles.uiChrome.tamil
-        ? 'english'
-        : settings.fallbackLanguage;
+  const selected = settings.fallbackLanguage;
 
   return (
     <KuralSegmentedControl
@@ -75,6 +70,7 @@ function LanguageTable() {
         { label: tSingle('englishLanguage', 'english'), value: 'english' },
       ]}
       onSelect={(language) => {
+        updateSettings({ fallbackLanguage: language });
         LANG_TOGGLE_KEYS.forEach((key) => {
           setLangToggle(key, 'tamil', language === 'tamil');
           setLangToggle(key, 'english', language === 'english');
@@ -89,7 +85,7 @@ function LanguageTable() {
 export default function SettingsView() {
   const { theme } = useTheme();
   const { settings, settingsLoadWarning, updateSettings, resetSettings } = useSettings();
-  const { t: tSettings, tSingle: tSettingsSingle, pair } = useTranslation('uiChrome', 'settings');
+  const { t: tSettings, pair } = useTranslation('uiChrome', 'settings');
   const { t: tSettingsNav } = useTranslation('navLabels', 'settings');
   const { t: tOnboarding } = useTranslation('uiChrome', 'onboarding');
 
@@ -120,7 +116,7 @@ export default function SettingsView() {
       ].includes(activeTarget)
     ) {
       setActiveSection('display');
-    } else if (['settings-language-display', 'settings-fallback-language'].includes(activeTarget)) {
+    } else if (activeTarget === 'settings-language-display') {
       setActiveSection('language');
     } else if (['settings-restart-tips', 'settings-reset-data'].includes(activeTarget)) {
       setActiveSection('reset');
@@ -160,11 +156,6 @@ export default function SettingsView() {
     { label: tSettings('medium'), value: 'medium' },
     { label: tSettings('large'), value: 'large' },
     { label: tSettings('xlarge'), value: 'xlarge' },
-  ];
-
-  const FIXED_LANGUAGE_OPTIONS = [
-    { label: tSettingsSingle('tamilLanguage', 'tamil'), value: 'tamil' as const },
-    { label: tSettingsSingle('englishLanguage', 'english'), value: 'english' as const },
   ];
 
   const KURAL_LIST_MODE_OPTIONS = [
@@ -635,34 +626,6 @@ export default function SettingsView() {
                   </View>
                 </CoachTarget>
 
-                <CoachTarget id="settings-fallback-language" scrollRef={scrollRef}>
-                  <View
-                    style={{
-                      backgroundColor: theme.colors.surfaceElevated,
-                      borderRadius: theme.layout.borderRadius.medium,
-                      padding: 14,
-                      marginTop: 8,
-                      borderWidth: 1,
-                      borderColor: theme.colors.border,
-                    }}
-                  >
-                    <View
-                      style={{
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        gap: 12,
-                      }}
-                    >
-                      <KuralSegmentedControl
-                        options={FIXED_LANGUAGE_OPTIONS}
-                        selected={settings.fallbackLanguage}
-                        label={`${tSettingsSingle('fallbackLanguage', 'tamil')} / ${tSettingsSingle('fallbackLanguage', 'english')}`}
-                        helperText={`${tSettingsSingle('fallbackLanguageHelp', 'tamil')} / ${tSettingsSingle('fallbackLanguageHelp', 'english')}`}
-                        onSelect={(v) => updateSettings({ fallbackLanguage: v })}
-                      />
-                    </View>
-                  </View>
-                </CoachTarget>
               </>
             ) : null}
 

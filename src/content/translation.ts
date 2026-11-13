@@ -39,16 +39,8 @@ export function translatePair(
   key: TranslationKey,
   fallbackLocale: TranslationLocale,
 ): { visible: string; hover: string } {
-  const tamil =
-    readLocaleValue(namespace, key, 'tamil') || readLocaleValue(namespace, key, fallbackLocale);
-  const english =
-    readLocaleValue(namespace, key, 'english') || readLocaleValue(namespace, key, fallbackLocale);
-
-  if (fallbackLocale === 'tamil') {
-    return { visible: tamil, hover: english };
-  }
-
-  return { visible: english, hover: tamil };
+  const value = readLocaleValue(namespace, key, fallbackLocale);
+  return { visible: value, hover: value };
 }
 
 export function translate(
@@ -150,8 +142,14 @@ export function useTranslation(
 ) {
   const { i18n: i18nextInstance } = useI18nextTranslation(namespace);
   const { settings } = useSettings();
-  const toggle = settings.langToggles[toggleKey];
   const fallbackLocale = settings.fallbackLanguage;
+  const toggle = useMemo<LangToggle>(
+    () => ({
+      tamil: fallbackLocale === 'tamil',
+      english: fallbackLocale === 'english',
+    }),
+    [fallbackLocale],
+  );
 
   return useMemo(
     () => ({

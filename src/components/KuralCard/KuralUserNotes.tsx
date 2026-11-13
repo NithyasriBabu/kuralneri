@@ -149,7 +149,7 @@ export default React.memo(function KuralUserNotes({ kuralId, notes }: KuralUserN
           textAlignVertical="top"
           autoCorrect
           autoCapitalize="sentences"
-          spellCheck={settings.langToggles.kuralCard.english}
+          spellCheck={settings.fallbackLanguage === 'english'}
         />
 
         <View style={componentStyles.userNotesActionsRow}>

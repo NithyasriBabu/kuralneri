@@ -64,8 +64,6 @@ export function useNavigatorController() {
   const activeTab = routeState.kind === 'kural' ? TabType.Explore : routeState.tabId;
   const isWidescreen = theme.layout.isWideScreen;
   const isCompactNavigation = theme.layout.screenWidth < COMPACT_NAV_BREAKPOINT;
-  const navLabelToggle = settings.langToggles.navLabels;
-
   useEffect(() => {
     if (Platform.OS !== 'web') return;
 
@@ -121,10 +119,10 @@ export function useNavigatorController() {
           tooltip: label,
           accessibilityLabel: label,
           isActive: activeTab === tab.id,
-          isTamilLabel: navLabelToggle.tamil && !navLabelToggle.english,
+          isTamilLabel: settings.fallbackLanguage === 'tamil',
         };
       }),
-    [activeTab, navLabelToggle.english, navLabelToggle.tamil, t],
+    [activeTab, settings.fallbackLanguage, t],
   );
 
   return {

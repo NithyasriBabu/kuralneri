@@ -53,7 +53,6 @@ const COACH_STEPS = [
   { value: 16, tab: TabType.Settings, targetId: 'settings-tamil-font', titleKey: 'settingsTamilFontTipTitle', bodyKey: 'settingsTamilFontTipBody' },
   { value: 17, tab: TabType.Settings, targetId: 'settings-english-font', titleKey: 'settingsEnglishFontTipTitle', bodyKey: 'settingsEnglishFontTipBody' },
   { value: 18, tab: TabType.Settings, targetId: 'settings-language-display', titleKey: 'settingsLanguageTipTitle', bodyKey: 'settingsLanguageTipBody' },
-  { value: 19, tab: TabType.Settings, targetId: 'settings-fallback-language', titleKey: 'settingsFallbackTipTitle', bodyKey: 'settingsFallbackTipBody' },
   { value: 20, tab: TabType.Settings, targetId: 'settings-restart-tips', titleKey: 'settingsRestartTipTitle', bodyKey: 'settingsRestartTipBody' },
   { value: 21, tab: TabType.Settings, targetId: 'settings-reset-data', titleKey: 'settingsResetTipTitle', bodyKey: 'settingsResetTipBody' },
 ] as const;
