@@ -4,11 +4,16 @@ import { DEFAULT_SETTINGS } from 'src/types/settings';
 
 const mockScalars = new Map<string, string>();
 const mockToggles = new Map<string, { tamil: number; english: number }>();
+let bookmarkClearCount = 0;
 function mockRead(sql: string, [key]: string[]): unknown {
   if (sql.includes('app_settings_lang_toggles')) return mockToggles.get(key) ?? null;
   return mockScalars.has(key) ? { value: mockScalars.get(key) } : null;
 }
 function mockRun(sql: string, args: (string | number)[] = []): void {
+  if (sql.includes('UPDATE kurals SET is_bookmarked = 0')) {
+    bookmarkClearCount += 1;
+    return;
+  }
   const toggles = sql.includes('app_settings_lang_toggles');
   if (sql.startsWith('DELETE')) {
     if (toggles) mockToggles.clear();
@@ -29,6 +34,7 @@ jest.mock('src/data/database', () => ({
 beforeEach(() => {
   mockScalars.clear();
   mockToggles.clear();
+  bookmarkClearCount = 0;
 });
 describe.each(['ios', 'web'])('%s settings persistence', (platform) => {
   beforeEach(() => {
@@ -48,6 +54,7 @@ describe.each(['ios', 'web'])('%s settings persistence', (platform) => {
     await saveSettings(settings);
     expect((await loadSettings()).settings).toEqual(settings);
     await resetAllSettings();
+    expect(bookmarkClearCount).toBe(1);
     expect((await loadSettings()).settings).toEqual(DEFAULT_SETTINGS);
   });
   it('recovers invalid stored theme and onboarding values', async () => {

@@ -22,7 +22,7 @@ interface SettingsContextType {
   settingsLoadWarning: boolean;
   updateSettings: (patch: Partial<AppSettings>) => void;
   setLangToggle: (key: LangToggleKey, field: 'tamil' | 'english', value: boolean) => void;
-  resetSettings: () => void;
+  resetSettings: () => Promise<void>;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -106,14 +106,14 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     [],
   );
 
-  const resetSettings = useCallback(() => {
+  const resetSettings = useCallback(async () => {
+    await resetAllSettings();
     const fresh = {
       ...DEFAULT_SETTINGS,
       langToggles: { ...DEFAULT_SETTINGS.langToggles },
     };
     setSettings(fresh);
     setSettingsLoadWarning(false);
-    void resetAllSettings();
   }, []);
 
   const value = useMemo<SettingsContextType>(

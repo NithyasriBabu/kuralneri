@@ -54,12 +54,9 @@ export interface LangToggle {
 
 /** Keys matching places in the app that show bilingual content */
 export type LangToggleKey =
-  | 'kuralCard' // Tamil couplet lines + English translation on cards
-  | 'commentary' // Commentary/notes section in detail view
-  | 'filterLabels' // Filter dropdown labels and toolbar controls
-  | 'navLabels' // Bottom/top nav tab labels
-  | 'uiChrome' // App chrome, controls, empty states, and dialogs
-  | 'sectionHeaders'; // Section headers (இன்றைய அதிகாரம் / Wisdom of the Day)
+  | 'kuralCard' // Kural card/detail taxonomy, numbering, translation, and explanation
+  | 'navLabels' // Main navigation and Settings section labels
+  | 'uiChrome'; // Filters, controls, empty states, dialogs, and other interface text
 
 export type LangToggles = Record<LangToggleKey, LangToggle>;
 
@@ -111,20 +108,14 @@ export const APP_SETTINGS_SCALAR_KEYS = [
 
 export const APP_SETTINGS_LANG_TOGGLE_KEYS = [
   'kuralCard',
-  'commentary',
-  'filterLabels',
   'navLabels',
   'uiChrome',
-  'sectionHeaders',
 ] as const satisfies readonly LangToggleKey[];
 
 export const DEFAULT_LANG_TOGGLES: LangToggles = {
   kuralCard: { tamil: true, english: true },
-  commentary: { tamil: false, english: true },
-  filterLabels: { tamil: true, english: true },
   navLabels: { tamil: true, english: true },
   uiChrome: { tamil: true, english: true },
-  sectionHeaders: { tamil: true, english: true },
 };
 
 export const DEFAULT_SETTINGS: AppSettings = {

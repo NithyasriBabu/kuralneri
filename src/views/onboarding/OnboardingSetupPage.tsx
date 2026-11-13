@@ -1,10 +1,14 @@
 import React from 'react';
 import { TextInput, View } from 'react-native';
 
-import { KuralSegmentedControl, KuralSegmentedOption } from 'src/components/common/KuralSegmentedControl';
+import {
+  KuralSegmentedControl,
+  KuralSegmentedOption,
+} from 'src/components/common/KuralSegmentedControl';
 import { KuralDropdown } from 'src/components/common/KuralDropdown';
 import { KuralText } from 'src/components/common/KuralText';
 import { useTheme } from 'src/theme/ThemeContextProvider';
+import { getColorSchemeSwatches } from 'src/theme/styles';
 import {
   AppSettings,
   FontSizeScale,
@@ -97,10 +101,16 @@ export function OnboardingSetupPage({
           },
         ]}
       >
-        <KuralText variant="caption" style={{ color: theme.colors.textSecondary, textAlign: 'center' }}>
+        <KuralText
+          variant="caption"
+          style={{ color: theme.colors.textSecondary, textAlign: 'center' }}
+        >
           {setupTitle}
         </KuralText>
-        <KuralText variant="bodyNormal" style={{ color: theme.colors.textSecondary, textAlign: 'center' }}>
+        <KuralText
+          variant="bodyNormal"
+          style={{ color: theme.colors.textSecondary, textAlign: 'center' }}
+        >
           {setupBody}
         </KuralText>
 
@@ -109,6 +119,14 @@ export function OnboardingSetupPage({
           selected={languageChoice}
           label={languageLabel}
           onSelect={onLanguageChange}
+        />
+
+        <KuralSegmentedControl
+          options={fontSizeOptions}
+          selected={settings.fontSizeScale}
+          label={fontSizeLabel}
+          onSelect={onFontSizeChange}
+          shrinkToContent
         />
 
         <View style={{ gap: 8 }}>
@@ -149,24 +167,21 @@ export function OnboardingSetupPage({
         />
 
         <KuralDropdown
-            label={themeLabel}
-            items={themeOptions}
-            selectedValue={settings.colorScheme}
-            onValueChange={(value) => onThemeChange(value as ColorScheme)}
-          />
+          label={themeLabel}
+          items={themeOptions.map((option) => ({
+            ...option,
+            swatchColors: getColorSchemeSwatches(option.value, theme.dark ? 'dark' : 'light'),
+          }))}
+          selectedValue={settings.colorScheme}
+          onValueChange={(value) => onThemeChange(value as ColorScheme)}
+          showItemLabels={false}
+        />
 
         <KuralSegmentedControl
           options={appearanceOptions}
           selected={settings.themeMode}
           label={appearanceLabel}
           onSelect={onAppearanceChange}
-        />
-
-        <KuralSegmentedControl
-          options={fontSizeOptions}
-          selected={settings.fontSizeScale}
-          label={fontSizeLabel}
-          onSelect={onFontSizeChange}
         />
       </View>
     </OnboardingPageFrame>

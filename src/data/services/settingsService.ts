@@ -207,6 +207,15 @@ async function clearSettingsRows(targetDb: SettingsDb): Promise<void> {
   targetDb.runSync('DELETE FROM app_settings_lang_toggles;');
 }
 
+async function clearBookmarkRows(targetDb: SettingsDb): Promise<void> {
+  const sql = 'UPDATE kurals SET is_bookmarked = 0;';
+  if (Platform.OS === 'web') {
+    await targetDb.runAsync(sql);
+    return;
+  }
+  targetDb.runSync(sql);
+}
+
 function buildDefaultSettings(): AppSettings {
   return {
     ...DEFAULT_SETTINGS,
@@ -350,6 +359,7 @@ export async function saveLangToggle(key: LangToggleKey, value: LangToggle): Pro
 
 export async function resetAllSettings(): Promise<void> {
   return withSettingsDb(async (targetDb) => {
+    await clearBookmarkRows(targetDb);
     await clearSettingsRows(targetDb);
     await persistScalarPatch(targetDb, DEFAULT_SCALAR_SETTINGS);
     for (const key of APP_SETTINGS_LANG_TOGGLE_KEYS) {
@@ -362,15 +372,5 @@ export async function resetAllSettings(): Promise<void> {
  * Wipe bookmarks from the kurals. Called from the Reset section.
  */
 export async function clearAllBookmarks(): Promise<void> {
-  return runWebDbTask(async () => {
-    const sql = 'UPDATE kurals set is_bookmarked = 0;';
-    if (Platform.OS === 'web') {
-      const targetDb = await db;
-      await targetDb.runAsync(sql);
-      return;
-    }
-
-    const targetDb = db as SQLite.SQLiteDatabase;
-    targetDb.runSync(sql);
-  });
+  return withSettingsDb(clearBookmarkRows);
 }

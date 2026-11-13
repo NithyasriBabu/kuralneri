@@ -3,6 +3,7 @@ import { Pressable, View } from 'react-native';
 
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { KuralText } from 'src/components/common/KuralText';
+import { SettingsItem } from 'src/components/settings/SettingsItem';
 
 export interface KuralSegmentedOption<T extends string> {
   label: string;
@@ -15,6 +16,7 @@ interface KuralSegmentedControlProps<T extends string> {
   onSelect: (value: T) => void;
   label?: string;
   helperText?: string;
+  shrinkToContent?: boolean;
 }
 
 export function KuralSegmentedControl<T extends string>({
@@ -23,34 +25,16 @@ export function KuralSegmentedControl<T extends string>({
   onSelect,
   label,
   helperText,
+  shrinkToContent = false,
 }: KuralSegmentedControlProps<T>) {
   const { theme } = useTheme();
   const useSingleColumnMobileGrid =
-    !theme.layout.isWideScreen && theme.layout.screenWidth > 0 && theme.layout.screenWidth < 360 && options.length > 2;
-  const useTwoColumnMobileGrid = !theme.layout.isWideScreen && options.length > 2 && !useSingleColumnMobileGrid;
+    !shrinkToContent &&
+    theme.layout.screenWidth > 0 &&
+    theme.layout.screenWidth <= 600 &&
+    options.length > 2;
 
-  return (
-    <View
-      style={[
-        {
-          marginTop: 8,
-          width: '100%',
-          alignSelf: 'stretch',
-        },
-      ]}
-    >
-      {label ? (
-        <View style={{ width: '100%', marginBottom: 8 }}>
-          <KuralText variant="bodyNormal" style={{ color: theme.colors.textPrimary, fontWeight: '600' }}>
-            {label}
-          </KuralText>
-          {helperText ? (
-            <KuralText variant="caption" style={{ color: theme.colors.textSecondary, marginTop: 2 }}>
-              {helperText}
-            </KuralText>
-          ) : null}
-        </View>
-      ) : null}
+  const control = (
       <View
         style={{
           flexDirection: 'row',
@@ -58,7 +42,8 @@ export function KuralSegmentedControl<T extends string>({
           width: '100%',
           backgroundColor: theme.colors.surface,
           borderRadius: theme.layout.borderRadius.medium,
-          overflow: 'hidden',
+          overflow: shrinkToContent ? 'visible' : 'hidden',
+          gap: shrinkToContent ? 6 : 0,
           alignSelf: 'stretch',
           alignItems: 'stretch',
         }}
@@ -70,16 +55,17 @@ export function KuralSegmentedControl<T extends string>({
             key={opt.value}
             onPress={() => onSelect(opt.value)}
             style={{
-              flexGrow: 1,
+              flexGrow: shrinkToContent ? 0 : 1,
+              flexShrink: 1,
               flexBasis: useSingleColumnMobileGrid
                 ? '100%'
-                : useTwoColumnMobileGrid
-                  ? '50%'
+                : shrinkToContent
+                  ? 'auto'
                   : 0,
               minWidth: useSingleColumnMobileGrid
                 ? '100%'
-                : useTwoColumnMobileGrid
-                  ? '50%'
+                : shrinkToContent
+                  ? undefined
                   : 0,
               alignSelf: 'stretch',
               minHeight: theme.layout.minHeights.button,
@@ -93,7 +79,7 @@ export function KuralSegmentedControl<T extends string>({
             <KuralText
               variant="caption"
               style={{
-                width: '100%',
+                width: shrinkToContent ? undefined : '100%',
                 flexShrink: 1,
                 color: active ? theme.colors.textPrimary : theme.colors.textSecondary,
                 fontWeight: active ? '700' : '400',
@@ -106,6 +92,13 @@ export function KuralSegmentedControl<T extends string>({
         );
       })}
       </View>
-    </View>
+  );
+
+  return label ? (
+    <SettingsItem label={label} helperText={helperText} style={{ marginTop: 8 }}>
+      {control}
+    </SettingsItem>
+  ) : (
+    <View style={{ marginTop: 8, width: '100%', alignSelf: 'stretch' }}>{control}</View>
   );
 }
