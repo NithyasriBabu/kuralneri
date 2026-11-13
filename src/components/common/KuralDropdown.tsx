@@ -17,6 +17,7 @@ import { useTheme } from 'src/theme/ThemeContextProvider';
 export interface DropdownItem {
   label: string;
   value: string | number;
+  swatchColors?: string[];
 }
 
 interface DropdownAnchor {
@@ -35,6 +36,7 @@ interface KuralDropdownProps {
   placeholderValue?: string | number;
   disabled?: boolean;
   containerStyle?: ViewStyle;
+  showItemLabels?: boolean;
 }
 
 const VIEWPORT_MARGIN = 8;
@@ -51,6 +53,7 @@ export const KuralDropdown: React.FC<KuralDropdownProps> = ({
   placeholderValue = '',
   disabled = false,
   containerStyle,
+  showItemLabels = true,
 }) => {
   const { height: viewportHeight, width: viewportWidth } = useWindowDimensions();
   const { theme, globalStyles } = useTheme();
@@ -60,12 +63,57 @@ export const KuralDropdown: React.FC<KuralDropdownProps> = ({
   const [isOpen, setIsOpen] = useState(false);
 
   const options = useMemo<DropdownItem[]>(
-    () =>
-      placeholder ? [{ label: placeholder, value: placeholderValue }, ...items] : items,
+    () => (placeholder ? [{ label: placeholder, value: placeholderValue }, ...items] : items),
     [items, placeholder, placeholderValue],
   );
   const selectedItem = options.find((item) => item.value === selectedValue);
   const selectedLabel = selectedItem?.label ?? placeholder;
+
+  const renderItemContent = (item: DropdownItem | undefined, fallbackLabel: string) => {
+    if (item?.swatchColors?.length) {
+      return (
+        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <View
+            style={{
+              flex: 1,
+              minWidth: 72,
+              maxWidth: showItemLabels ? 160 : undefined,
+              minHeight: 28,
+              flexDirection: 'row',
+              overflow: 'hidden',
+              borderRadius: theme.layout.borderRadius.small,
+              borderWidth: 1,
+              borderColor: theme.colors.border,
+            }}
+          >
+            {item.swatchColors.map((color, index) => (
+              <View
+                key={`${String(item.value)}-${color}-${index}`}
+                style={{ flex: 1, backgroundColor: color }}
+              />
+            ))}
+          </View>
+          {showItemLabels ? (
+            <KuralText numberOfLines={1} style={globalStyles.dropdownFieldText}>
+              {item.label}
+            </KuralText>
+          ) : null}
+        </View>
+      );
+    }
+
+    return (
+      <KuralText
+        numberOfLines={1}
+        style={[
+          globalStyles.dropdownFieldText,
+          item?.value === placeholderValue && globalStyles.pickerPlaceholderText,
+        ]}
+      >
+        {fallbackLabel}
+      </KuralText>
+    );
+  };
 
   const openDropdown = () => {
     if (disabled) return;
@@ -87,19 +135,15 @@ export const KuralDropdown: React.FC<KuralDropdownProps> = ({
     ? viewportHeight - anchor.y - anchor.height - MENU_GAP - VIEWPORT_MARGIN
     : 0;
   const availableAbove = anchor ? anchor.y - MENU_GAP - VIEWPORT_MARGIN : 0;
-  const opensAbove = availableBelow < Math.min(180, desiredMenuHeight) && availableAbove > availableBelow;
+  const opensAbove =
+    availableBelow < Math.min(180, desiredMenuHeight) && availableAbove > availableBelow;
   const menuMaxHeight = Math.max(
     OPTION_HEIGHT,
     Math.min(desiredMenuHeight, opensAbove ? availableAbove : availableBelow),
   );
-  const menuWidth = anchor
-    ? Math.min(anchor.width, viewportWidth - VIEWPORT_MARGIN * 2)
-    : 0;
+  const menuWidth = anchor ? Math.min(anchor.width, viewportWidth - VIEWPORT_MARGIN * 2) : 0;
   const menuLeft = anchor
-    ? Math.min(
-        Math.max(anchor.x, VIEWPORT_MARGIN),
-        viewportWidth - menuWidth - VIEWPORT_MARGIN,
-      )
+    ? Math.min(Math.max(anchor.x, VIEWPORT_MARGIN), viewportWidth - menuWidth - VIEWPORT_MARGIN)
     : 0;
   const menuTop = anchor
     ? opensAbove
@@ -132,15 +176,7 @@ export const KuralDropdown: React.FC<KuralDropdownProps> = ({
             pressed && !disabled && globalStyles.dropdownFieldPressed,
           ]}
         >
-          <KuralText
-            numberOfLines={1}
-            style={[
-              globalStyles.dropdownFieldText,
-              selectedItem?.value === placeholderValue && globalStyles.pickerPlaceholderText,
-            ]}
-          >
-            {selectedLabel}
-          </KuralText>
+          {renderItemContent(selectedItem, selectedLabel)}
           {isOpen ? (
             <ChevronUp size={18} color={theme.colors.primary} />
           ) : (
@@ -193,15 +229,53 @@ export const KuralDropdown: React.FC<KuralDropdownProps> = ({
                       pressed && globalStyles.dropdownOptionPressed,
                     ]}
                   >
-                    <KuralText
-                      numberOfLines={2}
-                      style={[
-                        globalStyles.dropdownOptionText,
-                        isSelected && globalStyles.dropdownOptionSelectedText,
-                      ]}
-                    >
-                      {item.label}
-                    </KuralText>
+                    {item.swatchColors?.length ? (
+                      <View
+                        style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 }}
+                      >
+                        <View
+                          style={{
+                            flex: 1,
+                            minWidth: 72,
+                            maxWidth: showItemLabels ? 160 : undefined,
+                            minHeight: 28,
+                            flexDirection: 'row',
+                            overflow: 'hidden',
+                            borderRadius: theme.layout.borderRadius.small,
+                            borderWidth: 1,
+                            borderColor: theme.colors.border,
+                          }}
+                        >
+                          {item.swatchColors.map((color, colorIndex) => (
+                            <View
+                              key={`${String(item.value)}-${color}-${colorIndex}`}
+                              style={{ flex: 1, backgroundColor: color }}
+                            />
+                          ))}
+                        </View>
+                        {showItemLabels ? (
+                          <KuralText
+                            numberOfLines={2}
+                            style={[
+                              globalStyles.dropdownOptionText,
+                              isSelected && globalStyles.dropdownOptionSelectedText,
+                            ]}
+                          >
+                            {item.label}
+                          </KuralText>
+                        ) : null}
+                      </View>
+                    ) : (
+                      <KuralText
+                        numberOfLines={2}
+                        style={[
+                          globalStyles.dropdownOptionText,
+                          isSelected && globalStyles.dropdownOptionSelectedText,
+                        ]}
+                      >
+                        {item.label}
+                      </KuralText>
+                    )}
                     {isSelected ? <Check size={18} color={theme.colors.primary} /> : null}
                   </Pressable>
                 );

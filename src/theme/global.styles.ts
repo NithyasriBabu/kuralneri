@@ -129,7 +129,7 @@ export const createGlobalStyles = (theme: AppTheme) => {
 
     inputField: {
       flex: 1,
-      height: theme.layout.minHeights.input,
+      minHeight: theme.layout.minHeights.input,
       backgroundColor: theme.colors.surfaceElevated,
       borderRadius: theme.layout.borderRadius.medium,
       paddingHorizontal: 12,

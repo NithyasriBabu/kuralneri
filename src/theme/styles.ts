@@ -61,6 +61,14 @@ export function createColorSchemeTheme(colorScheme: ColorScheme, mode: Exclude<T
   return { dark: colors.dark, isWideScreen: false, colors: { ...colors, interactive: interactive(colors) }, typography: baseTypography, layout: baseLayout };
 }
 
+export function getColorSchemeSwatches(
+  colorScheme: ColorScheme,
+  mode: Exclude<ThemeMode, 'system'>,
+): string[] {
+  const theme = createColorSchemeTheme(colorScheme, mode);
+  return [theme.colors.background, theme.colors.surface, theme.colors.accent, theme.colors.primary];
+}
+
 export const EarthyTheme = createColorSchemeTheme('earthySage', 'light');
 export const LightEarthyTheme = EarthyTheme;
 export const DarkEarthyTheme = createColorSchemeTheme('earthySage', 'dark');

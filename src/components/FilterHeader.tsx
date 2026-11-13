@@ -56,7 +56,7 @@ export function FilterHeader({
   const [isExpanded, setIsExpanded] = useState(false);
 
   const { t: tChrome } = useTranslation('uiChrome', 'filters');
-  const { t: tFilter } = useTranslation('filterLabels', 'filters');
+  const { t: tFilter } = useTranslation('uiChrome', 'filters');
 
   const hasActiveFilters =
     searchQuery.trim().length > 0 || selectedPaal > 0 || selectedIyal > 0 || selectedAdhigaram > 0;

@@ -31,7 +31,7 @@ function formatDisplayDate(noteDate: string): string {
 export default React.memo(function KuralUserNotes({ kuralId, notes }: KuralUserNotesProps) {
   const { componentStyles } = useTheme();
   const { settings } = useSettings();
-  const { t, pair } = useTranslation('uiChrome', 'cards');
+  const { t, pair } = useTranslation('kuralCard', 'cards');
   const today = getLocalDateString();
 
   const initialUserNotes = useMemo(
@@ -149,7 +149,7 @@ export default React.memo(function KuralUserNotes({ kuralId, notes }: KuralUserN
           textAlignVertical="top"
           autoCorrect
           autoCapitalize="sentences"
-          spellCheck={settings.langToggles.uiChrome.english}
+          spellCheck={settings.langToggles.kuralCard.english}
         />
 
         <View style={componentStyles.userNotesActionsRow}>

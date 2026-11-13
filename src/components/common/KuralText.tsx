@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, TextProps, TextStyle } from 'react-native';
+import { StyleSheet, Text, TextProps, TextStyle } from 'react-native';
 import { useTheme } from 'src/theme/ThemeContextProvider';
 
 interface KuralTextProps extends TextProps {
@@ -25,9 +25,18 @@ export const KuralText: React.FC<KuralTextProps> = ({
     fontSize: theme.typography.sizes[variant],
     color: variant === 'caption' ? theme.colors.textSecondary : theme.colors.textPrimary,
   };
+  const resolvedStyle = StyleSheet.flatten([baseStyle, style]) ?? baseStyle;
+  const fontSize = typeof resolvedStyle.fontSize === 'number' ? resolvedStyle.fontSize : 15;
+  const safeLineHeight = Math.ceil(fontSize * (containsTamil ? 1.65 : 1.45));
+  const requestedLineHeight =
+    typeof resolvedStyle.lineHeight === 'number' ? resolvedStyle.lineHeight : 0;
+  const clippingSafeStyle: TextStyle = {
+    lineHeight: Math.max(requestedLineHeight, safeLineHeight),
+    includeFontPadding: true,
+  };
 
   return (
-    <Text style={[baseStyle, style]} {...props}>
+    <Text style={[baseStyle, style, clippingSafeStyle]} {...props}>
       {children}
     </Text>
   );

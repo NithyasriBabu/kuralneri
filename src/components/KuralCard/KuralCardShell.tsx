@@ -10,6 +10,7 @@ import { KuralRecord } from 'src/types/types';
 import { KuralText } from 'src/components/common/KuralText';
 import KuralCouplet from 'src/components/KuralCard/KuralCouplet';
 import KuralNotesBlock from 'src/components/KuralCard/KuralNotesBlock';
+import { CoachTarget } from 'src/context/CoachMarkContext';
 
 export interface KuralCardShellProps {
   kural: KuralRecord;
@@ -20,6 +21,8 @@ export interface KuralCardShellProps {
   bookmarkLoading?: boolean;
   compact?: boolean;
   searchQuery?: string;
+  highlightBookmark?: boolean;
+  bookmarkCoachTargetId?: string;
 }
 
 export default React.memo(function KuralCardShell({
@@ -31,6 +34,8 @@ export default React.memo(function KuralCardShell({
   bookmarkLoading,
   compact = false,
   searchQuery,
+  highlightBookmark = false,
+  bookmarkCoachTargetId,
 }: KuralCardShellProps) {
   const { theme, componentStyles } = useTheme();
   const { t } = useTranslation('uiChrome', 'common');
@@ -61,7 +66,7 @@ export default React.memo(function KuralCardShell({
       ? { title: kural.is_bookmarked ? t('removeBookmark') : t('addBookmark') }
       : {};
 
-  const { kuralCard: cardToggle, sectionHeaders: headerToggle } = settings.langToggles;
+  const { kuralCard: cardToggle } = settings.langToggles;
   const preferredAuthorCode = settings.preferredAuthorCode;
 
   return (
@@ -77,7 +82,7 @@ export default React.memo(function KuralCardShell({
         <KuralCouplet
           kural={kural}
           cardToggle={cardToggle}
-          headerToggle={headerToggle}
+          headerToggle={cardToggle}
           compact={compact}
           compactFields={{
             taxonomy: settings.compactShowTaxonomy,
@@ -104,14 +109,33 @@ export default React.memo(function KuralCardShell({
       )}
 
       {onBookmarkToggle && (!compact || settings.compactShowBookmark) && (
+        <CoachTarget
+          id={bookmarkCoachTargetId ?? ''}
+          style={[
+            componentStyles.kuralCardBookmarkButton,
+            Boolean(kural.is_bookmarked) && componentStyles.kuralCardBookmarkButtonActive,
+            bookmarkBusy && componentStyles.kuralCardBookmarkButtonDisabled,
+            highlightBookmark && {
+              borderWidth: 3,
+              borderColor: theme.colors.primary,
+              backgroundColor: theme.colors.accent,
+            },
+          ]}
+        >
         <Pressable
           onPress={handleBookmarkPress}
           disabled={bookmarkBusy}
           {...bookmarkWebProps}
           style={[
-            componentStyles.kuralCardBookmarkButton,
-            Boolean(kural.is_bookmarked) && componentStyles.kuralCardBookmarkButtonActive,
-            bookmarkBusy && componentStyles.kuralCardBookmarkButtonDisabled,
+            {
+              width: '100%',
+              height: '100%',
+              minWidth: 44,
+              minHeight: 44,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 999,
+            },
           ]}
           accessibilityState={{ disabled: Boolean(bookmarkBusy), busy: savingBookmark }}
           accessibilityRole="button"
@@ -123,6 +147,7 @@ export default React.memo(function KuralCardShell({
             fill={kural.is_bookmarked ? theme.colors.accent : 'transparent'}
           />
         </Pressable>
+        </CoachTarget>
       )}
     </View>
   );

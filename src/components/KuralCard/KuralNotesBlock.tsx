@@ -44,7 +44,7 @@ export default function KuralNotesBlock({
 }: KuralNotesBlockProps) {
   const { theme } = useTheme();
   const { settings } = useSettings();
-  const { t } = useTranslation('uiChrome', 'cards');
+  const { t } = useTranslation('kuralCard', 'cards');
   const notesKey = `${kuralId}-${preferredAuthorCode ?? 'none'}-${showComments}-${showUserNotes}`;
 
   if (!settings.selfNotesEnabled && !showComments) return null;

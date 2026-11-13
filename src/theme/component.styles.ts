@@ -2,6 +2,9 @@ import { StyleSheet, ViewStyle, TextStyle, Platform } from 'react-native';
 import { AppTheme } from 'src/theme/types';
 
 export const createComponentStyles = (theme: AppTheme) => {
+  const compactTamilFontSize = theme.typography.sizes.bodyNormal + 1;
+  const cardTamilFontSize = theme.typography.sizes.bodyLarge;
+
   return StyleSheet.create({
     /* ==========================================================================
        KURAL CARD COMPONENT SURFACE
@@ -35,13 +38,13 @@ export const createComponentStyles = (theme: AppTheme) => {
     } as ViewStyle,
     kuralCardPressable: {
       gap: 10,
-      paddingRight: 42,
+      paddingRight: 58,
     } as ViewStyle,
     kuralCardPressableCompact: {
       minHeight: 104,
       paddingVertical: 14,
       paddingLeft: 2,
-      paddingRight: 42,
+      paddingRight: 58,
       justifyContent: 'center',
     } as ViewStyle,
     compactKuralLayout: {
@@ -69,9 +72,11 @@ export const createComponentStyles = (theme: AppTheme) => {
     } as ViewStyle,
     compactKuralTamil: {
       fontFamily: theme.typography.fonts.tamil,
-      fontSize: theme.typography.sizes.bodyNormal + 1,
+      fontSize: compactTamilFontSize,
       color: theme.colors.textPrimary,
-      lineHeight: 23,
+      lineHeight: Math.ceil(compactTamilFontSize * 1.65),
+      paddingTop: 1,
+      paddingBottom: 1,
     } as TextStyle,
     compactKuralTaxonomy: {
       color: theme.colors.textSecondary,
@@ -99,9 +104,9 @@ export const createComponentStyles = (theme: AppTheme) => {
       position: 'absolute',
       top: 12,
       right: 12,
-      width: 30,
-      height: 30,
-      borderRadius: 15,
+      minWidth: 44,
+      minHeight: 44,
+      borderRadius: 999,
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: theme.colors.surfaceElevated,
@@ -123,9 +128,11 @@ export const createComponentStyles = (theme: AppTheme) => {
     } as TextStyle,
     kuralCardTamil: {
       fontFamily: theme.typography.fonts.tamil,
-      fontSize: theme.typography.sizes.bodyLarge,
+      fontSize: cardTamilFontSize,
       color: theme.colors.textPrimary,
-      lineHeight: 26,
+      lineHeight: Math.ceil(cardTamilFontSize * 1.65),
+      paddingTop: 1,
+      paddingBottom: 1,
     } as TextStyle,
     kuralCardTranslation: {
       fontFamily: theme.typography.fonts.english,
@@ -271,7 +278,7 @@ export const createComponentStyles = (theme: AppTheme) => {
     filterSearchShell: {
       flex: 1,
       minWidth: 0,
-      height: 44,
+      minHeight: 44,
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
@@ -282,7 +289,7 @@ export const createComponentStyles = (theme: AppTheme) => {
       borderRadius: theme.layout.borderRadius.medium,
     } as ViewStyle,
     filterSearchInput: {
-      height: 42,
+      minHeight: 42,
       minWidth: 0,
       paddingHorizontal: 0,
       paddingRight: 8,
@@ -292,7 +299,7 @@ export const createComponentStyles = (theme: AppTheme) => {
     filterToggleButton: {
       width: theme.layout.isWideScreen ? undefined : 44,
       minWidth: 44,
-      height: 44,
+      minHeight: 44,
       paddingHorizontal: theme.layout.isWideScreen ? 12 : 0,
       borderRadius: theme.layout.borderRadius.medium,
       flexDirection: 'row',
@@ -334,7 +341,7 @@ export const createComponentStyles = (theme: AppTheme) => {
     filterClearButton: {
       width: theme.layout.isWideScreen ? undefined : 44,
       minWidth: 44,
-      height: 44,
+      minHeight: 44,
       paddingHorizontal: theme.layout.isWideScreen ? 12 : 0,
       borderRadius: theme.layout.borderRadius.medium,
       flexDirection: 'row',
@@ -351,7 +358,7 @@ export const createComponentStyles = (theme: AppTheme) => {
     } as TextStyle,
     filterResultCountContainer: {
       minWidth: 36,
-      height: 44,
+      minHeight: 44,
       alignItems: 'center',
       justifyContent: 'center',
     } as ViewStyle,
@@ -801,7 +808,7 @@ export const createComponentStyles = (theme: AppTheme) => {
     } as ViewStyle,
     kuralListCompactPageButton: {
       width: 42,
-      height: 42,
+      minHeight: 42,
       borderRadius: 21,
       alignItems: 'center',
       justifyContent: 'center',
@@ -825,7 +832,7 @@ export const createComponentStyles = (theme: AppTheme) => {
     } as ViewStyle,
     kuralListStepperButton: {
       width: 36,
-      height: 36,
+      minHeight: 36,
       borderRadius: 18,
       backgroundColor: theme.colors.accent,
       justifyContent: 'center',
@@ -853,7 +860,7 @@ export const createComponentStyles = (theme: AppTheme) => {
     } as ViewStyle,
     kuralListNumberButton: {
       width: 36,
-      height: 36,
+      minHeight: 36,
       borderRadius: 18,
       justifyContent: 'center',
       alignItems: 'center',
@@ -984,7 +991,7 @@ export const createComponentStyles = (theme: AppTheme) => {
       flexDirection: 'row',
       backgroundColor: theme.colors.background,
       width: '100%',
-      height: 64,
+      minHeight: 64,
     } as ViewStyle,
     navTopPlacement: {
       borderBottomWidth: 2,
@@ -993,7 +1000,7 @@ export const createComponentStyles = (theme: AppTheme) => {
     navBottomPlacement: {
       borderTopWidth: 1,
       borderColor: theme.colors.border,
-      height: 62,
+      minHeight: 62,
       paddingBottom: 4,
     } as ViewStyle,
     navTabIcon: {
@@ -1005,7 +1012,7 @@ export const createComponentStyles = (theme: AppTheme) => {
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      height: '100%',
+      minHeight: 56,
       backgroundColor: 'transparent',
     } as ViewStyle,
     navTabButtonActive: {
@@ -1069,7 +1076,7 @@ export const createComponentStyles = (theme: AppTheme) => {
     } as ViewStyle,
     ribbonStepCircle: {
       width: 36,
-      height: 36,
+      minHeight: 36,
       borderRadius: 18,
       backgroundColor: theme.colors.accent,
       justifyContent: 'center',
@@ -1087,7 +1094,7 @@ export const createComponentStyles = (theme: AppTheme) => {
     } as TextStyle,
     ribbonNumberPill: {
       width: 36,
-      height: 36,
+      minHeight: 36,
       borderRadius: 18,
       justifyContent: 'center',
       alignItems: 'center',

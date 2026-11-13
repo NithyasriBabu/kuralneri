@@ -29,7 +29,7 @@ export default React.memo(function KuralCouplet({
   searchQuery,
 }: KuralCoupletProps) {
   const { componentStyles } = useTheme();
-  const { t } = useTranslation('uiChrome', 'cards');
+  const { t } = useTranslation('kuralCard', 'cards');
 
   if (compact) {
     const tamilTaxonomy = `${kural.paal_name} › ${kural.iyal_name} › ${kural.adhikaram_name}`;
