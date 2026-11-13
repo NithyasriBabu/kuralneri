@@ -1,6 +1,13 @@
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Platform, Pressable, ScrollView, useWindowDimensions, View } from 'react-native';
+import {
+  PanResponder,
+  Platform,
+  Pressable,
+  ScrollView,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { Bookmark, Bot, Home, Search, Settings, X } from 'lucide-react-native';
 
 import { useTheme } from 'src/theme/ThemeContextProvider';
@@ -42,18 +49,10 @@ const COACH_STEPS = [
   { value: 5, tab: TabType.Bookmarks, targetId: 'bookmarks-remove-one', titleKey: 'bookmarkRemoveTipTitle', bodyKey: 'bookmarkRemoveTipBody' },
   { value: 6, tab: TabType.Bookmarks, targetId: 'bookmarks-clear-all', titleKey: 'bookmarkClearTipTitle', bodyKey: 'bookmarkClearTipBody' },
   { value: 7, tab: TabType.Settings, targetId: 'nav-SETTINGS', bodyKey: 'settingsCardBody' },
-  { value: 8, tab: TabType.Settings, targetId: 'settings-name', titleKey: 'settingsNameTipTitle', bodyKey: 'settingsNameTipBody' },
-  { value: 9, tab: TabType.Settings, targetId: 'settings-name-tamil', titleKey: 'settingsTamilNameTipTitle', bodyKey: 'settingsTamilNameTipBody' },
   { value: 10, tab: TabType.Settings, targetId: 'settings-author', titleKey: 'settingsAuthorTipTitle', bodyKey: 'settingsAuthorTipBody' },
-  { value: 11, tab: TabType.Settings, targetId: 'settings-self-notes', titleKey: 'settingsNotesTipTitle', bodyKey: 'settingsNotesTipBody' },
   { value: 12, tab: TabType.Settings, targetId: 'settings-color-scheme', titleKey: 'settingsColorTipTitle', bodyKey: 'settingsColorTipBody' },
-  { value: 13, tab: TabType.Settings, targetId: 'settings-appearance', titleKey: 'settingsAppearanceTipTitle', bodyKey: 'settingsAppearanceTipBody' },
   { value: 14, tab: TabType.Settings, targetId: 'settings-font-size', titleKey: 'settingsSizeTipTitle', bodyKey: 'settingsSizeTipBody' },
-  { value: 15, tab: TabType.Settings, targetId: 'settings-list-view', titleKey: 'settingsListTipTitle', bodyKey: 'settingsListTipBody' },
-  { value: 16, tab: TabType.Settings, targetId: 'settings-tamil-font', titleKey: 'settingsTamilFontTipTitle', bodyKey: 'settingsTamilFontTipBody' },
-  { value: 17, tab: TabType.Settings, targetId: 'settings-english-font', titleKey: 'settingsEnglishFontTipTitle', bodyKey: 'settingsEnglishFontTipBody' },
   { value: 18, tab: TabType.Settings, targetId: 'settings-language-display', titleKey: 'settingsLanguageTipTitle', bodyKey: 'settingsLanguageTipBody' },
-  { value: 20, tab: TabType.Settings, targetId: 'settings-restart-tips', titleKey: 'settingsRestartTipTitle', bodyKey: 'settingsRestartTipBody' },
   { value: 21, tab: TabType.Settings, targetId: 'settings-reset-data', titleKey: 'settingsResetTipTitle', bodyKey: 'settingsResetTipBody' },
 ] as const;
 
@@ -63,8 +62,20 @@ export default function TabNavigator({ onNativeKuralPress }: TabNavigatorProps) 
   const { t: tOnboarding } = useTranslation('uiChrome', 'onboarding');
   const { settings, updateSettings } = useSettings();
   const { height: windowHeight } = useWindowDimensions();
-  const [coachTargetRect, setCoachTargetRect] = React.useState<CoachTargetRect | null>(null);
+  const [coachTargetRect, setCoachTargetRectState] =
+    React.useState<CoachTargetRect | null>(null);
   const [coachTooltipHeight, setCoachTooltipHeight] = React.useState(0);
+  const setCoachTargetRect = React.useCallback((nextRect: CoachTargetRect | null) => {
+    setCoachTargetRectState((currentRect) => {
+      if (!currentRect || !nextRect) return nextRect;
+      const unchanged =
+        Math.abs(currentRect.x - nextRect.x) < 1 &&
+        Math.abs(currentRect.y - nextRect.y) < 1 &&
+        Math.abs(currentRect.width - nextRect.width) < 1 &&
+        Math.abs(currentRect.height - nextRect.height) < 1;
+      return unchanged ? currentRect : nextRect;
+    });
+  }, []);
   const {
     handleKuralPress,
     handleTabPress,
@@ -73,6 +84,29 @@ export default function TabNavigator({ onNativeKuralPress }: TabNavigatorProps) 
     navTabs,
     routeState,
   } = useNavigatorController();
+
+  const moveTab = React.useCallback(
+    (direction: -1 | 1) => {
+      if (routeState.kind !== 'tab') return;
+      const currentIndex = navTabs.findIndex((tab) => tab.id === routeState.tabId);
+      const nextTab = navTabs[currentIndex + direction];
+      if (nextTab) handleTabPress(nextTab.id);
+    },
+    [handleTabPress, navTabs, routeState],
+  );
+
+  const tabPanResponder = React.useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_, gestureState) =>
+          Math.abs(gestureState.dx) > Math.abs(gestureState.dy) && Math.abs(gestureState.dx) > 12,
+        onPanResponderRelease: (_, gestureState) => {
+          if (Math.abs(gestureState.dx) < 64) return;
+          moveTab(gestureState.dx < 0 ? 1 : -1);
+        },
+      }),
+    [moveTab],
+  );
   const handleKuralSelect =
     Platform.OS === 'web' || !onNativeKuralPress ? handleKuralPress : onNativeKuralPress;
   const kuralNavigationProps = { onKuralPress: handleKuralSelect };
@@ -91,7 +125,7 @@ export default function TabNavigator({ onNativeKuralPress }: TabNavigatorProps) 
   React.useEffect(() => {
     setCoachTargetRect(null);
     setCoachTooltipHeight(0);
-  }, [coach?.targetId]);
+  }, [coach?.targetId, setCoachTargetRect]);
 
   React.useEffect(() => {
     if (coach) handleTabPress(coach.tab);
@@ -155,17 +189,47 @@ export default function TabNavigator({ onNativeKuralPress }: TabNavigatorProps) 
       />
     ));
 
-  const tooltipPlacement = coachTargetRect
-    ? {
-        top: Math.max(
-          8,
-          Math.min(
-            coachTargetRect.y + coachTargetRect.height + 8,
-            windowHeight - Math.max(coachTooltipHeight, 180) - 8,
-          ),
-        ),
-      }
-    : { top: isWidescreen ? 76 : 8 };
+  const tooltipHeight = coachTooltipHeight || 160;
+  const tooltipMaxHeight = Math.max(120, windowHeight - 16);
+  const isBottomNavigationTip = !isWidescreen && coach?.targetId.startsWith('nav-');
+  const belowTargetTop = coachTargetRect
+    ? coachTargetRect.y + coachTargetRect.height + 8
+    : isWidescreen
+      ? 76
+      : windowHeight - tooltipHeight - 8;
+  const aboveTargetTop = coachTargetRect
+    ? coachTargetRect.y - tooltipHeight - 8
+    : belowTargetTop;
+  const preferredTooltipTop =
+    isBottomNavigationTip ||
+    (coachTargetRect && belowTargetTop + tooltipHeight > windowHeight - 8)
+      ? aboveTargetTop
+      : belowTargetTop;
+  const tooltipPlacement = {
+    top: Math.max(8, Math.min(preferredTooltipTop, windowHeight - tooltipHeight - 8)),
+  };
+
+  const moveCoachStep = React.useCallback(
+    (direction: -1 | 1) => {
+      const nextIndex = coachIndex + direction;
+      if (nextIndex < 0 || nextIndex >= COACH_STEPS.length) return;
+      updateSettings({ onboardingStep: COACH_STEPS[nextIndex].value });
+    },
+    [coachIndex, updateSettings],
+  );
+
+  const coachPanResponder = React.useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_, gestureState) =>
+          Math.abs(gestureState.dx) > Math.abs(gestureState.dy) && Math.abs(gestureState.dx) > 12,
+        onPanResponderRelease: (_, gestureState) => {
+          if (Math.abs(gestureState.dx) < 48) return;
+          moveCoachStep(gestureState.dx < 0 ? 1 : -1);
+        },
+      }),
+    [moveCoachStep],
+  );
 
   return (
     <CoachMarkProvider activeTarget={coach?.targetId} setTargetRect={setCoachTargetRect}>
@@ -183,7 +247,11 @@ export default function TabNavigator({ onNativeKuralPress }: TabNavigatorProps) 
         </View>
       )}
 
-      <View testID="print-canvas" style={componentStyles.navCanvasWrapper}>
+      <View
+        testID="print-canvas"
+        style={componentStyles.navCanvasWrapper}
+        {...tabPanResponder.panHandlers}
+      >
         <ErrorBoundary
           resetKeys={[routeState.kind, routeResetKey]}
           onError={(error, errorInfo) => {
@@ -235,14 +303,35 @@ export default function TabNavigator({ onNativeKuralPress }: TabNavigatorProps) 
 
       {coach ? (
         <View
+          pointerEvents="auto"
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            top: 0,
+            bottom: 0,
+            zIndex: 90,
+          }}
+        />
+      ) : null}
+
+      {coach ? (
+        <View
           accessibilityRole="alert"
-          onLayout={(event) => setCoachTooltipHeight(event.nativeEvent.layout.height)}
+          {...coachPanResponder.panHandlers}
+          onLayout={(event) => {
+            const nextHeight = event.nativeEvent.layout.height;
+            setCoachTooltipHeight((currentHeight) =>
+              Math.abs(currentHeight - nextHeight) < 1 ? currentHeight : nextHeight,
+            );
+          }}
           style={{
             position: 'absolute',
             left: 16,
             right: 16,
             ...tooltipPlacement,
-            maxHeight: Math.max(120, windowHeight - 16),
+            maxHeight: tooltipMaxHeight,
+            zIndex: 100,
             borderRadius: theme.layout.borderRadius.large,
             borderWidth: 1,
             borderColor: theme.colors.primary,
@@ -290,7 +379,7 @@ export default function TabNavigator({ onNativeKuralPress }: TabNavigatorProps) 
                   title={tOnboarding('tipBack')}
                   variant="secondary"
                   onPress={() =>
-                    updateSettings({ onboardingStep: COACH_STEPS[coachIndex - 1].value })
+                  moveCoachStep(-1)
                   }
                 />
               ) : null}
@@ -301,12 +390,9 @@ export default function TabNavigator({ onNativeKuralPress }: TabNavigatorProps) 
                     : tOnboarding('tipNext')
                 }
                 onPress={() =>
-                  updateSettings({
-                    onboardingStep:
-                      coachIndex === COACH_STEPS.length - 1
-                        ? COACH_DONE_STEP
-                        : COACH_STEPS[coachIndex + 1].value,
-                  })
+                  coachIndex === COACH_STEPS.length - 1
+                    ? updateSettings({ onboardingStep: COACH_DONE_STEP })
+                    : moveCoachStep(1)
                 }
               />
             </View>

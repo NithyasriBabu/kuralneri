@@ -25,7 +25,6 @@ interface KuralListCardProps {
   baseWrapperStyle: StyleProp<ViewStyle>;
   gridWrapperStyle: StyleProp<ViewStyle>;
   onKuralPress?: (kuralId: number) => void;
-  updateKuralBookmarkStatus: (kuralId: number, newStatus: boolean) => void;
   compact: boolean;
   searchQuery: string;
 }
@@ -35,7 +34,6 @@ const KuralListCard = React.memo(function KuralListCard({
   baseWrapperStyle,
   gridWrapperStyle,
   onKuralPress,
-  updateKuralBookmarkStatus,
   compact,
   searchQuery,
 }: KuralListCardProps) {
@@ -46,9 +44,8 @@ const KuralListCard = React.memo(function KuralListCard({
   const handleBookmarkToggle = useCallback(
     async (newStatus: boolean) => {
       await setKuralBookmarkStatus(kural.id, newStatus);
-      updateKuralBookmarkStatus(kural.id, newStatus);
     },
-    [kural.id, updateKuralBookmarkStatus],
+    [kural.id],
   );
 
   return (
@@ -97,7 +94,6 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
     selectAdhigaram,
     adhigaramOptions,
     clearAllFilters,
-    updateKuralBookmarkStatus,
 
     // Pagination callbacks
     goToPage,
@@ -192,7 +188,6 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
               }
               gridWrapperStyle={wrapperStyle}
               onKuralPress={onKuralPress}
-              updateKuralBookmarkStatus={updateKuralBookmarkStatus}
               compact={compact}
               searchQuery={searchQuery}
             />

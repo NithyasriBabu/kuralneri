@@ -123,6 +123,10 @@ export default function SettingsView() {
     }
   }, [activeTarget]);
 
+  React.useEffect(() => {
+    if (activeTarget === 'nav-SETTINGS') setActiveSection('personal');
+  }, [activeTarget]);
+
   const showSection = (section: SettingsSection) => activeSection === section;
 
   const AUTHORS = [

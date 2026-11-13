@@ -30,6 +30,7 @@ jest.mock('src/data/services', () => ({
   }),
   getPaalIdForIyal: jest.fn(),
   getParentsForAdhigaram: jest.fn(),
+  subscribeToBookmarkChanges: jest.fn(() => () => undefined),
 }));
 
 let feed: ReturnType<typeof usePaginatedKuralFeed>;

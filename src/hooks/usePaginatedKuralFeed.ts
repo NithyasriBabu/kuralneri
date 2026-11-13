@@ -6,6 +6,7 @@ import {
   loadTaxonomy,
   getPaalIdForIyal,
   getParentsForAdhigaram,
+  subscribeToBookmarkChanges,
 } from 'src/data/services';
 import {
   KuralRecord,
@@ -285,6 +286,17 @@ export function usePaginatedKuralFeed(userLimit: number = 30, isBookmarkedOnly: 
     },
     [isBookmarkedOnly],
   );
+
+  useEffect(() => {
+    return subscribeToBookmarkChanges(({ kuralId, isBookmarked }) => {
+      if (isBookmarkedOnly && isBookmarked) {
+        void fetchPageData(1);
+        return;
+      }
+
+      updateKuralBookmarkStatus(kuralId, isBookmarked);
+    });
+  }, [fetchPageData, isBookmarkedOnly, updateKuralBookmarkStatus]);
 
   return {
     kurals,

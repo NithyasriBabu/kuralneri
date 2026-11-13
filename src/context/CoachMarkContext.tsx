@@ -60,8 +60,8 @@ export function CoachTarget({ id, scrollRef, children, onLayout, style, ...props
       targetNode.measureLayout(
         scrollNode,
         (_x, y) => {
-          scrollNode.scrollTo({ y: Math.max(0, y - 24), animated: true });
-          setTimeout(measure, 350);
+          scrollNode.scrollTo({ y: Math.max(0, y - 24), animated: false });
+          measure();
         },
         measure,
       );

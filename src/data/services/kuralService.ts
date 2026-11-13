@@ -246,9 +246,22 @@ export async function isKuralBookmarked(id: number): Promise<boolean> {
   return rows[0]?.is_bookmarked === 1;
 }
 
+export interface BookmarkChange {
+  kuralId: number;
+  isBookmarked: boolean;
+}
+
+const bookmarkListeners = new Set<(change: BookmarkChange) => void>();
+
+export function subscribeToBookmarkChanges(listener: (change: BookmarkChange) => void): () => void {
+  bookmarkListeners.add(listener);
+  return () => bookmarkListeners.delete(listener);
+}
+
 export async function setKuralBookmarkStatus(id: number, bookmarked: boolean): Promise<boolean> {
   const statusValue = bookmarked ? 1 : 0;
   await executeRun('UPDATE kurals SET is_bookmarked = ? WHERE id = ?;', [statusValue, id]);
+  bookmarkListeners.forEach((listener) => listener({ kuralId: id, isBookmarked: bookmarked }));
   return bookmarked;
 }
 

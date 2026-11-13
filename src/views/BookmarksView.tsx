@@ -27,7 +27,6 @@ interface BookmarkListCardProps {
   compact: boolean;
   searchQuery: string;
   onKuralPress?: (kuralId: number) => void;
-  updateKuralBookmarkStatus: (kuralId: number, newStatus: boolean) => void;
   highlightBookmark: boolean;
   bookmarkCoachTargetId?: string;
 }
@@ -38,7 +37,6 @@ const BookmarkListCard = React.memo(function BookmarkListCard({
   compact,
   searchQuery,
   onKuralPress,
-  updateKuralBookmarkStatus,
   highlightBookmark,
   bookmarkCoachTargetId,
 }: BookmarkListCardProps) {
@@ -48,10 +46,9 @@ const BookmarkListCard = React.memo(function BookmarkListCard({
 
   const handleBookmarkToggle = useCallback(
     async (nextBookmarked: boolean) => {
-      const next = await setKuralBookmarkStatus(kural.id, nextBookmarked);
-      updateKuralBookmarkStatus(kural.id, next);
+      await setKuralBookmarkStatus(kural.id, nextBookmarked);
     },
-    [kural.id, updateKuralBookmarkStatus],
+    [kural.id],
   );
 
   return (
@@ -105,7 +102,6 @@ export default function BookmarksView({ onKuralPress, coachTarget }: BookmarksVi
     refresh,
     kuralFrom,
     kuralTo,
-    updateKuralBookmarkStatus,
   } = usePaginatedKuralFeed(bookmarkLimit, true);
 
   const hasActiveFilters =
@@ -240,7 +236,6 @@ export default function BookmarksView({ onKuralPress, coachTarget }: BookmarksVi
               compact={compact}
               searchQuery={searchQuery}
               onKuralPress={onKuralPress}
-              updateKuralBookmarkStatus={updateKuralBookmarkStatus}
               highlightBookmark={coachTarget === 'bookmarks-remove-one' && index === 0}
               bookmarkCoachTargetId={index === 0 ? 'bookmarks-remove-one' : undefined}
             />

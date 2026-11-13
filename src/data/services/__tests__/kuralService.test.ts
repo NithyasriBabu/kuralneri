@@ -4,6 +4,7 @@ import {
   getPaginatedKurals,
   saveUserNote,
   setKuralBookmarkStatus,
+  subscribeToBookmarkChanges,
 } from '../kuralService';
 
 const mockWrite = jest.fn();
@@ -85,6 +86,19 @@ it('combines text search with taxonomy filters', async () => {
     ),
     [1, 2, 3, '"love"*', 10, 0],
   );
+});
+
+it('publishes successful bookmark changes to active feeds', async () => {
+  Object.defineProperty(Platform, 'OS', { configurable: true, value: 'ios' });
+  const listener = jest.fn();
+  const unsubscribe = subscribeToBookmarkChanges(listener);
+
+  await setKuralBookmarkStatus(423, true);
+  unsubscribe();
+  await setKuralBookmarkStatus(423, false);
+
+  expect(listener).toHaveBeenCalledTimes(1);
+  expect(listener).toHaveBeenCalledWith({ kuralId: 423, isBookmarked: true });
 });
 
 it('builds a safe prefix query for multiple full-text terms', async () => {
