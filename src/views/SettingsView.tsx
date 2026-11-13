@@ -8,55 +8,29 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { Check, Eraser, RefreshCcw, Sparkles } from 'lucide-react-native';
+import { Check, PanelLeftClose, PanelLeftOpen, RefreshCcw, Sparkles } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useTheme } from 'src/theme/ThemeContextProvider';
+import { createColorSchemeTheme } from 'src/theme/styles';
 import { useSettings } from 'src/context/SettingsContext';
 import { KuralText } from 'src/components/common/KuralText';
 import { KuralButton } from 'src/components/common/KuralButton';
 import { KuralIconButton } from 'src/components/common/KuralIconButton';
 import { KuralSegmentedControl } from 'src/components/common/KuralSegmentedControl';
-import { KuralColorSwatches } from 'src/components/common/KuralColorSwatches';
+import { KuralDropdown } from 'src/components/common/KuralDropdown';
 import { useTranslation } from 'src/content/translation';
 import { transliterateEnglishNameToTamil } from 'src/content/transliteration';
 import {
   LangToggleKey,
   TamilFont,
   FontSizeScale,
+  ColorScheme,
   ThemeMode,
   EnglishFont,
 } from 'src/types/settings';
-import { clearAllBookmarks } from 'src/data/services/settingsService';
 
 // ─── sub-components ──────────────────────────────────────────────────────────
-
-function SectionHeader({ label }: { label: string }) {
-  const { theme } = useTheme();
-  return (
-    <View
-      style={{
-        borderBottomWidth: 2,
-        borderBottomColor: theme.colors.accent,
-        paddingBottom: 6,
-        marginTop: 28,
-        marginBottom: 14,
-      }}
-    >
-      <KuralText
-        variant="h2"
-        style={{
-          color: theme.colors.primary,
-          fontFamily: theme.typography.fonts.english,
-          fontSize: theme.typography.sizes.h2,
-          fontWeight: '700',
-        }}
-      >
-        {label}
-      </KuralText>
-    </View>
-  );
-}
 
 function RowLabel({ label, sub }: { label: string; sub?: string }) {
   const { theme } = useTheme();
@@ -79,49 +53,45 @@ function RowLabel({ label, sub }: { label: string; sub?: string }) {
 
 type SettingsSection = 'personal' | 'display' | 'language' | 'reset';
 
-// ─── color swatch picker ─────────────────────────────────────────────────────
+function ColorSchemePreview({ value, label, dark }: { value: ColorScheme; label: string; dark: boolean }) {
+  const preview = createColorSchemeTheme(value, dark ? 'dark' : 'light');
+  const colors = [
+    { name: 'Background', value: preview.colors.background },
+    { name: 'Surface', value: preview.colors.surface },
+    { name: 'Accent', value: preview.colors.accent },
+    { name: 'Text', value: preview.colors.textPrimary },
+  ];
 
-const BG_PRESETS_DARK = [
-  '',
-  '#0D1210',
-  '#0D1B2A',
-  '#1A1A2E',
-  '#1C1C1C',
-  '#12181B',
-  '#1A1209',
-  '#0F1923',
-];
-const BG_PRESETS_LIGHT = [
-  '',
-  '#F7F3EB',
-  '#FFF8F0',
-  '#FAF0E6',
-  '#F5F0FF',
-  '#E8F5E9',
-  '#FFF9C4',
-  '#FDECEA',
-];
-
-const FG_PRESETS_DARK = [
-  '',
-  '#F3F0E8',
-  '#FFFFFF',
-  '#E8D5B7',
-  '#C8D3C0',
-  '#D4E8D0',
-  '#FFE0B2',
-  '#B3E5FC',
-];
-const FG_PRESETS_LIGHT = [
-  '',
-  '#1F2D26',
-  '#2C2C2C',
-  '#3E2723',
-  '#1A237E',
-  '#1B5E20',
-  '#4A148C',
-  '#212121',
-];
+  return (
+    <View
+      accessibilityLabel={`${label} color preview`}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginTop: 8,
+        padding: 8,
+        borderRadius: 8,
+        backgroundColor: preview.colors.surface,
+      }}
+    >
+      {colors.map((color) => (
+        <View
+          key={color.name}
+          accessibilityLabel={`${color.name}: ${color.value}`}
+          style={{
+            flex: 1,
+            height: 28,
+            borderRadius: 5,
+            backgroundColor: color.value,
+            borderWidth: 1,
+            borderColor: preview.colors.border,
+          }}
+        />
+      ))}
+    </View>
+  );
+}
 
 const LANG_TOGGLE_KEYS: LangToggleKey[] = [
   'kuralCard',
@@ -266,12 +236,10 @@ export default function SettingsView() {
 
   const [nameInput, setNameInput] = useState(settings.userName);
   const [nameInputTamil, setNameInputTamil] = useState(settings.userNameTamil);
-  const [confirmReset, setConfirmReset] = useState<'none' | 'bookmarks' | 'all'>('none');
+  const [confirmReset, setConfirmReset] = useState<'none' | 'all'>('none');
   const [activeSection, setActiveSection] = useState<SettingsSection>('personal');
+  const [showSettingsTabs, setShowSettingsTabs] = useState(true);
 
-  const isDark = theme.dark;
-  const backgroundColors = isDark ? BG_PRESETS_DARK : BG_PRESETS_LIGHT;
-  const foregroundColors = isDark ? FG_PRESETS_DARK : FG_PRESETS_LIGHT;
   const showSection = (section: SettingsSection) => activeSection === section;
 
   const AUTHORS = [
@@ -281,7 +249,20 @@ export default function SettingsView() {
     { label: `${tSettings('authorMKarunanidhi')} (mk)`, value: 'mk' },
   ];
 
-  const THEME_OPTIONS: { label: string; value: ThemeMode }[] = [
+  const COLOR_SCHEME_OPTIONS: { label: string; value: ColorScheme }[] = [
+    { label: tSettings('earthySage'), value: 'earthySage' },
+    { label: tSettings('sandstone'), value: 'sandstone' },
+    { label: tSettings('forest'), value: 'forest' },
+    { label: tSettings('ocean'), value: 'ocean' },
+    { label: tSettings('plum'), value: 'plum' },
+    { label: tSettings('highContrast'), value: 'highContrast' },
+    { label: tSettings('nightOcean'), value: 'nightOcean' },
+    { label: tSettings('terracotta'), value: 'terracotta' },
+    { label: tSettings('lavender'), value: 'lavender' },
+    { label: tSettings('monochrome'), value: 'monochrome' },
+  ];
+
+  const APPEARANCE_OPTIONS: { label: string; value: ThemeMode }[] = [
     { label: `☀ ${tSettings('light')}`, value: 'light' },
     { label: `☾ ${tSettings('dark')}`, value: 'dark' },
     { label: `⚙ ${tSettings('system')}`, value: 'system' },
@@ -320,36 +301,27 @@ export default function SettingsView() {
     { label: 'Source Serif', value: 'SourceSerif' },
   ];
 
-  const handleConfirmReset = (type: 'bookmarks' | 'all') => {
+  const handleConfirmReset = () => {
     if (Platform.OS === 'web') {
       // Web: use inline confirm UI (no Alert)
-      setConfirmReset(type);
+      setConfirmReset('all');
     } else {
-      const title =
-        type === 'bookmarks' ? tSettings('clearAllBookmarks') : tSettings('resetAllSettings');
-      const msg =
-        type === 'bookmarks' ? tSettings('clearBookmarksPrompt') : tSettings('resetSettingsPrompt');
-      Alert.alert(title, msg, [
+      Alert.alert(tSettings('resetAllSettings'), tSettings('resetSettingsPrompt'), [
         { text: tSettings('cancel'), style: 'cancel' },
         {
           text: tSettings('reset'),
           style: 'destructive',
-          onPress: () => executeReset(type),
+          onPress: () => executeReset(),
         },
       ]);
     }
   };
 
-  const executeReset = async (type: 'bookmarks' | 'all') => {
+  const executeReset = async () => {
     setConfirmReset('none');
-    if (type === 'bookmarks' || type === 'all') {
-      await clearAllBookmarks();
-    }
-    if (type === 'all') {
-      resetSettings();
-      setNameInput('');
-      setNameInputTamil('');
-    }
+    resetSettings();
+    setNameInput('');
+    setNameInputTamil('');
   };
 
   const autoFillTamilName = () => {
@@ -386,24 +358,15 @@ export default function SettingsView() {
         }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Page title */}
-        <View style={{ marginBottom: 4 }}>
-          <KuralText variant="h1" style={{ color: theme.colors.primary, textAlign: 'center' }}>
-            {tSettings('settingsTitle')}
-          </KuralText>
-        </View>
-
-        <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={{
-              marginTop: 12,
-              marginBottom: 4,
-              borderBottomWidth: 1,
-              borderBottomColor: theme.colors.border,
-            }}
-            contentContainerStyle={{ gap: 22, paddingHorizontal: 4 }}
-          >
+        <View
+          style={{
+            flexDirection: showSettingsTabs ? 'row' : 'column',
+            gap: 16,
+            marginTop: 16,
+          }}
+        >
+          {showSettingsTabs ? (
+          <View style={{ width: theme.layout.isWideScreen ? 180 : 132, gap: 4 }}>
             {(
               [
                 ['personal', tSettings('personal')],
@@ -420,16 +383,19 @@ export default function SettingsView() {
                   accessibilityState={{ selected: active }}
                   onPress={() => setActiveSection(section)}
                   style={{
-                    paddingHorizontal: 4,
-                    paddingVertical: 10,
-                    borderBottomWidth: 3,
-                    borderBottomColor: active ? theme.colors.primary : 'transparent',
+                    paddingHorizontal: 12,
+                    paddingVertical: 12,
+                    borderRadius: theme.layout.borderRadius.medium,
+                    borderLeftWidth: theme.layout.isWideScreen ? 3 : 0,
+                    borderBottomWidth: theme.layout.isWideScreen ? 0 : 3,
+                    borderColor: active ? theme.colors.primary : 'transparent',
+                    backgroundColor: active ? theme.colors.accent : 'transparent',
                   }}
                 >
                   <KuralText
                     variant="caption"
                     style={{
-                      color: active ? theme.colors.primary : theme.colors.textSecondary,
+                      color: active ? theme.colors.textPrimary : theme.colors.textSecondary,
                       fontWeight: active ? '700' : '400',
                     }}
                   >
@@ -438,7 +404,18 @@ export default function SettingsView() {
                 </Pressable>
               );
             })}
-        </ScrollView>
+          </View>
+          ) : null}
+
+          <View style={{ flex: 1, minWidth: 0 }}>
+          <KuralIconButton
+            icon={showSettingsTabs ? <PanelLeftClose /> : <PanelLeftOpen />}
+            label={showSettingsTabs ? tSettings('hideSettingsTabs') : tSettings('showSettingsTabs')}
+            onPress={() => setShowSettingsTabs((visible) => !visible)}
+            showLabel={false}
+            size="sm"
+            style={{ alignSelf: 'flex-start', marginBottom: 8 }}
+          />
 
         {settingsLoadWarning ? (
           <View
@@ -474,7 +451,6 @@ export default function SettingsView() {
         {showSection('personal') ? (
           <>
             {/* ── 1. Personal ─────────────────────────────────────── */}
-            <SectionHeader label={tSettings('personal')} />
 
         <View style={row}>
           <RowLabel label={tSettings('yourName')} sub={tSettings('usedToGreetYou')} />
@@ -542,13 +518,12 @@ export default function SettingsView() {
           </View>
         </View>
 
-        <View style={row}>
-          <RowLabel label={tSettings('preferredAuthor')} sub={tSettings('commentaryShownFirst')} />
-        </View>
         <View style={{ paddingBottom: 10 }}>
           <KuralSegmentedControl
             options={AUTHORS}
             selected={settings.preferredAuthorCode}
+            label={tSettings('preferredAuthor')}
+            helperText={tSettings('commentaryShownFirst')}
             onSelect={(value) => updateSettings({ preferredAuthorCode: value })}
           />
         </View>
@@ -570,26 +545,37 @@ export default function SettingsView() {
         {showSection('display') ? (
           <>
             {/* ── 2. Display ──────────────────────────────────────── */}
-            <SectionHeader label={tSettings('display')} />
 
-        <View style={row}>
-          <RowLabel label={tSettings('theme')} />
-          <KuralSegmentedControl
-            options={THEME_OPTIONS}
-            selected={settings.themeMode}
-            containerStyle={{ flex: 1, width: theme.layout.isWideScreen ? undefined : '100%' }}
-            onSelect={(v) => {
-              updateSettings({ themeMode: v, customBackground: '', customForeground: '' });
-            }}
+        <View style={{ paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: theme.colors.surface }}>
+          <RowLabel label={tSettings('colorScheme')} sub={tSettings('colorSchemeHelp')} />
+          <KuralDropdown
+            items={COLOR_SCHEME_OPTIONS}
+            selectedValue={settings.colorScheme}
+            onValueChange={(value) => updateSettings({ colorScheme: value as ColorScheme })}
+            containerStyle={{ marginTop: 8 }}
+          />
+          <ColorSchemePreview
+            value={settings.colorScheme}
+            label={COLOR_SCHEME_OPTIONS.find((option) => option.value === settings.colorScheme)?.label ?? ''}
+            dark={theme.dark}
           />
         </View>
 
-        <View style={row}>
-          <RowLabel label={tSettings('fontSize')} />
+        <View style={{ paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: theme.colors.surface }}>
+          <KuralSegmentedControl
+            options={APPEARANCE_OPTIONS}
+            selected={settings.themeMode}
+            label={tSettings('appearance')}
+            helperText={tSettings('appearanceHelp')}
+            onSelect={(value) => updateSettings({ themeMode: value })}
+          />
+        </View>
+
+        <View style={{ paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: theme.colors.surface }}>
           <KuralSegmentedControl
             options={FONT_SIZE_OPTIONS}
             selected={settings.fontSizeScale}
-            containerStyle={{ flex: 1, width: theme.layout.isWideScreen ? undefined : '100%' }}
+            label={tSettings('fontSize')}
             onSelect={(v) => updateSettings({ fontSizeScale: v })}
           />
         </View>
@@ -601,11 +587,11 @@ export default function SettingsView() {
             borderBottomColor: theme.colors.surface,
           }}
         >
-          <RowLabel label={tSettings('mobileKuralView')} sub={tSettings('mobileKuralViewHelp')} />
           <KuralSegmentedControl
             options={KURAL_LIST_MODE_OPTIONS}
             selected={settings.kuralListDisplayMode}
-            containerStyle={{ marginTop: 10 }}
+            label={tSettings('mobileKuralView')}
+            helperText={tSettings('mobileKuralViewHelp')}
             onSelect={(value) => updateSettings({ kuralListDisplayMode: value })}
           />
           {settings.kuralListDisplayMode === 'compact' ? (
@@ -643,11 +629,11 @@ export default function SettingsView() {
             borderBottomColor: theme.colors.surface,
           }}
         >
-          <RowLabel label={tSettings('tamilFont')} sub={tSettings('affectsTamilRendering')} />
           <KuralSegmentedControl
             options={TAMIL_FONT_OPTIONS.map((opt) => ({ label: `${opt.label} — குறள்`, value: opt.value }))}
             selected={settings.tamilFont}
-            containerStyle={{ marginTop: 10 }}
+            label={tSettings('tamilFont')}
+            helperText={tSettings('affectsTamilRendering')}
             onSelect={(value) => updateSettings({ tamilFont: value })}
           />
         </View>
@@ -659,50 +645,24 @@ export default function SettingsView() {
             borderBottomColor: theme.colors.surface,
           }}
         >
-          <RowLabel label={tSettings('englishFont')} sub={tSettings('affectsEnglishRendering')} />
           <KuralSegmentedControl
             options={ENGLISH_FONT_OPTIONS.map((opt) => ({
               label: `${tSettings('fontPreviewSample')} — ${opt.label}`,
               value: opt.value,
             }))}
             selected={settings.englishFont}
-            containerStyle={{ marginTop: 10 }}
+            label={tSettings('englishFont')}
+            helperText={tSettings('affectsEnglishRendering')}
             onSelect={(value) => updateSettings({ englishFont: value })}
           />
         </View>
 
-        <View
-          style={{
-            paddingVertical: 10,
-            borderBottomWidth: 1,
-            borderBottomColor: theme.colors.surface,
-          }}
-        >
-          <RowLabel label={tSettings('backgroundColor')} sub={tSettings('defaultSwatchHint')} />
-          <KuralColorSwatches
-            presets={backgroundColors}
-            selected={settings.customBackground}
-            onSelect={(v) => updateSettings({ customBackground: v })}
-            defaultLabel={tSettings('defaultSwatchLabel')}
-          />
-        </View>
-
-            <View style={{ paddingVertical: 10 }}>
-              <RowLabel label={tSettings('textColor')} sub={tSettings('primaryTextApplies')} />
-              <KuralColorSwatches
-                presets={foregroundColors}
-                selected={settings.customForeground}
-                onSelect={(v) => updateSettings({ customForeground: v })}
-                defaultLabel={tSettings('defaultSwatchLabel')}
-              />
-            </View>
           </>
         ) : null}
 
         {showSection('language') ? (
           <>
             {/* ── 3. Language visibility ───────────────────────────── */}
-            <SectionHeader label={tSettings('languageDisplay')} />
         <KuralText
           variant="caption"
           style={{ color: theme.colors.textSecondary, marginBottom: 12 }}
@@ -724,27 +684,20 @@ export default function SettingsView() {
         >
           <View
             style={{
-              flexDirection: theme.layout.isWideScreen ? 'row' : 'column',
+              flexDirection: 'column',
               justifyContent: 'space-between',
               gap: 12,
             }}
           >
-            <RowLabel
-              label={tSettings('fallbackLanguage')}
-              sub={tSettings('fallbackLanguageHelp')}
-            />
             <KuralSegmentedControl
               options={[
                 { label: tSettings('tamilLanguage'), value: 'tamil' },
                 { label: tSettings('englishLanguage'), value: 'english' },
               ]}
               selected={settings.fallbackLanguage}
+              label={tSettings('fallbackLanguage')}
+              helperText={tSettings('fallbackLanguageHelp')}
               onSelect={(v) => updateSettings({ fallbackLanguage: v })}
-              containerStyle={{
-                flex: 1,
-                width: theme.layout.isWideScreen ? undefined : '100%',
-                alignSelf: theme.layout.isWideScreen ? 'center' : 'stretch',
-              }}
             />
           </View>
             </View>
@@ -799,7 +752,6 @@ export default function SettingsView() {
           </View>
             ) : null}
 
-            <SectionHeader label={tSettings('reset')} />
 
             {confirmReset !== 'none' && (
           <View
@@ -816,9 +768,7 @@ export default function SettingsView() {
               variant="bodyNormal"
               style={{ color: theme.colors.textPrimary, marginBottom: 12 }}
             >
-              {confirmReset === 'bookmarks'
-                ? tSettings('clearBookmarksPrompt')
-                : tSettings('resetSettingsPrompt')}
+              {tSettings('resetSettingsPrompt')}
             </KuralText>
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <KuralButton
@@ -830,7 +780,7 @@ export default function SettingsView() {
               <KuralButton
                 title={tSettings('confirmReset')}
                 variant="primary"
-                onPress={() => executeReset(confirmReset)}
+                onPress={executeReset}
                 style={{
                   flex: 1,
                   backgroundColor: theme.colors.error,
@@ -842,20 +792,16 @@ export default function SettingsView() {
 
             <View style={{ gap: 12 }}>
               <KuralIconButton
-                icon={<Eraser />}
-                label={pair('clearAllBookmarks').visible}
-                tooltip={pair('clearAllBookmarks').hover}
-                onPress={() => handleConfirmReset('bookmarks')}
-              />
-              <KuralIconButton
                 icon={<RefreshCcw />}
                 label={pair('resetAllSettings').visible}
                 tooltip={pair('resetAllSettings').hover}
-                onPress={() => handleConfirmReset('all')}
+                onPress={handleConfirmReset}
               />
             </View>
           </>
         ) : null}
+          </View>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

@@ -8,7 +8,7 @@ import { KuralText } from 'src/components/common/KuralText';
 import { useTranslation } from 'src/content/translation';
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { KuralSegmentedOption } from 'src/components/common/KuralSegmentedControl';
-import { FontSizeScale, SetupLanguageChoice, ThemeMode } from 'src/types/settings';
+import { ColorScheme, FontSizeScale, SetupLanguageChoice, ThemeMode } from 'src/types/settings';
 
 import { OnboardingPager } from 'src/views/onboarding/OnboardingPager';
 import { OnboardingReviewPage } from 'src/views/onboarding/OnboardingReviewPage';
@@ -51,6 +51,23 @@ export default function OnboardingView() {
   const themeOptions = useMemo(
     () =>
       [
+        { label: tSettings('earthySage'), value: 'earthySage' },
+        { label: tSettings('sandstone'), value: 'sandstone' },
+        { label: tSettings('forest'), value: 'forest' },
+        { label: tSettings('ocean'), value: 'ocean' },
+        { label: tSettings('plum'), value: 'plum' },
+        { label: tSettings('highContrast'), value: 'highContrast' },
+        { label: tSettings('nightOcean'), value: 'nightOcean' },
+        { label: tSettings('terracotta'), value: 'terracotta' },
+        { label: tSettings('lavender'), value: 'lavender' },
+        { label: tSettings('monochrome'), value: 'monochrome' },
+      ] as KuralSegmentedOption<ColorScheme>[],
+    [tSettings],
+  );
+
+  const appearanceOptions = useMemo(
+    () =>
+      [
         { label: tCommon('light'), value: 'light' },
         { label: tCommon('dark'), value: 'dark' },
         { label: tCommon('system'), value: 'system' },
@@ -79,7 +96,8 @@ export default function OnboardingView() {
         ? 'tamil'
         : 'english';
   const selectedThemeLabel =
-    themeOptions.find((option) => option.value === flow.settings.themeMode)?.label ?? tCommon('system');
+    themeOptions.find((option) => option.value === flow.settings.colorScheme)?.label ??
+    tSettings('earthySage');
   const selectedFontSizeLabel =
     fontSizeOptions.find((option) => option.value === flow.settings.fontSizeScale)?.label ??
     tCommon('medium');
@@ -94,12 +112,15 @@ export default function OnboardingView() {
       body={tOnboarding('welcomeBody')}
       setupTitle={tOnboarding('setupTitle')}
       setupBody={tOnboarding('setupBody')}
+      languageLabel={tOnboarding('languageLabel')}
       nameLabel={tOnboarding('nameLabel')}
       namePlaceholder={tOnboarding('namePlaceholder')}
       preferredAuthorLabel={tOnboarding('preferredAuthorLabel')}
-      themeLabel={tOnboarding('themeLabel')}
+      themeLabel={tOnboarding('colorSchemeLabel')}
+      appearanceLabel={tOnboarding('appearanceLabel')}
       fontSizeLabel={tOnboarding('fontSizeLabel')}
       themeOptions={themeOptions}
+      appearanceOptions={appearanceOptions}
       languageOptions={languageOptions}
       languageChoice={languageChoice}
       fontSizeOptions={fontSizeOptions}
@@ -124,9 +145,8 @@ export default function OnboardingView() {
         });
       }}
       onPreferredAuthorChange={(value) => flow.updateSettings({ preferredAuthorCode: value })}
-      onThemeChange={(value) =>
-        flow.updateSettings({ themeMode: value, customBackground: '', customForeground: '' })
-      }
+      onThemeChange={(value) => flow.updateSettings({ colorScheme: value })}
+      onAppearanceChange={(value) => flow.updateSettings({ themeMode: value })}
       onFontSizeChange={(value) => flow.updateSettings({ fontSizeScale: value })}
     />,
     <OnboardingTourPage
@@ -151,6 +171,7 @@ export default function OnboardingView() {
         { label: tOnboarding('languageLabel'), value: selectedLanguageLabel },
         { label: tOnboarding('preferredAuthorLabel'), value: selectedAuthorLabel },
         { label: tOnboarding('themeLabel'), value: selectedThemeLabel },
+        { label: tOnboarding('appearanceLabel'), value: appearanceOptions.find((option) => option.value === flow.settings.themeMode)?.label ?? tCommon('system') },
         { label: tOnboarding('fontSizeLabel'), value: selectedFontSizeLabel },
       ]}
     />,

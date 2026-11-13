@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, View, ViewStyle } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { KuralText } from 'src/components/common/KuralText';
@@ -13,14 +13,16 @@ interface KuralSegmentedControlProps<T extends string> {
   options: KuralSegmentedOption<T>[];
   selected: T;
   onSelect: (value: T) => void;
-  containerStyle?: ViewStyle;
+  label?: string;
+  helperText?: string;
 }
 
 export function KuralSegmentedControl<T extends string>({
   options,
   selected,
   onSelect,
-  containerStyle,
+  label,
+  helperText,
 }: KuralSegmentedControlProps<T>) {
   const { theme } = useTheme();
   const useSingleColumnMobileGrid =
@@ -31,6 +33,26 @@ export function KuralSegmentedControl<T extends string>({
     <View
       style={[
         {
+          marginTop: 8,
+          width: '100%',
+          alignSelf: 'stretch',
+        },
+      ]}
+    >
+      {label ? (
+        <View style={{ width: '100%', marginBottom: 8 }}>
+          <KuralText variant="bodyNormal" style={{ color: theme.colors.textPrimary, fontWeight: '600' }}>
+            {label}
+          </KuralText>
+          {helperText ? (
+            <KuralText variant="caption" style={{ color: theme.colors.textSecondary, marginTop: 2 }}>
+              {helperText}
+            </KuralText>
+          ) : null}
+        </View>
+      ) : null}
+      <View
+        style={{
           flexDirection: 'row',
           flexWrap: 'wrap',
           width: '100%',
@@ -38,10 +60,9 @@ export function KuralSegmentedControl<T extends string>({
           borderRadius: theme.layout.borderRadius.medium,
           overflow: 'hidden',
           alignSelf: 'stretch',
-        },
-        containerStyle,
-      ]}
-    >
+          alignItems: 'stretch',
+        }}
+      >
       {options.map((opt) => {
         const active = opt.value === selected;
         return (
@@ -60,6 +81,8 @@ export function KuralSegmentedControl<T extends string>({
                 : useTwoColumnMobileGrid
                   ? '50%'
                   : 0,
+              alignSelf: 'stretch',
+              minHeight: theme.layout.minHeights.button,
               alignItems: 'center',
               justifyContent: 'center',
               paddingHorizontal: 12,
@@ -82,6 +105,7 @@ export function KuralSegmentedControl<T extends string>({
           </Pressable>
         );
       })}
+      </View>
     </View>
   );
 }
