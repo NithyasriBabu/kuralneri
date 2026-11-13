@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, FlatList, StyleProp, View, ViewStyle } from 'react-native';
 import { Eraser } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -20,6 +20,54 @@ interface BookmarksViewProps {
   onKuralPress?: (kuralId: number) => void;
   coachTarget?: string;
 }
+
+interface BookmarkListCardProps {
+  kural: React.ComponentProps<typeof KuralCardShell>['kural'];
+  wrapperStyle: StyleProp<ViewStyle>;
+  compact: boolean;
+  searchQuery: string;
+  onKuralPress?: (kuralId: number) => void;
+  updateKuralBookmarkStatus: (kuralId: number, newStatus: boolean) => void;
+  highlightBookmark: boolean;
+  bookmarkCoachTargetId?: string;
+}
+
+const BookmarkListCard = React.memo(function BookmarkListCard({
+  kural,
+  wrapperStyle,
+  compact,
+  searchQuery,
+  onKuralPress,
+  updateKuralBookmarkStatus,
+  highlightBookmark,
+  bookmarkCoachTargetId,
+}: BookmarkListCardProps) {
+  const handlePress = useCallback(() => {
+    onKuralPress?.(kural.id);
+  }, [kural.id, onKuralPress]);
+
+  const handleBookmarkToggle = useCallback(
+    async (nextBookmarked: boolean) => {
+      const next = await setKuralBookmarkStatus(kural.id, nextBookmarked);
+      updateKuralBookmarkStatus(kural.id, next);
+    },
+    [kural.id, updateKuralBookmarkStatus],
+  );
+
+  return (
+    <View style={wrapperStyle}>
+      <KuralCardShell
+        kural={kural}
+        onPress={onKuralPress ? handlePress : undefined}
+        onBookmarkToggle={handleBookmarkToggle}
+        compact={compact}
+        searchQuery={searchQuery}
+        highlightBookmark={highlightBookmark}
+        bookmarkCoachTargetId={bookmarkCoachTargetId}
+      />
+    </View>
+  );
+});
 
 export default function BookmarksView({ onKuralPress, coachTarget }: BookmarksViewProps) {
   const [limitOptions, setLimitOptions] = useState<number[]>([10, 20, 30, 50, 100]);
@@ -181,27 +229,21 @@ export default function BookmarksView({ onKuralPress, coachTarget }: BookmarksVi
           numColumns={columns}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item, index }) => (
-            <View
-              style={[
+            <BookmarkListCard
+              kural={item}
+              wrapperStyle={[
                 compact
                   ? componentStyles.kuralListCompactWrapper
                   : componentStyles.kuralListCardWrapper,
                 wrapperStyle,
               ]}
-            >
-              <KuralCardShell
-                kural={item}
-                onPress={onKuralPress ? () => onKuralPress(item.id) : undefined}
-                onBookmarkToggle={async (nextBookmarked) => {
-                  const next = await setKuralBookmarkStatus(item.id, nextBookmarked);
-                  updateKuralBookmarkStatus(item.id, next);
-                }}
-                compact={compact}
-                searchQuery={searchQuery}
-                highlightBookmark={coachTarget === 'bookmarks-remove-one' && index === 0}
-                bookmarkCoachTargetId={index === 0 ? 'bookmarks-remove-one' : undefined}
-              />
-            </View>
+              compact={compact}
+              searchQuery={searchQuery}
+              onKuralPress={onKuralPress}
+              updateKuralBookmarkStatus={updateKuralBookmarkStatus}
+              highlightBookmark={coachTarget === 'bookmarks-remove-one' && index === 0}
+              bookmarkCoachTargetId={index === 0 ? 'bookmarks-remove-one' : undefined}
+            />
           )}
           onEndReached={useInfiniteScroll ? loadNextPage : undefined}
           onEndReachedThreshold={0.45}

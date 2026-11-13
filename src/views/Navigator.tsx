@@ -1,6 +1,6 @@
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Platform, Pressable, useWindowDimensions, View } from 'react-native';
+import { Platform, Pressable, ScrollView, useWindowDimensions, View } from 'react-native';
 import { Bookmark, Bot, Home, Search, Settings, X } from 'lucide-react-native';
 
 import { useTheme } from 'src/theme/ThemeContextProvider';
@@ -65,6 +65,7 @@ export default function TabNavigator({ onNativeKuralPress }: TabNavigatorProps) 
   const { settings, updateSettings } = useSettings();
   const { height: windowHeight } = useWindowDimensions();
   const [coachTargetRect, setCoachTargetRect] = React.useState<CoachTargetRect | null>(null);
+  const [coachTooltipHeight, setCoachTooltipHeight] = React.useState(0);
   const {
     handleKuralPress,
     handleTabPress,
@@ -88,7 +89,10 @@ export default function TabNavigator({ onNativeKuralPress }: TabNavigatorProps) 
       ? COACH_STEPS[coachIndex]
       : undefined;
 
-  React.useEffect(() => setCoachTargetRect(null), [coach?.targetId]);
+  React.useEffect(() => {
+    setCoachTargetRect(null);
+    setCoachTooltipHeight(0);
+  }, [coach?.targetId]);
 
   React.useEffect(() => {
     if (coach) handleTabPress(coach.tab);
@@ -153,12 +157,16 @@ export default function TabNavigator({ onNativeKuralPress }: TabNavigatorProps) 
     ));
 
   const tooltipPlacement = coachTargetRect
-    ? coachTargetRect.y + coachTargetRect.height + 230 <= windowHeight
-      ? { top: coachTargetRect.y + coachTargetRect.height + 8 }
-      : { bottom: Math.max(8, windowHeight - coachTargetRect.y + 8) }
-    : isWidescreen
-      ? { top: 76 }
-      : { bottom: 76 };
+    ? {
+        top: Math.max(
+          8,
+          Math.min(
+            coachTargetRect.y + coachTargetRect.height + 8,
+            windowHeight - Math.max(coachTooltipHeight, 180) - 8,
+          ),
+        ),
+      }
+    : { top: isWidescreen ? 76 : 8 };
 
   return (
     <CoachMarkProvider activeTarget={coach?.targetId} setTargetRect={setCoachTargetRect}>
@@ -229,14 +237,13 @@ export default function TabNavigator({ onNativeKuralPress }: TabNavigatorProps) 
       {coach ? (
         <View
           accessibilityRole="alert"
+          onLayout={(event) => setCoachTooltipHeight(event.nativeEvent.layout.height)}
           style={{
             position: 'absolute',
             left: 16,
             right: 16,
             ...tooltipPlacement,
-            zIndex: 100,
-            padding: 16,
-            gap: 10,
+            maxHeight: Math.max(120, windowHeight - 16),
             borderRadius: theme.layout.borderRadius.large,
             borderWidth: 1,
             borderColor: theme.colors.primary,
@@ -248,61 +255,63 @@ export default function TabNavigator({ onNativeKuralPress }: TabNavigatorProps) 
             elevation: 8,
           }}
         >
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={tOnboarding('tipDismiss')}
-            onPress={() => updateSettings({ onboardingStep: COACH_DONE_STEP })}
-            style={{
-              position: 'absolute',
-              right: 8,
-              top: 8,
-              padding: 8,
-              zIndex: 2,
-            }}
-          >
-            <X size={20} color={theme.colors.textSecondary} />
-          </Pressable>
-          <KuralText variant="bodyLarge" style={{ color: theme.colors.primary, fontWeight: '800' }}>
-            {'titleKey' in coach
-              ? tOnboarding(coach.titleKey)
-              : navTabs.find((tab) => tab.id === coach.tab)?.label}
-          </KuralText>
-          <KuralText variant="bodyNormal" style={{ color: theme.colors.textPrimary }}>
-            {tOnboarding(coach.bodyKey)}
-          </KuralText>
-          <View
-            style={{
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              justifyContent: 'flex-end',
-              gap: 10,
-            }}
-          >
-            {coachIndex > 0 ? (
+          <ScrollView contentContainerStyle={{ padding: 16, gap: 10 }}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={tOnboarding('tipDismiss')}
+              onPress={() => updateSettings({ onboardingStep: COACH_DONE_STEP })}
+              style={{
+                position: 'absolute',
+                right: 8,
+                top: 8,
+                padding: 8,
+                zIndex: 2,
+              }}
+            >
+              <X size={20} color={theme.colors.textSecondary} />
+            </Pressable>
+            <KuralText variant="bodyLarge" style={{ color: theme.colors.primary, fontWeight: '800' }}>
+              {'titleKey' in coach
+                ? tOnboarding(coach.titleKey)
+                : navTabs.find((tab) => tab.id === coach.tab)?.label}
+            </KuralText>
+            <KuralText variant="bodyNormal" style={{ color: theme.colors.textPrimary }}>
+              {tOnboarding(coach.bodyKey)}
+            </KuralText>
+            <View
+              style={{
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                justifyContent: 'flex-end',
+                gap: 10,
+              }}
+            >
+              {coachIndex > 0 ? (
+                <KuralButton
+                  title={tOnboarding('tipBack')}
+                  variant="secondary"
+                  onPress={() =>
+                    updateSettings({ onboardingStep: COACH_STEPS[coachIndex - 1].value })
+                  }
+                />
+              ) : null}
               <KuralButton
-                title={tOnboarding('tipBack')}
-                variant="secondary"
+                title={
+                  coachIndex === COACH_STEPS.length - 1
+                    ? tOnboarding('tipDone')
+                    : tOnboarding('tipNext')
+                }
                 onPress={() =>
-                  updateSettings({ onboardingStep: COACH_STEPS[coachIndex - 1].value })
+                  updateSettings({
+                    onboardingStep:
+                      coachIndex === COACH_STEPS.length - 1
+                        ? COACH_DONE_STEP
+                        : COACH_STEPS[coachIndex + 1].value,
+                  })
                 }
               />
-            ) : null}
-            <KuralButton
-              title={
-                coachIndex === COACH_STEPS.length - 1
-                  ? tOnboarding('tipDone')
-                  : tOnboarding('tipNext')
-              }
-              onPress={() =>
-                updateSettings({
-                  onboardingStep:
-                    coachIndex === COACH_STEPS.length - 1
-                      ? COACH_DONE_STEP
-                      : COACH_STEPS[coachIndex + 1].value,
-                })
-              }
-            />
-          </View>
+            </View>
+          </ScrollView>
         </View>
       ) : null}
     </SafeAreaView>

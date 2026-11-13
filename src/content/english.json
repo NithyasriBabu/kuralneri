@@ -165,7 +165,7 @@
     "atLeastOneLanguage": "At least one language must be enabled.",
     "affectsTamilRendering": "Affects all Tamil script rendering",
     "affectsEnglishRendering": "Affects all English text rendering",
-    "languageHelp": "Toggle Tamil / English visibility for each section. At least one must remain on per section.",
+    "languageHelp": "Choose Tamil or English for app labels and controls.",
     "namePlaceholder": "Enter name…",
     "allAuthors": "All Authors",
     "bothLanguages": "Both Languages",

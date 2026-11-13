@@ -36,10 +36,6 @@ export default function OnboardingView() {
     () =>
       [
         {
-          label: `${tSettingsSingle('bothLanguages', 'tamil')} / ${tSettingsSingle('bothLanguages', 'english')}`,
-          value: 'both',
-        },
-        {
           label: tSettingsSingle('tamilLanguage', 'tamil'),
           value: 'tamil',
         },
@@ -89,12 +85,10 @@ export default function OnboardingView() {
     [tCommon],
   );
 
-  const languageChoice: SetupLanguageChoice =
-    flow.settings.langToggles.uiChrome.tamil && flow.settings.langToggles.uiChrome.english
-      ? 'both'
-      : flow.settings.langToggles.uiChrome.tamil
-        ? 'tamil'
-        : 'english';
+  const languageChoice: Exclude<SetupLanguageChoice, 'both'> =
+    flow.settings.langToggles.uiChrome.tamil && !flow.settings.langToggles.uiChrome.english
+      ? 'tamil'
+      : 'english';
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: theme.colors.background }}
@@ -126,9 +120,9 @@ export default function OnboardingView() {
           onNameChange={flow.setNameInput}
           onNameCommit={(value) => flow.updateSettings({ userName: value.trim() })}
           onLanguageChange={(value) => {
-            const fallbackLanguage = value === 'tamil' ? 'tamil' : 'english';
-            const showTamil = value === 'both' || value === 'tamil';
-            const showEnglish = value === 'both' || value === 'english';
+            const showTamil = value === 'tamil';
+            const showEnglish = value !== 'tamil';
+            const fallbackLanguage = showTamil ? 'tamil' : 'english';
             flow.updateSettings({
               fallbackLanguage,
               langToggles: {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, Switch, TextInput, View } from 'react-native';
-import { Check, PanelLeftClose, PanelLeftOpen, RefreshCcw, Sparkles } from 'lucide-react-native';
+import { PanelLeftClose, PanelLeftOpen, RefreshCcw, Sparkles } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useTheme } from 'src/theme/ThemeContextProvider';
@@ -56,119 +56,31 @@ const LANG_TOGGLE_KEYS: LangToggleKey[] = [
 // ─── language table ──────────────────────────────────────────────────
 
 function LanguageTable() {
-  const { theme } = useTheme();
   const { settings, setLangToggle } = useSettings();
-  const { tSingle } = useTranslation('uiChrome', 'settings');
-  const tamilLanguageLabel = `${tSingle('tamilLanguage', 'tamil')} / ${tSingle('tamilLanguage', 'english')}`;
-  const englishLanguageLabel = `${tSingle('englishLanguage', 'tamil')} / ${tSingle('englishLanguage', 'english')}`;
-  const labels: Record<LangToggleKey, { tamil: string; english: string }> = {
-    kuralCard: {
-      tamil: tSingle('kuralCardToggleLabel', 'tamil'),
-      english: tSingle('kuralCardToggleLabel', 'english'),
-    },
-    navLabels: {
-      tamil: tSingle('navLabelsToggleLabel', 'tamil'),
-      english: tSingle('navLabelsToggleLabel', 'english'),
-    },
-    uiChrome: {
-      tamil: tSingle('uiChromeToggleLabel', 'tamil'),
-      english: tSingle('uiChromeToggleLabel', 'english'),
-    },
-  };
+  const { t, tSingle } = useTranslation('uiChrome', 'settings');
+  const selected =
+    settings.langToggles.uiChrome.tamil && !settings.langToggles.uiChrome.english
+      ? 'tamil'
+      : settings.langToggles.uiChrome.english && !settings.langToggles.uiChrome.tamil
+        ? 'english'
+        : settings.fallbackLanguage;
 
   return (
-    <View
-      style={{
-        backgroundColor: theme.colors.surface,
-        borderRadius: theme.layout.borderRadius.medium,
-        borderWidth: 1,
-        borderColor: theme.colors.border,
-        overflow: 'hidden',
+    <KuralSegmentedControl
+      label={tSingle('language', settings.fallbackLanguage)}
+      helperText={t('languageHelp')}
+      selected={selected}
+      options={[
+        { label: tSingle('tamilLanguage', 'tamil'), value: 'tamil' },
+        { label: tSingle('englishLanguage', 'english'), value: 'english' },
+      ]}
+      onSelect={(language) => {
+        LANG_TOGGLE_KEYS.forEach((key) => {
+          setLangToggle(key, 'tamil', language === 'tamil');
+          setLangToggle(key, 'english', language === 'english');
+        });
       }}
-    >
-      <View
-        style={{
-          flexDirection: 'row',
-          backgroundColor: theme.colors.surfaceElevated,
-          padding: 12,
-        }}
-      >
-        <View style={{ flex: 1 }} />
-        <KuralText
-          variant="caption"
-          isTamil
-          style={{ width: 76, color: theme.colors.textSecondary, textAlign: 'center' }}
-        >
-          {tamilLanguageLabel}
-        </KuralText>
-        <KuralText
-          variant="caption"
-          style={{ width: 76, color: theme.colors.textSecondary, textAlign: 'center' }}
-        >
-          {englishLanguageLabel}
-        </KuralText>
-      </View>
-
-      {LANG_TOGGLE_KEYS.map((toggleKey) => {
-        const toggle = settings.langToggles[toggleKey];
-        const label = labels[toggleKey];
-        return (
-          <View
-            key={toggleKey}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              minHeight: 64,
-              paddingHorizontal: 12,
-              borderTopWidth: 1,
-              borderTopColor: theme.colors.border,
-            }}
-          >
-            <View style={{ flex: 1, paddingRight: 8 }}>
-              <KuralText
-                variant="bodyNormal"
-                style={{ color: theme.colors.textPrimary, fontWeight: '600' }}
-              >
-                {label.tamil}
-              </KuralText>
-              <KuralText variant="caption" style={{ color: theme.colors.textSecondary }}>
-                {label.english}
-              </KuralText>
-            </View>
-            {(['tamil', 'english'] as const).map((language) => {
-              const checked = toggle[language];
-              return (
-                <Pressable
-                  key={language}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked }}
-                  accessibilityLabel={`${label.english} ${language}`}
-                  onPress={() => setLangToggle(toggleKey, language, !checked)}
-                  style={{ width: 76, alignItems: 'center', justifyContent: 'center' }}
-                >
-                  <View
-                    style={{
-                      width: 24,
-                      height: 24,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: 6,
-                      borderWidth: 2,
-                      borderColor: checked ? theme.colors.primary : theme.colors.border,
-                      backgroundColor: checked ? theme.colors.accent : 'transparent',
-                    }}
-                  >
-                    {checked ? (
-                      <Check size={16} color={theme.colors.primary} strokeWidth={3} />
-                    ) : null}
-                  </View>
-                </Pressable>
-              );
-            })}
-          </View>
-        );
-      })}
-    </View>
+    />
   );
 }
 
@@ -710,7 +622,7 @@ export default function SettingsView() {
             {showSection('language') ? (
               <>
                 {/* ── 3. Language visibility ───────────────────────────── */}
-                <CoachTarget id="settings-language" scrollRef={scrollRef}>
+                <CoachTarget id="settings-language-display" scrollRef={scrollRef}>
                   <View>
                     <KuralText
                       variant="caption"

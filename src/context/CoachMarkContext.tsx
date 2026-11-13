@@ -1,5 +1,5 @@
 import React from 'react';
-import { findNodeHandle, ScrollView, View, ViewProps } from 'react-native';
+import { ScrollView, View, ViewProps } from 'react-native';
 
 export interface CoachTargetRect {
   x: number;
@@ -57,18 +57,15 @@ export function CoachTarget({ id, scrollRef, children, onLayout, style, ...props
     const scrollNode = scrollRef?.current;
     const targetNode = ref.current;
     if (scrollNode && targetNode) {
-      const scrollHandle = findNodeHandle(scrollNode);
-      if (scrollHandle) {
-        targetNode.measureLayout(
-          scrollHandle,
-          (_x, y) => {
-            scrollNode.scrollTo({ y: Math.max(0, y - 24), animated: true });
-            setTimeout(measure, 350);
-          },
-          measure,
-        );
-        return;
-      }
+      targetNode.measureLayout(
+        scrollNode,
+        (_x, y) => {
+          scrollNode.scrollTo({ y: Math.max(0, y - 24), animated: true });
+          setTimeout(measure, 350);
+        },
+        measure,
+      );
+      return;
     }
     measure();
   }, [active, measure, scrollRef]);
