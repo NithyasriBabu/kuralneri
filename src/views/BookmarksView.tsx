@@ -1,13 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, View } from 'react-native';
+import { Eraser } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { usePaginatedKuralFeed } from 'src/hooks/usePaginatedKuralFeed';
 import { FilterHeader } from 'src/components/FilterHeader';
 import KuralCardShell from 'src/components/KuralCard/KuralCardShell';
 import { FeaturePlaceholder } from 'src/components/common/FeaturePlaceholder';
+import { KuralIconButton } from 'src/components/common/KuralIconButton';
 import { KuralPaginationBar } from 'src/components/common/KuralPaginationBar';
 import { setKuralBookmarkStatus } from 'src/data/services';
+import { clearAllBookmarks } from 'src/data/services/settingsService';
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { useSettings } from 'src/context/SettingsContext';
 import { useTranslation } from 'src/content/translation';
@@ -23,6 +26,7 @@ export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
   const { theme, componentStyles } = useTheme();
   const { settings } = useSettings();
   const { t } = useTranslation('uiChrome', 'cards');
+  const { t: tSettings, pair } = useTranslation('uiChrome', 'settings');
   const listRef = useRef<FlatList>(null);
 
   const {
@@ -46,6 +50,7 @@ export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
     adhigaramOptions,
     clearAllFilters,
     goToPage,
+    refresh,
     kuralFrom,
     kuralTo,
     updateKuralBookmarkStatus,
@@ -83,6 +88,20 @@ export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
     listRef.current?.scrollToOffset({ offset: 0, animated: true });
   };
 
+  const handleClearBookmarks = () => {
+    Alert.alert(tSettings('clearAllBookmarks'), tSettings('clearBookmarksPrompt'), [
+      { text: tSettings('cancel'), style: 'cancel' },
+      {
+        text: tSettings('confirmReset'),
+        style: 'destructive',
+        onPress: async () => {
+          await clearAllBookmarks();
+          await refresh();
+        },
+      },
+    ]);
+  };
+
   if (loading || searchPending) {
     return (
       <SafeAreaView
@@ -116,6 +135,23 @@ export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
         clearAllFilters={clearAllFilters}
         totalRecords={totalRecords}
       />
+
+      <View
+        style={{
+          paddingHorizontal: theme.layout.screenPadding,
+          paddingBottom: 8,
+          flexDirection: 'row',
+          justifyContent: 'flex-end',
+        }}
+      >
+        <KuralIconButton
+          icon={<Eraser />}
+          label={pair('clearAllBookmarks').visible}
+          tooltip={pair('clearAllBookmarks').hover}
+          onPress={handleClearBookmarks}
+          disabled={totalRecords === 0}
+        />
+      </View>
 
       {totalRecords === 0 ? (
         <FeaturePlaceholder

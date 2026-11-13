@@ -293,6 +293,7 @@ export function usePaginatedKuralFeed(userLimit: number = 30, isBookmarkedOnly: 
     nextPage: () => fetchPageData(page + 1),
     prevPage: () => fetchPageData(page - 1),
     goToPage: (pageNumber: number) => fetchPageData(pageNumber),
+    refresh: () => fetchPageData(1),
     updateKuralBookmarkStatus,
   };
 }
