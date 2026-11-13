@@ -3,6 +3,17 @@
  */
 
 export type ThemeMode = 'light' | 'dark' | 'system';
+export type ColorScheme =
+  | 'earthySage'
+  | 'sandstone'
+  | 'forest'
+  | 'ocean'
+  | 'plum'
+  | 'highContrast'
+  | 'nightOcean'
+  | 'terracotta'
+  | 'lavender'
+  | 'monochrome';
 export type TranslationLocale = 'tamil' | 'english';
 export type SetupLanguageChoice = TranslationLocale | 'both';
 export type OnboardingStatus = 'not_started' | 'in_progress' | 'completed' | 'skipped';
@@ -59,13 +70,10 @@ export interface AppSettings {
   selfNotesEnabled: boolean;
   fallbackLanguage: TranslationLocale;
   themeMode: ThemeMode;
+  colorScheme: ColorScheme;
   tamilFont: TamilFont;
   englishFont: EnglishFont;
   fontSizeScale: FontSizeScale;
-  /** Custom background color override — empty string = use theme default */
-  customBackground: string;
-  /** Custom foreground (text) color override — empty string = use theme default */
-  customForeground: string;
   onboardingStatus: OnboardingStatus;
   onboardingStep: number;
   kuralListDisplayMode: KuralListDisplayMode;
@@ -87,11 +95,10 @@ export const APP_SETTINGS_SCALAR_KEYS = [
   'selfNotesEnabled',
   'fallbackLanguage',
   'themeMode',
+  'colorScheme',
   'tamilFont',
   'englishFont',
   'fontSizeScale',
-  'customBackground',
-  'customForeground',
   'onboardingStatus',
   'onboardingStep',
   'kuralListDisplayMode',
@@ -127,11 +134,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
   selfNotesEnabled: true,
   fallbackLanguage: 'english',
   themeMode: 'system',
+  colorScheme: 'earthySage',
   tamilFont: 'MuktaMalar',
   englishFont: 'Inter',
   fontSizeScale: 'medium',
-  customBackground: '',
-  customForeground: '',
   onboardingStatus: 'not_started',
   onboardingStep: 0,
   kuralListDisplayMode: 'full',

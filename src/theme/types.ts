@@ -1,5 +1,6 @@
 import { createGlobalStyles } from 'src/theme/global.styles';
 import { createComponentStyles } from 'src/theme/component.styles';
+import { ColorScheme } from 'src/types/settings';
 
 type GlobalStylesType = ReturnType<typeof createGlobalStyles>;
 type ComponentStylesType = ReturnType<typeof createComponentStyles>;
@@ -9,6 +10,7 @@ export interface ThemeContextType {
   globalStyles: GlobalStylesType;
   componentStyles: ComponentStylesType;
   themeMode: ThemeMode;
+  colorScheme: ColorScheme;
   setThemeMode: (mode: ThemeMode) => void;
   toggleThemeMode: () => void;
 }

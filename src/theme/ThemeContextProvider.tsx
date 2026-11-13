@@ -2,7 +2,7 @@ import React, { createContext, useContext, useMemo } from 'react';
 import { useColorScheme, useWindowDimensions } from 'react-native';
 
 import { AppTheme, ThemeContextType, ThemeMode } from 'src/theme/types';
-import { DarkEarthyTheme, EarthyTheme } from 'src/theme/styles';
+import { createColorSchemeTheme } from 'src/theme/styles';
 
 import { createGlobalStyles } from 'src/theme/global.styles';
 import { createComponentStyles } from 'src/theme/component.styles';
@@ -28,18 +28,15 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     fontSizeScale,
     tamilFont,
     englishFont,
-    customBackground,
-    customForeground,
+    colorScheme,
     themeMode: settingsThemeMode,
   } = settings;
   const { width } = useWindowDimensions();
-  const colorScheme = useColorScheme();
+  const deviceColorScheme = useColorScheme();
   const isWideScreen = width >= WIDE_SCREEN_BREAKPOINT;
-  const systemThemeMode: ThemeMode = colorScheme === 'dark' ? 'dark' : 'light';
-  const resolvedThemeMode: ThemeMode =
-    settingsThemeMode === 'system' ? systemThemeMode : settingsThemeMode;
-
-  const baseTheme = resolvedThemeMode === 'dark' ? DarkEarthyTheme : EarthyTheme;
+  const resolvedThemeMode: Exclude<ThemeMode, 'system'> =
+    settingsThemeMode === 'system' ? (deviceColorScheme === 'dark' ? 'dark' : 'light') : settingsThemeMode;
+  const baseTheme = createColorSchemeTheme(colorScheme, resolvedThemeMode);
 
   const contextValue = useMemo<ThemeContextType>(() => {
     const sizeMult = FONT_SIZE_MULTIPLIERS[fontSizeScale];
@@ -57,11 +54,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     const responsiveTheme: AppTheme = {
       ...baseTheme,
       isWideScreen,
-      colors: {
-        ...baseTheme.colors,
-        background: customBackground || baseTheme.colors.background,
-        textPrimary: customForeground || baseTheme.colors.textPrimary,
-      },
+      colors: baseTheme.colors,
       typography: {
         ...baseTheme.typography,
         fonts: {
@@ -86,6 +79,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       globalStyles: createGlobalStyles(responsiveTheme),
       componentStyles: createComponentStyles(responsiveTheme),
       themeMode: resolvedThemeMode,
+      colorScheme,
       setThemeMode: (mode: ThemeMode) => updateSettings({ themeMode: mode }),
       toggleThemeMode: () => {
         const nextMode = resolvedThemeMode === 'dark' ? 'light' : 'dark';
@@ -100,8 +94,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     fontSizeScale,
     tamilFont,
     englishFont,
-    customBackground,
-    customForeground,
+    colorScheme,
     updateSettings,
   ]);
 

@@ -17,6 +17,7 @@ import {
   TranslationLocale,
   TamilFont,
   ThemeMode,
+  ColorScheme,
   KuralListDisplayMode,
   ENGLISH_FONT_OPTIONS,
   FONT_SIZE_SCALE_OPTIONS,
@@ -39,11 +40,10 @@ const DEFAULT_SCALAR_SETTINGS: AppSettingsScalar = {
   selfNotesEnabled: DEFAULT_SETTINGS.selfNotesEnabled,
   fallbackLanguage: DEFAULT_SETTINGS.fallbackLanguage,
   themeMode: DEFAULT_SETTINGS.themeMode,
+  colorScheme: DEFAULT_SETTINGS.colorScheme,
   tamilFont: DEFAULT_SETTINGS.tamilFont,
   englishFont: DEFAULT_SETTINGS.englishFont,
   fontSizeScale: DEFAULT_SETTINGS.fontSizeScale,
-  customBackground: DEFAULT_SETTINGS.customBackground,
-  customForeground: DEFAULT_SETTINGS.customForeground,
   onboardingStatus: DEFAULT_SETTINGS.onboardingStatus,
   onboardingStep: DEFAULT_SETTINGS.onboardingStep,
   kuralListDisplayMode: DEFAULT_SETTINGS.kuralListDisplayMode,
@@ -67,6 +67,10 @@ async function withSettingsDb<T>(operation: (targetDb: SettingsDb) => Promise<T>
 
 function isThemeMode(value: string): value is ThemeMode {
   return value === 'light' || value === 'dark' || value === 'system';
+}
+
+function isColorScheme(value: string): value is ColorScheme {
+  return ['earthySage', 'sandstone', 'forest', 'ocean', 'plum', 'highContrast', 'nightOcean'].includes(value);
 }
 
 function isOnboardingStatus(value: string): value is OnboardingStatus {
@@ -263,6 +267,10 @@ export async function loadSettings(): Promise<LoadSettingsResult> {
           if (isThemeMode(rawValue)) loaded.themeMode = rawValue;
           else hadInvalidStoredValues = true;
           break;
+        case 'colorScheme':
+          if (isColorScheme(rawValue)) loaded.colorScheme = rawValue;
+          else hadInvalidStoredValues = true;
+          break;
         case 'tamilFont':
           if (isTamilFont(rawValue)) loaded.tamilFont = rawValue;
           else hadInvalidStoredValues = true;
@@ -274,12 +282,6 @@ export async function loadSettings(): Promise<LoadSettingsResult> {
         case 'fontSizeScale':
           if (isFontSizeScale(rawValue)) loaded.fontSizeScale = rawValue;
           else hadInvalidStoredValues = true;
-          break;
-        case 'customBackground':
-          loaded.customBackground = rawValue;
-          break;
-        case 'customForeground':
-          loaded.customForeground = rawValue;
           break;
         case 'onboardingStatus':
           if (isOnboardingStatus(rawValue)) loaded.onboardingStatus = rawValue;
