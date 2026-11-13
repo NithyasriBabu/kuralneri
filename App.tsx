@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   Text,
   useColorScheme,
@@ -9,6 +10,8 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 
 import {
@@ -35,6 +38,40 @@ import i18n from 'src/content/i18n';
 import { isDevCrashRoute, navigateToHomeRoute } from 'src/dev/devCrash';
 import { getNativeThemeColors } from 'src/theme/nativeTheme.constants';
 import { OnboardingStatus } from 'src/types/settings';
+import KuralDetailView from 'src/views/KuralDetailView';
+
+type RootStackParamList = {
+  Main: undefined;
+  KuralDetail: { kuralId: number };
+};
+
+const RootStack = createNativeStackNavigator<RootStackParamList>();
+
+function NativeAppNavigator() {
+  return (
+    <NavigationContainer>
+      <RootStack.Navigator
+        screenOptions={{
+          headerShown: false,
+          gestureEnabled: true,
+          fullScreenGestureEnabled: true,
+          animation: 'slide_from_right',
+        }}
+      >
+        <RootStack.Screen name="Main">
+          {({ navigation }) => (
+            <TabNavigator
+              onNativeKuralPress={(kuralId) => navigation.navigate('KuralDetail', { kuralId })}
+            />
+          )}
+        </RootStack.Screen>
+        <RootStack.Screen name="KuralDetail">
+          {({ route }) => <KuralDetailView kuralId={route.params.kuralId} />}
+        </RootStack.Screen>
+      </RootStack.Navigator>
+    </NavigationContainer>
+  );
+}
 
 function ThemedApp() {
   const { settings, settingsReady } = useSettings();
@@ -51,7 +88,13 @@ function ThemedApp() {
     'SourceSerif-Bold': SourceSerifPro_400Regular,
   });
 
-  return <AppContent fontsLoaded={fontsLoaded} settingsReady={settingsReady} onboardingStatus={settings.onboardingStatus} />;
+  return (
+    <AppContent
+      fontsLoaded={fontsLoaded}
+      settingsReady={settingsReady}
+      onboardingStatus={settings.onboardingStatus}
+    />
+  );
 }
 
 interface AppContentProps {
@@ -93,7 +136,7 @@ function AppContent({ fontsLoaded, settingsReady, onboardingStatus }: AppContent
   return (
     <SafeAreaProvider>
       <StatusBar style={theme.dark ? 'light' : 'dark'} />
-      <TabNavigator />
+      {Platform.OS === 'web' ? <TabNavigator /> : <NativeAppNavigator />}
     </SafeAreaProvider>
   );
 }
@@ -170,10 +213,7 @@ function DatabaseBootstrapGate({ children }: { children: React.ReactNode }) {
       <View style={bootstrapStyles.shell(isDark)}>
         <StatusBar style={isDark ? 'light' : 'dark'} />
         <View style={bootstrapStyles.card(isDark)}>
-          <ActivityIndicator
-            size="large"
-            color={nativeTheme.loading}
-          />
+          <ActivityIndicator size="large" color={nativeTheme.loading} />
           <Text style={bootstrapStyles.log(isDark)}>{logMessage}</Text>
         </View>
       </View>

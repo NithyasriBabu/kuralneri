@@ -56,7 +56,7 @@ function getInitialRoute(): RouteState {
 export function useNavigatorController() {
   const { theme } = useTheme();
   const { settings } = useSettings();
-  const { t } = useTranslation('uiChrome', 'navigation');
+  const { t } = useTranslation('navLabels', 'navigation');
   const [routeState, setRouteState] = useState<RouteState>(() =>
     sanitizeRouteState(getInitialRoute()),
   );
@@ -110,19 +110,14 @@ export function useNavigatorController() {
     }
   }, []);
 
-  const handleDetailBack = useCallback(() => {
-    handleTabPress(TabType.Explore);
-  }, [handleTabPress]);
-
   const navTabs = useMemo<NavigatorTabViewModel[]>(
     () =>
       TABS.filter((tab) => isTabAvailable(tab.id)).map((tab) => {
         const label = t(tab.titleKey);
-        const showLabel = navLabelToggle.tamil || navLabelToggle.english;
         return {
           id: tab.id,
           icon: tab.icon,
-          label: showLabel ? label : '',
+          label,
           tooltip: label,
           accessibilityLabel: label,
           isActive: activeTab === tab.id,
@@ -134,7 +129,6 @@ export function useNavigatorController() {
 
   return {
     activeTab,
-    handleDetailBack,
     handleKuralPress,
     handleTabPress,
     isCompactNavigation,

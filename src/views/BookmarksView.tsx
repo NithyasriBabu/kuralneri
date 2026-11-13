@@ -14,12 +14,14 @@ import { clearAllBookmarks } from 'src/data/services/settingsService';
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { useSettings } from 'src/context/SettingsContext';
 import { useTranslation } from 'src/content/translation';
+import { CoachTarget } from 'src/context/CoachMarkContext';
 
 interface BookmarksViewProps {
   onKuralPress?: (kuralId: number) => void;
+  coachTarget?: string;
 }
 
-export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
+export default function BookmarksView({ onKuralPress, coachTarget }: BookmarksViewProps) {
   const [limitOptions, setLimitOptions] = useState<number[]>([10, 20, 30, 50, 100]);
   const [bookmarkLimit, setBookmarkLimit] = useState<number>(10);
 
@@ -152,6 +154,7 @@ export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
           justifyContent: 'flex-end',
         }}
       >
+        <CoachTarget id="bookmarks-clear-all">
         <KuralIconButton
           icon={<Eraser />}
           label={pair('clearAllBookmarks').visible}
@@ -159,6 +162,7 @@ export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
           onPress={handleClearBookmarks}
           disabled={totalRecords === 0}
         />
+        </CoachTarget>
       </View>
 
       {totalRecords === 0 ? (
@@ -176,7 +180,7 @@ export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
           key={`bookmarks-grid-${columns}`}
           numColumns={columns}
           keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => (
             <View
               style={[
                 compact
@@ -194,6 +198,8 @@ export default function BookmarksView({ onKuralPress }: BookmarksViewProps) {
                 }}
                 compact={compact}
                 searchQuery={searchQuery}
+                highlightBookmark={coachTarget === 'bookmarks-remove-one' && index === 0}
+                bookmarkCoachTargetId={index === 0 ? 'bookmarks-remove-one' : undefined}
               />
             </View>
           )}

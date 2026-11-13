@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getKuralById, setKuralBookmarkStatus } from 'src/data/services';
 import KuralCardShell from 'src/components/KuralCard/KuralCardShell';
@@ -11,15 +12,13 @@ import { useTranslation } from 'src/content/translation';
 
 interface KuralDetailViewProps {
   kuralId: number;
-  onBack?: () => void;
 }
 
-export default function KuralDetailView({ kuralId, onBack }: KuralDetailViewProps) {
+export default function KuralDetailView({ kuralId }: KuralDetailViewProps) {
   const { theme, componentStyles } = useTheme();
   const { settings } = useSettings();
-  const { sectionHeaders: headerToggle } = settings.langToggles;
-  const { t: tCommon } = useTranslation('uiChrome', 'common');
-  const { t: tCards, tSingle } = useTranslation('uiChrome', 'cards');
+  const { kuralCard: headerToggle } = settings.langToggles;
+  const { t: tCards, tSingle } = useTranslation('kuralCard', 'cards');
   const [kural, setKural] = useState<KuralRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,72 +67,52 @@ export default function KuralDetailView({ kuralId, onBack }: KuralDetailViewProp
   };
 
   return (
-    <ScrollView
-      testID="print-scroll-container"
-      style={componentStyles.kuralOfTheDayScreen}
-      contentContainerStyle={componentStyles.kuralOfTheDayContent}
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      edges={['top', 'left', 'right', 'bottom']}
     >
-      <View style={componentStyles.kuralOfTheDayHeader}>
-        {headerToggle.tamil && (
-          <KuralText style={componentStyles.kuralOfTheDayTamilHeader}>
-            {tSingle('kuralDetail', 'tamil')} #{kuralId}
-          </KuralText>
+      <ScrollView
+        testID="print-scroll-container"
+        style={componentStyles.kuralOfTheDayScreen}
+        contentContainerStyle={componentStyles.kuralOfTheDayContent}
+      >
+        <View style={componentStyles.kuralOfTheDayHeader}>
+          {headerToggle.tamil && (
+            <KuralText style={componentStyles.kuralOfTheDayTamilHeader}>
+              {tSingle('kuralDetail', 'tamil')} #{kuralId}
+            </KuralText>
+          )}
+          {headerToggle.english && (
+            <KuralText style={componentStyles.kuralOfTheDayEnglishHeader}>
+              {tSingle('kuralDetail', 'english')} #{kuralId}
+            </KuralText>
+          )}
+        </View>
+
+        {loading && (
+          <View style={componentStyles.kuralOfTheDayCentered}>
+            <ActivityIndicator size="large" color={theme.colors.primary} />
+          </View>
         )}
-        {headerToggle.english && (
-          <KuralText style={componentStyles.kuralOfTheDayEnglishHeader}>
-            {tSingle('kuralDetail', 'english')} #{kuralId}
-          </KuralText>
+
+        {error && (
+          <View style={componentStyles.kuralOfTheDayCentered}>
+            <KuralText style={componentStyles.kuralOfTheDayErrorText}>{error}</KuralText>
+          </View>
         )}
-      </View>
 
-      {onBack && (
-        <TouchableOpacity
-          activeOpacity={0.85}
-          onPress={onBack}
-          style={{
-            alignSelf: 'flex-start',
-            marginBottom: 14,
-            paddingHorizontal: 12,
-            paddingVertical: 8,
-            borderRadius: 999,
-            backgroundColor: theme.colors.accent,
-          }}
-        >
-          <KuralText
-            style={{
-              color: theme.colors.textPrimary,
-              fontWeight: '700',
-              fontFamily: theme.typography.fonts.english,
-            }}
-          >
-            {tCommon('backToExplore')}
-          </KuralText>
-        </TouchableOpacity>
-      )}
-
-      {loading && (
-        <View style={componentStyles.kuralOfTheDayCentered}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-        </View>
-      )}
-
-      {error && (
-        <View style={componentStyles.kuralOfTheDayCentered}>
-          <KuralText style={componentStyles.kuralOfTheDayErrorText}>{error}</KuralText>
-        </View>
-      )}
-
-      {!loading && !error && kural && (
-        <View style={componentStyles.kuralOfTheDayFeedWrapper}>
-          <KuralCardShell
-            kural={kural}
-            showComments
-            showUserNotes
-            onBookmarkToggle={handleBookmarkToggle}
-            bookmarkLoading={savingBookmark}
-          />
-        </View>
-      )}
-    </ScrollView>
+        {!loading && !error && kural && (
+          <View style={componentStyles.kuralOfTheDayFeedWrapper}>
+            <KuralCardShell
+              kural={kural}
+              showComments
+              showUserNotes
+              onBookmarkToggle={handleBookmarkToggle}
+              bookmarkLoading={savingBookmark}
+            />
+          </View>
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
