@@ -12,15 +12,17 @@ import { useTranslation } from 'src/content/translation';
 export default function KuralOfTheDayView({
   highlightBookmark = false,
   addTutorialBookmark = false,
+  onTutorialBookmarkCreated,
 }: {
   highlightBookmark?: boolean;
   addTutorialBookmark?: boolean;
+  onTutorialBookmarkCreated?: (kuralId: number) => void;
 }) {
   const { kural, loading, error } = useKuralOfTheDay();
   const { theme, componentStyles } = useTheme();
   const { settings } = useSettings();
   const { t } = useTranslation('kuralCard', 'cards');
-  const showTamil = settings.fallbackLanguage === 'tamil';
+  const showTamil = settings.language === 'tamil';
   const userNameTamil = settings.userNameTamil || settings.userName;
 
   const [displayKural, setDisplayKural] = useState<KuralRecord | null>(null);
@@ -37,12 +39,15 @@ export default function KuralOfTheDayView({
     if (!addTutorialBookmark || !displayKural || displayKural.is_bookmarked) return;
     let mounted = true;
     void setKuralBookmarkStatus(displayKural.id, true).then((bookmarked) => {
-      if (mounted) setDisplayKural((current) => current && { ...current, is_bookmarked: bookmarked });
+      if (mounted) {
+        setDisplayKural((current) => current && { ...current, is_bookmarked: bookmarked });
+        onTutorialBookmarkCreated?.(displayKural.id);
+      }
     });
     return () => {
       mounted = false;
     };
-  }, [addTutorialBookmark, displayKural]);
+  }, [addTutorialBookmark, displayKural, onTutorialBookmarkCreated]);
 
   const handleBookmarkToggle = async (nextBookmarked: boolean) => {
     if (!displayKural) return;
@@ -104,7 +109,7 @@ export default function KuralOfTheDayView({
         <View style={componentStyles.kuralOfTheDayFeedWrapper}>
           <KuralCardShell
             kural={displayKural}
-            showComments={true}
+            displayContext="selected"
             showUserNotes
             onBookmarkToggle={handleBookmarkToggle}
             highlightBookmark={highlightBookmark}

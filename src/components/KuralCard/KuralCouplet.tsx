@@ -17,6 +17,9 @@ export interface KuralCoupletProps {
     translation: boolean;
     explanation: boolean;
   };
+  showTransliteration?: boolean;
+  showTranslation?: boolean;
+  showExplanation?: boolean;
   searchQuery?: string;
 }
 
@@ -26,6 +29,9 @@ export default React.memo(function KuralCouplet({
   headerToggle,
   compact = false,
   compactFields,
+  showTransliteration = true,
+  showTranslation = true,
+  showExplanation = true,
   searchQuery,
 }: KuralCoupletProps) {
   const { componentStyles } = useTheme();
@@ -59,6 +65,20 @@ export default React.memo(function KuralCouplet({
             isTamil
             style={componentStyles.compactKuralTamil}
           />
+          {showTransliteration ? (
+            <>
+              <HighlightedText
+                text={kural.transliteration1}
+                query={searchQuery}
+                style={componentStyles.compactKuralTransliteration}
+              />
+              <HighlightedText
+                text={kural.transliteration2}
+                query={searchQuery}
+                style={componentStyles.compactKuralTransliteration}
+              />
+            </>
+          ) : null}
 
           {compactFields?.taxonomy ? (
             <HighlightedText
@@ -68,7 +88,7 @@ export default React.memo(function KuralCouplet({
               numberOfLines={1}
             />
           ) : null}
-          {cardToggle.english && compactFields?.translation ? (
+          {showTranslation && compactFields?.translation ? (
             <HighlightedText
               text={kural.translation}
               query={searchQuery}
@@ -76,7 +96,7 @@ export default React.memo(function KuralCouplet({
               numberOfLines={2}
             />
           ) : null}
-          {cardToggle.english && compactFields?.explanation ? (
+          {showExplanation && compactFields?.explanation ? (
             <HighlightedText
               text={kural.explanation}
               query={searchQuery}
@@ -122,8 +142,22 @@ export default React.memo(function KuralCouplet({
         isTamil
         style={componentStyles.kuralCardTamil}
       />
+      {showTransliteration ? (
+        <View style={componentStyles.kuralCardTransliterationBlock}>
+          <HighlightedText
+            text={kural.transliteration1}
+            query={searchQuery}
+            style={componentStyles.kuralCardTransliteration}
+          />
+          <HighlightedText
+            text={kural.transliteration2}
+            query={searchQuery}
+            style={componentStyles.kuralCardTransliteration}
+          />
+        </View>
+      ) : null}
 
-      {cardToggle.english && (
+      {showTranslation && (
         <>
           <KuralText style={componentStyles.kuralCardTranslation}>{t('translation')}</KuralText>
           <HighlightedText
@@ -133,7 +167,7 @@ export default React.memo(function KuralCouplet({
           />
         </>
       )}
-      {cardToggle.english && (
+      {showExplanation && (
         <>
           <KuralText style={componentStyles.kuralCardTranslation}>{t('explanation')}</KuralText>
           <HighlightedText

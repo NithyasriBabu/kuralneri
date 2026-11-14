@@ -12,7 +12,6 @@ import { KuralRecord } from 'src/types/types';
 import { KuralButton } from 'src/components/common/KuralButton';
 import { KuralText } from 'src/components/common/KuralText';
 import { useTranslation } from 'src/content/translation';
-import { useSettings } from 'src/context/SettingsContext';
 
 const DEFAULT_LIMIT_OPTIONS = [10, 20, 30, 50, 100];
 
@@ -25,7 +24,6 @@ interface KuralListCardProps {
   baseWrapperStyle: StyleProp<ViewStyle>;
   gridWrapperStyle: StyleProp<ViewStyle>;
   onKuralPress?: (kuralId: number) => void;
-  compact: boolean;
   searchQuery: string;
 }
 
@@ -34,7 +32,6 @@ const KuralListCard = React.memo(function KuralListCard({
   baseWrapperStyle,
   gridWrapperStyle,
   onKuralPress,
-  compact,
   searchQuery,
 }: KuralListCardProps) {
   const handlePress = useCallback(() => {
@@ -52,9 +49,9 @@ const KuralListCard = React.memo(function KuralListCard({
     <View style={[baseWrapperStyle, gridWrapperStyle]}>
       <KuralCardShell
         kural={kural}
+        displayContext="explore"
         onPress={onKuralPress ? handlePress : undefined}
         onBookmarkToggle={handleBookmarkToggle}
-        compact={compact}
         searchQuery={searchQuery}
       />
     </View>
@@ -66,7 +63,6 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
   const [limitOptions, setLimitOptions] = useState<number[]>(DEFAULT_LIMIT_OPTIONS);
 
   const { theme, componentStyles } = useTheme();
-  const { settings } = useSettings();
   const { t } = useTranslation('uiChrome', 'filters');
   const screenWidth = theme.layout.screenWidth;
   const useInfiniteScroll = screenWidth <= 600;
@@ -114,12 +110,7 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
     return { columns: 1, wrapperStyle: componentStyles.kuralListGridColumnFull };
   };
 
-  const compact =
-    settings.kuralListDisplayMode === 'compact' ||
-    (settings.kuralListDisplayMode === 'responsive' && screenWidth <= 600);
-  const gridConfig = compact
-    ? { columns: 1, wrapperStyle: componentStyles.kuralListGridColumnFull }
-    : getGridConfig();
+  const gridConfig = { columns: 1, wrapperStyle: componentStyles.kuralListGridColumnFull };
   const { columns, wrapperStyle } = gridConfig;
 
   const handlePageJump = (targetPage: number) => {
@@ -181,14 +172,9 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
           renderItem={({ item }) => (
             <KuralListCard
               kural={item}
-              baseWrapperStyle={
-                compact
-                  ? componentStyles.kuralListCompactWrapper
-                  : componentStyles.kuralListCardWrapper
-              }
+              baseWrapperStyle={componentStyles.kuralListCompactWrapper}
               gridWrapperStyle={wrapperStyle}
               onKuralPress={onKuralPress}
-              compact={compact}
               searchQuery={searchQuery}
             />
           )}

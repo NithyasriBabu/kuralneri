@@ -24,8 +24,8 @@ export default React.memo(function KuralCommentary({
   const { seededNotes, preferred, others, authorToggle } = useMemo(() => {
     const nextSeededNotes = (notes ?? []).filter((note) => note.note_source === 'seeded');
     const nextAuthorToggle = {
-      tamil: settings.fallbackLanguage === 'tamil',
-      english: settings.fallbackLanguage === 'english',
+      tamil: settings.language === 'tamil',
+      english: settings.language === 'english',
     };
     const nextPreferred = preferredAuthorCode
       ? nextSeededNotes.find((n) => n.author_code === preferredAuthorCode)
@@ -40,7 +40,7 @@ export default React.memo(function KuralCommentary({
       others: nextOthers,
       authorToggle: nextAuthorToggle,
     };
-  }, [notes, preferredAuthorCode, settings.fallbackLanguage]);
+  }, [notes, preferredAuthorCode, settings.language]);
 
   if (seededNotes.length === 0) {
     return null;

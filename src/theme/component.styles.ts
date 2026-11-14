@@ -78,6 +78,13 @@ export const createComponentStyles = (theme: AppTheme) => {
       paddingTop: 1,
       paddingBottom: 1,
     } as TextStyle,
+    compactKuralTransliteration: {
+      fontFamily: theme.typography.fonts.english,
+      fontSize: theme.typography.sizes.caption,
+      color: theme.colors.textSecondary,
+      lineHeight: 18,
+      fontStyle: 'italic',
+    } as TextStyle,
     compactKuralTaxonomy: {
       color: theme.colors.textSecondary,
       fontSize: theme.typography.sizes.caption - 1,
@@ -134,6 +141,19 @@ export const createComponentStyles = (theme: AppTheme) => {
       paddingTop: 1,
       paddingBottom: 1,
     } as TextStyle,
+    kuralCardTransliteration: {
+      fontFamily: theme.typography.fonts.english,
+      fontSize: theme.typography.sizes.bodyNormal,
+      color: theme.colors.textSecondary,
+      lineHeight: 21,
+      fontStyle: 'italic',
+    } as TextStyle,
+    kuralCardTransliterationBlock: {
+      marginTop: 2,
+      paddingLeft: 10,
+      borderLeftWidth: 2,
+      borderLeftColor: theme.colors.accent,
+    } as ViewStyle,
     kuralCardTranslation: {
       fontFamily: theme.typography.fonts.english,
       fontSize: theme.typography.sizes.bodyNormal,

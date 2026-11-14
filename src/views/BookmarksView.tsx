@@ -12,7 +12,6 @@ import { KuralPaginationBar } from 'src/components/common/KuralPaginationBar';
 import { setKuralBookmarkStatus } from 'src/data/services';
 import { clearAllBookmarks } from 'src/data/services/settingsService';
 import { useTheme } from 'src/theme/ThemeContextProvider';
-import { useSettings } from 'src/context/SettingsContext';
 import { useTranslation } from 'src/content/translation';
 import { CoachTarget } from 'src/context/CoachMarkContext';
 
@@ -24,7 +23,6 @@ interface BookmarksViewProps {
 interface BookmarkListCardProps {
   kural: React.ComponentProps<typeof KuralCardShell>['kural'];
   wrapperStyle: StyleProp<ViewStyle>;
-  compact: boolean;
   searchQuery: string;
   onKuralPress?: (kuralId: number) => void;
   highlightBookmark: boolean;
@@ -34,7 +32,6 @@ interface BookmarkListCardProps {
 const BookmarkListCard = React.memo(function BookmarkListCard({
   kural,
   wrapperStyle,
-  compact,
   searchQuery,
   onKuralPress,
   highlightBookmark,
@@ -55,9 +52,9 @@ const BookmarkListCard = React.memo(function BookmarkListCard({
     <View style={wrapperStyle}>
       <KuralCardShell
         kural={kural}
+        displayContext="bookmarks"
         onPress={onKuralPress ? handlePress : undefined}
         onBookmarkToggle={handleBookmarkToggle}
-        compact={compact}
         searchQuery={searchQuery}
         highlightBookmark={highlightBookmark}
         bookmarkCoachTargetId={bookmarkCoachTargetId}
@@ -66,12 +63,14 @@ const BookmarkListCard = React.memo(function BookmarkListCard({
   );
 });
 
-export default function BookmarksView({ onKuralPress, coachTarget }: BookmarksViewProps) {
+export default function BookmarksView({
+  onKuralPress,
+  coachTarget,
+}: BookmarksViewProps) {
   const [limitOptions, setLimitOptions] = useState<number[]>([10, 20, 30, 50, 100]);
   const [bookmarkLimit, setBookmarkLimit] = useState<number>(10);
 
   const { theme, componentStyles } = useTheme();
-  const { settings } = useSettings();
   const { t } = useTranslation('uiChrome', 'cards');
   const { t: tSettings, pair } = useTranslation('uiChrome', 'settings');
   const listRef = useRef<FlatList>(null);
@@ -116,12 +115,7 @@ export default function BookmarksView({ onKuralPress, coachTarget }: BookmarksVi
     return { columns: 1, wrapperStyle: componentStyles.kuralListGridColumnFull };
   };
 
-  const compact =
-    settings.kuralListDisplayMode === 'compact' ||
-    (settings.kuralListDisplayMode === 'responsive' && theme.layout.screenWidth <= 600);
-  const gridConfig = compact
-    ? { columns: 1, wrapperStyle: componentStyles.kuralListGridColumnFull }
-    : getGridConfig();
+  const gridConfig = getGridConfig();
   const { columns, wrapperStyle } = gridConfig;
 
   useEffect(() => {
@@ -228,12 +222,9 @@ export default function BookmarksView({ onKuralPress, coachTarget }: BookmarksVi
             <BookmarkListCard
               kural={item}
               wrapperStyle={[
-                compact
-                  ? componentStyles.kuralListCompactWrapper
-                  : componentStyles.kuralListCardWrapper,
+                componentStyles.kuralListCardWrapper,
                 wrapperStyle,
               ]}
-              compact={compact}
               searchQuery={searchQuery}
               onKuralPress={onKuralPress}
               highlightBookmark={coachTarget === 'bookmarks-remove-one' && index === 0}

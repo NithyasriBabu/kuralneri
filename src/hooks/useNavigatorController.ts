@@ -119,10 +119,10 @@ export function useNavigatorController() {
           tooltip: label,
           accessibilityLabel: label,
           isActive: activeTab === tab.id,
-          isTamilLabel: settings.fallbackLanguage === 'tamil',
+          isTamilLabel: settings.language === 'tamil',
         };
       }),
-    [activeTab, settings.fallbackLanguage, t],
+    [activeTab, settings.language, t],
   );
 
   return {

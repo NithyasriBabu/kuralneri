@@ -14,12 +14,11 @@ import { CoachTarget } from 'src/context/CoachMarkContext';
 
 export interface KuralCardShellProps {
   kural: KuralRecord;
-  showComments?: boolean;
+  displayContext?: 'selected' | 'explore' | 'bookmarks';
   showUserNotes?: boolean;
   onPress?: () => void;
   onBookmarkToggle?: (nextBookmarked: boolean) => void | Promise<void>;
   bookmarkLoading?: boolean;
-  compact?: boolean;
   searchQuery?: string;
   highlightBookmark?: boolean;
   bookmarkCoachTargetId?: string;
@@ -27,12 +26,11 @@ export interface KuralCardShellProps {
 
 export default React.memo(function KuralCardShell({
   kural,
-  showComments,
+  displayContext = 'selected',
   showUserNotes = false,
   onPress,
   onBookmarkToggle,
   bookmarkLoading,
-  compact = false,
   searchQuery,
   highlightBookmark = false,
   bookmarkCoachTargetId,
@@ -67,10 +65,19 @@ export default React.memo(function KuralCardShell({
       : {};
 
   const cardToggle = {
-    tamil: settings.fallbackLanguage === 'tamil',
-    english: settings.fallbackLanguage === 'english',
+    tamil: settings.language === 'tamil',
+    english: settings.language === 'english',
   };
   const preferredAuthorCode = settings.preferredAuthorCode;
+  const compact = displayContext === 'explore';
+  const isTamil = settings.language === 'tamil';
+  const shouldShowComments =
+    isTamil &&
+    (displayContext === 'selected' ||
+      (displayContext === 'bookmarks' && Boolean(preferredAuthorCode)));
+  const shouldShowUserNotes = displayContext === 'selected' && showUserNotes;
+  const showTranslation = displayContext === 'selected' && !isTamil;
+  const showExplanation = !isTamil && displayContext !== 'explore';
 
   return (
     <View style={[componentStyles.kuralCard, compact && componentStyles.kuralCardCompact]}>
@@ -88,20 +95,23 @@ export default React.memo(function KuralCardShell({
           headerToggle={cardToggle}
           compact={compact}
           compactFields={{
-            taxonomy: settings.compactShowTaxonomy,
-            translation: settings.compactShowTranslation,
-            explanation: settings.compactShowExplanation,
+            taxonomy: false,
+            translation: false,
+            explanation: false,
           }}
+          showTransliteration={!isTamil}
+          showTranslation={showTranslation}
+          showExplanation={showExplanation}
           searchQuery={searchQuery}
         />
       </Pressable>
 
-      {showComments || showUserNotes ? (
+      {shouldShowComments || shouldShowUserNotes ? (
         <KuralNotesBlock
           kuralId={kural.id}
           preferredAuthorCode={preferredAuthorCode}
-          showComments={showComments}
-          showUserNotes={showUserNotes}
+          showComments={shouldShowComments}
+          showUserNotes={shouldShowUserNotes}
         />
       ) : null}
 
@@ -111,9 +121,14 @@ export default React.memo(function KuralCardShell({
         </KuralText>
       )}
 
-      {onBookmarkToggle && (!compact || settings.compactShowBookmark) && (
+      {onBookmarkToggle && (
         <CoachTarget
           id={bookmarkCoachTargetId ?? ''}
+        >
+        <Pressable
+          onPress={handleBookmarkPress}
+          disabled={bookmarkBusy}
+          {...bookmarkWebProps}
           style={[
             componentStyles.kuralCardBookmarkButton,
             Boolean(kural.is_bookmarked) && componentStyles.kuralCardBookmarkButtonActive,
@@ -122,22 +137,6 @@ export default React.memo(function KuralCardShell({
               borderWidth: 3,
               borderColor: theme.colors.primary,
               backgroundColor: theme.colors.accent,
-            },
-          ]}
-        >
-        <Pressable
-          onPress={handleBookmarkPress}
-          disabled={bookmarkBusy}
-          {...bookmarkWebProps}
-          style={[
-            {
-              width: '100%',
-              height: '100%',
-              minWidth: 44,
-              minHeight: 44,
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 999,
             },
           ]}
           accessibilityState={{ disabled: Boolean(bookmarkBusy), busy: savingBookmark }}

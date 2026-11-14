@@ -18,7 +18,7 @@ export default function KuralDetailView({ kuralId }: KuralDetailViewProps) {
   const { theme, componentStyles } = useTheme();
   const { settings } = useSettings();
   const { t: tCards } = useTranslation('kuralCard', 'cards');
-  const showTamil = settings.fallbackLanguage === 'tamil';
+  const showTamil = settings.language === 'tamil';
   const [kural, setKural] = useState<KuralRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -105,7 +105,7 @@ export default function KuralDetailView({ kuralId }: KuralDetailViewProps) {
           <View style={componentStyles.kuralOfTheDayFeedWrapper}>
             <KuralCardShell
               kural={kural}
-              showComments
+              displayContext="selected"
               showUserNotes
               onBookmarkToggle={handleBookmarkToggle}
               bookmarkLoading={savingBookmark}
