@@ -30,6 +30,7 @@ type OnboardingSetupPageProps = {
   nameLabel: string;
   namePlaceholder: string;
   preferredAuthorLabel: string;
+  preferredAuthorHelper?: string;
   themeLabel: string;
   appearanceLabel: string;
   fontSizeLabel: string;
@@ -41,7 +42,7 @@ type OnboardingSetupPageProps = {
   authorOptions: KuralSegmentedOption<string>[];
   settings: Pick<
     AppSettings,
-    'fallbackLanguage' | 'preferredAuthorCode' | 'colorScheme' | 'themeMode' | 'fontSizeScale'
+    'language' | 'preferredAuthorCode' | 'colorScheme' | 'themeMode' | 'fontSizeScale'
   >;
   nameInput: string;
   nameInputRef: React.RefObject<React.ElementRef<typeof TextInput> | null>;
@@ -64,6 +65,7 @@ export function OnboardingSetupPage({
   nameLabel,
   namePlaceholder,
   preferredAuthorLabel,
+  preferredAuthorHelper,
   themeLabel,
   appearanceLabel,
   fontSizeLabel,
@@ -170,6 +172,7 @@ export function OnboardingSetupPage({
           options={authorOptions}
           selected={settings.preferredAuthorCode}
           label={preferredAuthorLabel}
+          helperText={preferredAuthorHelper}
           onSelect={onPreferredAuthorChange}
         />
 

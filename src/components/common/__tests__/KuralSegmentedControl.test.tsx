@@ -81,3 +81,28 @@ it('distributes compact options evenly across the control', () => {
   }
   act(() => renderer.unmount());
 });
+
+it('renders a font-specific preview when an option provides one', () => {
+  let renderer!: ReactTestRenderer;
+  act(() => {
+    renderer = create(
+      <KuralSegmentedControl
+        options={[
+          {
+            label: 'Mukta Malar',
+            value: 'mukta',
+          },
+        ]}
+        selected="mukta"
+        onSelect={jest.fn()}
+        renderOption={(option) => (
+          <span style={{ fontFamily: 'MuktaMalar-Regular' }}>{option.label}</span>
+        )}
+      />,
+    );
+  });
+
+  const preview = renderer.root.findByType('span');
+  expect(preview.props.style).toEqual({ fontFamily: 'MuktaMalar-Regular' });
+  act(() => renderer.unmount());
+});

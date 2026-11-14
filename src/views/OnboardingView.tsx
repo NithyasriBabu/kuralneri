@@ -86,7 +86,7 @@ export default function OnboardingView() {
   );
 
   const languageChoice: Exclude<SetupLanguageChoice, 'both'> =
-    flow.settings.fallbackLanguage === 'tamil' ? 'tamil' : 'english';
+    flow.settings.language === 'tamil' ? 'tamil' : 'english';
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: theme.colors.background }}
@@ -98,7 +98,7 @@ export default function OnboardingView() {
           body={tOnboarding('setupBody')}
           setupTitle={tOnboarding('setupTitle')}
           setupBody={tOnboarding('preferencesBody')}
-          languageLabel={tOnboardingSingle('languageLabel', flow.settings.fallbackLanguage)}
+          languageLabel={tOnboardingSingle('languageLabel', flow.settings.language)}
           nameLabel={tOnboarding('nameLabel')}
           namePlaceholder={tOnboarding('namePlaceholder')}
           preferredAuthorLabel={tOnboarding('preferredAuthorLabel')}
@@ -120,9 +120,9 @@ export default function OnboardingView() {
           onLanguageChange={(value) => {
             const showTamil = value === 'tamil';
             const showEnglish = value !== 'tamil';
-            const fallbackLanguage = showTamil ? 'tamil' : 'english';
+            const language = showTamil ? 'tamil' : 'english';
             flow.updateSettings({
-              fallbackLanguage,
+              language,
               langToggles: {
                 ...flow.settings.langToggles,
                 uiChrome: { tamil: showTamil, english: showEnglish },

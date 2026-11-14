@@ -142,7 +142,7 @@ export function useTranslation(
 ) {
   const { i18n: i18nextInstance } = useI18nextTranslation(namespace);
   const { settings } = useSettings();
-  const fallbackLocale = settings.fallbackLanguage;
+  const fallbackLocale = settings.language;
   const toggle = useMemo<LangToggle>(
     () => ({
       tamil: fallbackLocale === 'tamil',

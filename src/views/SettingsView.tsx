@@ -23,6 +23,8 @@ import {
   ThemeMode,
   EnglishFont,
   FONT_SIZE_MULTIPLIERS,
+  TAMIL_FONT_FAMILIES,
+  ENGLISH_FONT_FAMILIES,
 } from 'src/types/settings';
 
 // ─── sub-components ──────────────────────────────────────────────────────────
@@ -59,11 +61,11 @@ const LANG_TOGGLE_KEYS: LangToggleKey[] = [
 function LanguageTable() {
   const { settings, updateSettings, setLangToggle } = useSettings();
   const { t, tSingle } = useTranslation('uiChrome', 'settings');
-  const selected = settings.fallbackLanguage;
+  const selected = settings.language;
 
   return (
     <KuralSegmentedControl
-      label={tSingle('language', settings.fallbackLanguage)}
+      label={tSingle('language', settings.language)}
       helperText={t('languageHelp')}
       selected={selected}
       options={[
@@ -71,7 +73,7 @@ function LanguageTable() {
         { label: tSingle('englishLanguage', 'english'), value: 'english' },
       ]}
       onSelect={(language) => {
-        updateSettings({ fallbackLanguage: language });
+        updateSettings({ language });
         LANG_TOGGLE_KEYS.forEach((key) => {
           setLangToggle(key, 'tamil', language === 'tamil');
           setLangToggle(key, 'english', language === 'english');
@@ -111,7 +113,6 @@ export default function SettingsView() {
         'settings-color-scheme',
         'settings-appearance',
         'settings-font-size',
-        'settings-list-view',
         'settings-tamil-font',
         'settings-english-font',
       ].includes(activeTarget)
@@ -163,23 +164,8 @@ export default function SettingsView() {
     { label: tSettings('xlarge'), value: 'xlarge' },
   ];
 
-  const KURAL_LIST_MODE_OPTIONS = [
-    { label: tSettings('responsiveView'), value: 'responsive' as const },
-    { label: tSettings('fullView'), value: 'full' as const },
-    { label: tSettings('compactView'), value: 'compact' as const },
-  ];
-
-  const compactFields = [
-    { key: 'compactShowTamil' as const, label: tSettings('compactTamilVerse'), disabled: true },
-    { key: 'compactShowTaxonomy' as const, label: tSettings('compactTaxonomy') },
-    { key: 'compactShowTranslation' as const, label: tSettings('compactTranslation') },
-    { key: 'compactShowExplanation' as const, label: tSettings('compactExplanation') },
-    { key: 'compactShowBookmark' as const, label: tSettings('compactBookmark') },
-  ];
-
   const TAMIL_FONT_OPTIONS: { label: string; value: TamilFont }[] = [
     { label: 'Mukta Malar', value: 'MuktaMalar' },
-    { label: 'Latha', value: 'Latha' },
     { label: 'Catamaran', value: 'Catamaran' },
     { label: 'Arima Madurai', value: 'ArimaMadurai' },
   ];
@@ -189,6 +175,8 @@ export default function SettingsView() {
     { label: 'Merriweather', value: 'Merriweather' },
     { label: 'Source Serif', value: 'SourceSerif' },
   ];
+
+  const showTamilFontOptions = settings.language === 'tamil';
 
   const handleConfirmReset = () => {
     if (Platform.OS === 'web') {
@@ -529,95 +517,92 @@ export default function SettingsView() {
                   </View>
                 </CoachTarget>
 
-                <CoachTarget id="settings-list-view" scrollRef={scrollRef}>
-                  <View
-                    style={{
-                      paddingVertical: 10,
-                      borderBottomWidth: 1,
-                      borderBottomColor: theme.colors.surface,
-                    }}
-                  >
-                    <KuralSegmentedControl
-                      options={KURAL_LIST_MODE_OPTIONS}
-                      selected={settings.kuralListDisplayMode}
-                      label={tSettings('mobileKuralView')}
-                      helperText={tSettings('mobileKuralViewHelp')}
-                      onSelect={(value) => updateSettings({ kuralListDisplayMode: value })}
-                    />
-                    {settings.kuralListDisplayMode === 'compact' ||
-                    (settings.kuralListDisplayMode === 'responsive' &&
-                      theme.layout.screenWidth <= 600) ? (
-                      <View style={{ marginTop: 12, gap: 4 }}>
-                        {compactFields.map((field) => (
-                          <View key={field.key} style={row}>
-                            <RowLabel
-                              label={field.label}
-                              sub={field.disabled ? tSettings('compactTamilRequired') : undefined}
-                            />
-                            <Switch
-                              value={settings[field.key]}
-                              disabled={field.disabled}
-                              onValueChange={(value) => updateSettings({ [field.key]: value })}
-                              trackColor={{ false: theme.colors.border, true: theme.colors.accent }}
-                              thumbColor={
-                                settings[field.key]
-                                  ? theme.colors.primary
-                                  : theme.colors.disabledText
-                              }
-                              accessibilityLabel={field.label}
-                              accessibilityState={{
-                                disabled: Boolean(field.disabled),
-                                checked: settings[field.key],
+                {showTamilFontOptions ? (
+                  <CoachTarget id="settings-tamil-font" scrollRef={scrollRef}>
+                    <View
+                      style={{
+                        paddingVertical: 10,
+                        borderBottomWidth: 1,
+                        borderBottomColor: theme.colors.surface,
+                      }}
+                    >
+                      <KuralSegmentedControl
+                        options={TAMIL_FONT_OPTIONS}
+                        selected={settings.tamilFont}
+                        label={tSettings('tamilFont')}
+                        helperText={tSettings('affectsTamilRendering')}
+                        onSelect={(value) => updateSettings({ tamilFont: value })}
+                        renderOption={(option, active) => (
+                          <View style={{ width: '100%', gap: 4 }}>
+                            <KuralText
+                              variant="caption"
+                              style={{
+                                color: active ? theme.colors.textPrimary : theme.colors.textSecondary,
+                                fontWeight: active ? '700' : '400',
+                                textAlign: 'center',
                               }}
-                            />
+                            >
+                              {option.label}
+                            </KuralText>
+                            <KuralText
+                              variant="caption"
+                              isTamil
+                              style={{
+                                color: active ? theme.colors.textPrimary : theme.colors.textSecondary,
+                                fontFamily: TAMIL_FONT_FAMILIES[option.value],
+                                textAlign: 'center',
+                              }}
+                            >
+                              {tSettings('fontPreviewTamil')}
+                            </KuralText>
                           </View>
-                        ))}
-                      </View>
-                    ) : null}
-                  </View>
-                </CoachTarget>
-
-                <CoachTarget id="settings-tamil-font" scrollRef={scrollRef}>
-                  <View
-                    style={{
-                      paddingVertical: 10,
-                      borderBottomWidth: 1,
-                      borderBottomColor: theme.colors.surface,
-                    }}
-                  >
-                    <KuralSegmentedControl
-                      options={TAMIL_FONT_OPTIONS.map((opt) => ({
-                        label: `${opt.label} — குறள்`,
-                        value: opt.value,
-                      }))}
-                      selected={settings.tamilFont}
-                      label={tSettings('tamilFont')}
-                      helperText={tSettings('affectsTamilRendering')}
-                      onSelect={(value) => updateSettings({ tamilFont: value })}
-                    />
-                  </View>
-                </CoachTarget>
-
-                <CoachTarget id="settings-english-font" scrollRef={scrollRef}>
-                  <View
-                    style={{
-                      paddingVertical: 10,
-                      borderBottomWidth: 1,
-                      borderBottomColor: theme.colors.surface,
-                    }}
-                  >
-                    <KuralSegmentedControl
-                      options={ENGLISH_FONT_OPTIONS.map((opt) => ({
-                        label: `${tSettings('fontPreviewSample')} — ${opt.label}`,
-                        value: opt.value,
-                      }))}
-                      selected={settings.englishFont}
-                      label={tSettings('englishFont')}
-                      helperText={tSettings('affectsEnglishRendering')}
-                      onSelect={(value) => updateSettings({ englishFont: value })}
-                    />
-                  </View>
-                </CoachTarget>
+                        )}
+                      />
+                    </View>
+                  </CoachTarget>
+                ) : (
+                  <CoachTarget id="settings-english-font" scrollRef={scrollRef}>
+                    <View
+                      style={{
+                        paddingVertical: 10,
+                        borderBottomWidth: 1,
+                        borderBottomColor: theme.colors.surface,
+                      }}
+                    >
+                      <KuralSegmentedControl
+                        options={ENGLISH_FONT_OPTIONS}
+                        selected={settings.englishFont}
+                        label={tSettings('englishFont')}
+                        helperText={tSettings('affectsEnglishRendering')}
+                        onSelect={(value) => updateSettings({ englishFont: value })}
+                        renderOption={(option, active) => (
+                          <View style={{ width: '100%', gap: 4 }}>
+                            <KuralText
+                              variant="caption"
+                              style={{
+                                color: active ? theme.colors.textPrimary : theme.colors.textSecondary,
+                                fontWeight: active ? '700' : '400',
+                                textAlign: 'center',
+                              }}
+                            >
+                              {option.label}
+                            </KuralText>
+                            <KuralText
+                              variant="caption"
+                              style={{
+                                color: active ? theme.colors.textPrimary : theme.colors.textSecondary,
+                                fontFamily: ENGLISH_FONT_FAMILIES[option.value],
+                                textAlign: 'center',
+                              }}
+                            >
+                              {tSettings('fontPreviewEnglish')}
+                            </KuralText>
+                          </View>
+                        )}
+                      />
+                    </View>
+                  </CoachTarget>
+                )}
               </>
             ) : null}
 

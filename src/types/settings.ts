@@ -19,14 +19,13 @@ export type SetupLanguageChoice = TranslationLocale | 'both';
 export type OnboardingStatus = 'not_started' | 'in_progress' | 'completed' | 'skipped';
 export type KuralListDisplayMode = 'responsive' | 'full' | 'compact';
 
-export type TamilFont = 'MuktaMalar' | 'Latha' | 'Catamaran' | 'ArimaMadurai';
+export type TamilFont = 'MuktaMalar' | 'Catamaran' | 'ArimaMadurai';
 
 export type EnglishFont = 'Inter' | 'Merriweather' | 'SourceSerif';
 
 export type FontSizeScale = 'small' | 'medium' | 'large' | 'xlarge';
 export const TAMIL_FONT_OPTIONS = [
   'MuktaMalar',
-  'Latha',
   'Catamaran',
   'ArimaMadurai',
 ] as const satisfies readonly TamilFont[];
@@ -65,12 +64,13 @@ export interface AppSettings {
   userNameTamil: string;
   preferredAuthorCode: string; // 'mv' | 'sp' | 'mk' | '' (all)
   selfNotesEnabled: boolean;
-  fallbackLanguage: TranslationLocale;
+  language: TranslationLocale;
   themeMode: ThemeMode;
   colorScheme: ColorScheme;
   tamilFont: TamilFont;
   englishFont: EnglishFont;
   fontSizeScale: FontSizeScale;
+  showTransliteration: boolean;
   onboardingStatus: OnboardingStatus;
   onboardingStep: number;
   kuralListDisplayMode: KuralListDisplayMode;
@@ -90,12 +90,13 @@ export const APP_SETTINGS_SCALAR_KEYS = [
   'userNameTamil',
   'preferredAuthorCode',
   'selfNotesEnabled',
-  'fallbackLanguage',
+  'language',
   'themeMode',
   'colorScheme',
   'tamilFont',
   'englishFont',
   'fontSizeScale',
+  'showTransliteration',
   'onboardingStatus',
   'onboardingStep',
   'kuralListDisplayMode',
@@ -123,12 +124,13 @@ export const DEFAULT_SETTINGS: AppSettings = {
   userNameTamil: '',
   preferredAuthorCode: '',
   selfNotesEnabled: true,
-  fallbackLanguage: 'english',
+  language: 'english',
   themeMode: 'system',
   colorScheme: 'earthySage',
   tamilFont: 'MuktaMalar',
   englishFont: 'Inter',
   fontSizeScale: 'medium',
+  showTransliteration: true,
   onboardingStatus: 'not_started',
   onboardingStep: 0,
   kuralListDisplayMode: 'responsive',
@@ -149,7 +151,6 @@ export const FONT_SIZE_MULTIPLIERS: Record<FontSizeScale, number> = {
 
 export const TAMIL_FONT_FAMILIES: Record<TamilFont, string> = {
   MuktaMalar: 'MuktaMalar-Regular',
-  Latha: 'Latha',
   Catamaran: 'Catamaran-Regular',
   ArimaMadurai: 'ArimaMadurai-Regular',
 };

@@ -18,6 +18,7 @@ interface KuralSegmentedControlProps<T extends string> {
   helperText?: string;
   shrinkToContent?: boolean;
   optionFontSizes?: Partial<Record<T, number>>;
+  renderOption?: (option: KuralSegmentedOption<T>, active: boolean) => React.ReactNode;
 }
 
 export function KuralSegmentedControl<T extends string>({
@@ -28,6 +29,7 @@ export function KuralSegmentedControl<T extends string>({
   helperText,
   shrinkToContent = false,
   optionFontSizes,
+  renderOption,
 }: KuralSegmentedControlProps<T>) {
   const { theme } = useTheme();
   const useSingleColumnMobileGrid =
@@ -73,19 +75,23 @@ export function KuralSegmentedControl<T extends string>({
               backgroundColor: active ? theme.colors.accent : 'transparent',
             }}
           >
-            <KuralText
-              variant="caption"
-              style={{
-                width: '100%',
-                flexShrink: 1,
-                color: active ? theme.colors.textPrimary : theme.colors.textSecondary,
-                fontWeight: active ? '700' : '400',
-                textAlign: 'center',
-                fontSize: optionFontSizes?.[opt.value],
-              }}
-            >
-              {opt.label}
-            </KuralText>
+            {renderOption ? (
+              renderOption(opt, active)
+            ) : (
+              <KuralText
+                variant="caption"
+                style={{
+                  width: '100%',
+                  flexShrink: 1,
+                  color: active ? theme.colors.textPrimary : theme.colors.textSecondary,
+                  fontWeight: active ? '700' : '400',
+                  textAlign: 'center',
+                  fontSize: optionFontSizes?.[opt.value],
+                }}
+              >
+                {opt.label}
+              </KuralText>
+            )}
           </Pressable>
         );
       })}

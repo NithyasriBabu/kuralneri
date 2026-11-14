@@ -38,12 +38,13 @@ const DEFAULT_SCALAR_SETTINGS: AppSettingsScalar = {
   userNameTamil: DEFAULT_SETTINGS.userNameTamil,
   preferredAuthorCode: DEFAULT_SETTINGS.preferredAuthorCode,
   selfNotesEnabled: DEFAULT_SETTINGS.selfNotesEnabled,
-  fallbackLanguage: DEFAULT_SETTINGS.fallbackLanguage,
+  language: DEFAULT_SETTINGS.language,
   themeMode: DEFAULT_SETTINGS.themeMode,
   colorScheme: DEFAULT_SETTINGS.colorScheme,
   tamilFont: DEFAULT_SETTINGS.tamilFont,
   englishFont: DEFAULT_SETTINGS.englishFont,
   fontSizeScale: DEFAULT_SETTINGS.fontSizeScale,
+  showTransliteration: DEFAULT_SETTINGS.showTransliteration,
   onboardingStatus: DEFAULT_SETTINGS.onboardingStatus,
   onboardingStep: DEFAULT_SETTINGS.onboardingStep,
   kuralListDisplayMode: DEFAULT_SETTINGS.kuralListDisplayMode,
@@ -252,7 +253,11 @@ export async function loadSettings(): Promise<LoadSettingsResult> {
     let hadInvalidStoredValues = false;
 
     for (const key of APP_SETTINGS_SCALAR_KEYS) {
-      const rawValue = await readScalarRow(targetDb, key);
+      const rawValue =
+        key === 'language'
+          ? ((await readScalarRow(targetDb, key)) ??
+            (await readScalarRow(targetDb, 'fallbackLanguage')))
+          : await readScalarRow(targetDb, key);
       if (rawValue === null) continue;
 
       switch (key) {
@@ -268,8 +273,8 @@ export async function loadSettings(): Promise<LoadSettingsResult> {
         case 'selfNotesEnabled':
           loaded.selfNotesEnabled = readBoolean(rawValue);
           break;
-        case 'fallbackLanguage':
-          if (isTranslationLocale(rawValue)) loaded.fallbackLanguage = rawValue;
+        case 'language':
+          if (isTranslationLocale(rawValue)) loaded.language = rawValue;
           else hadInvalidStoredValues = true;
           break;
         case 'themeMode':
@@ -291,6 +296,9 @@ export async function loadSettings(): Promise<LoadSettingsResult> {
         case 'fontSizeScale':
           if (isFontSizeScale(rawValue)) loaded.fontSizeScale = rawValue;
           else hadInvalidStoredValues = true;
+          break;
+        case 'showTransliteration':
+          loaded.showTransliteration = readBoolean(rawValue);
           break;
         case 'onboardingStatus':
           if (isOnboardingStatus(rawValue)) loaded.onboardingStatus = rawValue;

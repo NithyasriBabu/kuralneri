@@ -14,17 +14,13 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 
-import {
-  useFonts,
-  MuktaMalar_400Regular,
-  MuktaMalar_700Bold,
-} from '@expo-google-fonts/mukta-malar';
-import { Catamaran_400Regular, Catamaran_700Bold } from '@expo-google-fonts/catamaran';
-import { ArimaMadurai_400Regular, ArimaMadurai_700Bold } from '@expo-google-fonts/arima-madurai';
-
-import { Inter_400Regular } from '@expo-google-fonts/inter';
-import { Merriweather_400Regular } from '@expo-google-fonts/merriweather';
-import { SourceSerifPro_400Regular } from '@expo-google-fonts/source-serif-pro';
+import { useFonts } from 'expo-font';
+import MuktaMalar_400Regular from '@expo-google-fonts/mukta-malar/400Regular/MuktaMalar_400Regular.ttf';
+import Catamaran_400Regular from '@expo-google-fonts/catamaran/400Regular/Catamaran_400Regular.ttf';
+import ArimaMadurai_400Regular from '@expo-google-fonts/arima-madurai/ArimaMadurai_400Regular.ttf';
+import Inter_400Regular from '@expo-google-fonts/inter/400Regular/Inter_400Regular.ttf';
+import Merriweather_400Regular from '@expo-google-fonts/merriweather/400Regular/Merriweather_400Regular.ttf';
+import SourceSerifPro_400Regular from '@expo-google-fonts/source-serif-pro/SourceSerifPro_400Regular.ttf';
 
 import { setupDatabase } from 'src/data/database';
 import TabNavigator from 'src/views/Navigator';
@@ -77,11 +73,8 @@ function ThemedApp() {
   const { settings, settingsReady } = useSettings();
   const [fontsLoaded] = useFonts({
     'MuktaMalar-Regular': MuktaMalar_400Regular,
-    'MuktaMalar-Bold': MuktaMalar_700Bold,
     'Catamaran-Regular': Catamaran_400Regular,
-    'Catamaran-Bold': Catamaran_700Bold,
     'ArimaMadurai-Regular': ArimaMadurai_400Regular,
-    'ArimaMadurai-Bold': ArimaMadurai_700Bold,
     'Inter-Regular': Inter_400Regular,
     'Merriweather-Regular': Merriweather_400Regular,
     'SourceSerif-Regular': SourceSerifPro_400Regular,

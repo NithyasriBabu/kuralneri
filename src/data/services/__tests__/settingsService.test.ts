@@ -71,4 +71,16 @@ describe.each(['ios', 'web'])('%s settings persistence', (platform) => {
     expect(result.settings.compactShowTamil).toBe(true);
     expect(result.hadInvalidStoredValues).toBe(true);
   });
+  it('replaces the removed Latha font preference with the default font', async () => {
+    mockScalars.set('tamilFont', 'Latha');
+    const result = await loadSettings();
+    expect(result.settings.tamilFont).toBe(DEFAULT_SETTINGS.tamilFont);
+    expect(result.hadInvalidStoredValues).toBe(true);
+  });
+  it('loads the renamed language setting from the legacy key', async () => {
+    mockScalars.set('fallbackLanguage', 'tamil');
+    const result = await loadSettings();
+    expect(result.settings.language).toBe('tamil');
+    expect(result.hadInvalidStoredValues).toBe(false);
+  });
 });
