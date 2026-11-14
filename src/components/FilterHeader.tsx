@@ -9,6 +9,7 @@ import { KuralText } from 'src/components/common/KuralText';
 import { KuralInput } from 'src/components/common/KuralInput';
 import { KuralDropdown } from 'src/components/common/KuralDropdown';
 import { useTranslation } from 'src/content/translation';
+import { CoachTarget } from 'src/context/CoachMarkContext';
 
 interface FilterHeaderProps {
   searchQuery: string;
@@ -96,41 +97,45 @@ export function FilterHeader({
             {totalRecords}
           </KuralText>
         </View>
-        <View style={componentStyles.filterSearchShell}>
-          <Search size={18} color={theme.colors.textSecondary} />
-          <KuralInput
-            accessibilityLabel={tChrome('search')}
-            placeholder={tChrome('searchPlaceholder')}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            containerStyle={componentStyles.filterSearchInput}
-          />
-        </View>
-        <Pressable
-          onPress={() => setIsExpanded((value) => !value)}
-          style={({ pressed }) => [
-            componentStyles.filterToggleButton,
-            isExpanded && componentStyles.filterToggleButtonActive,
-            pressed && { opacity: 0.75 },
-          ]}
-          accessibilityRole="button"
-          accessibilityState={{ expanded: isExpanded }}
-          accessibilityLabel={tFilter('advancedFilters')}
-        >
-          <SlidersHorizontal size={20} color={theme.colors.primary} />
-          {isWidescreen ? (
-            <KuralText variant="caption" style={componentStyles.filterToolbarButtonText}>
-              {tFilter('filterButton')}
-            </KuralText>
-          ) : null}
-          {activeFilterCount > 0 ? (
-            <View style={componentStyles.filterToggleBadge}>
-              <KuralText style={componentStyles.filterToggleBadgeText}>
-                {activeFilterCount}
+        <CoachTarget id="explore-search">
+          <View style={componentStyles.filterSearchShell}>
+            <Search size={18} color={theme.colors.textSecondary} />
+            <KuralInput
+              accessibilityLabel={tChrome('search')}
+              placeholder={tChrome('searchPlaceholder')}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              containerStyle={componentStyles.filterSearchInput}
+            />
+          </View>
+        </CoachTarget>
+        <CoachTarget id="explore-filters">
+          <Pressable
+            onPress={() => setIsExpanded((value) => !value)}
+            style={({ pressed }) => [
+              componentStyles.filterToggleButton,
+              isExpanded && componentStyles.filterToggleButtonActive,
+              pressed && { opacity: 0.75 },
+            ]}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: isExpanded }}
+            accessibilityLabel={tFilter('advancedFilters')}
+          >
+            <SlidersHorizontal size={20} color={theme.colors.primary} />
+            {isWidescreen ? (
+              <KuralText variant="caption" style={componentStyles.filterToolbarButtonText}>
+                {tFilter('filterButton')}
               </KuralText>
-            </View>
-          ) : null}
-        </Pressable>
+            ) : null}
+            {activeFilterCount > 0 ? (
+              <View style={componentStyles.filterToggleBadge}>
+                <KuralText style={componentStyles.filterToggleBadgeText}>
+                  {activeFilterCount}
+                </KuralText>
+              </View>
+            ) : null}
+          </Pressable>
+        </CoachTarget>
         {hasActiveFilters ? (
           <Pressable
             onPress={clearAllFilters}

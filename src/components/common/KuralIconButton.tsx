@@ -5,6 +5,7 @@ import {
   Pressable,
   StyleSheet,
   View,
+  type LayoutChangeEvent,
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
@@ -25,21 +26,29 @@ interface KuralIconButtonProps {
   showLabel?: boolean;
   style?: ViewStyle;
   labelStyle?: TextStyle;
+  onLayout?: (event: LayoutChangeEvent) => void;
 }
 
-export function KuralIconButton({
-  icon,
-  label,
-  tooltip,
-  onPress,
-  variant = 'secondary',
-  disabled = false,
-  loading = false,
-  size = 'md',
-  showLabel = true,
-  style,
-  labelStyle,
-}: KuralIconButtonProps) {
+export const KuralIconButton = React.forwardRef<
+  React.ComponentRef<typeof View>,
+  KuralIconButtonProps
+>(function KuralIconButton(
+  {
+    icon,
+    label,
+    tooltip,
+    onPress,
+    variant = 'secondary',
+    disabled = false,
+    loading = false,
+    size = 'md',
+    showLabel = true,
+    style,
+    labelStyle,
+    onLayout,
+  },
+  ref,
+) {
   const { theme } = useTheme();
   const { colors, layout } = theme;
   const [isHovered, setIsHovered] = useState(false);
@@ -58,7 +67,7 @@ export function KuralIconButton({
       : {};
 
   return (
-    <View style={styles.wrapper}>
+    <View ref={ref} onLayout={onLayout} collapsable={false} style={styles.wrapper}>
       {hoverText ? (
         <View
           pointerEvents="none"
@@ -144,7 +153,7 @@ export function KuralIconButton({
       </Pressable>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   wrapper: {

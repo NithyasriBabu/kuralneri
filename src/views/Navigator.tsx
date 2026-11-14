@@ -20,13 +20,11 @@ import { ErrorBoundary, ErrorFallback } from 'src/components/common/ErrorBoundar
 import { useTranslation } from 'src/content/translation';
 import { isDevCrashRoute, navigateToHomeRoute } from 'src/dev/devCrash';
 import { useNavigatorController } from 'src/hooks/useNavigatorController';
+import { setKuralBookmarkStatus } from 'src/data/services';
 import { isGuruEnabled } from 'src/config/featureFlags';
 import { useSettings } from 'src/context/SettingsContext';
-import {
-  CoachMarkProvider,
-  CoachTarget,
-  CoachTargetRect,
-} from 'src/context/CoachMarkContext';
+import { CoachMarkProvider, CoachTarget, CoachTargetRect } from 'src/context/CoachMarkContext';
+import { TUTORIAL_DONE_STEP, TUTORIAL_STEPS } from 'src/tutorial/tutorialSteps';
 
 import KuralListView from 'src/views/KuralListView';
 import BookmarksView from 'src/views/BookmarksView';
@@ -41,22 +39,6 @@ interface TabNavigatorProps {
   onNativeKuralPress?: (kuralId: number) => void;
 }
 
-const COACH_DONE_STEP = 99;
-const COACH_STEPS = [
-  { value: 0, tab: TabType.Home, targetId: 'nav-HOME', bodyKey: 'homeCardBody' },
-  { value: 1, tab: TabType.Home, targetId: 'home-bookmark', titleKey: 'bookmarkTipTitle', bodyKey: 'bookmarkTipBody' },
-  { value: 2, tab: TabType.Explore, targetId: 'nav-EXPLORE', bodyKey: 'exploreCardBody' },
-  { value: 3, tab: TabType.Bookmarks, targetId: 'nav-BOOKMARKS', bodyKey: 'bookmarksCardBody' },
-  { value: 5, tab: TabType.Bookmarks, targetId: 'bookmarks-remove-one', titleKey: 'bookmarkRemoveTipTitle', bodyKey: 'bookmarkRemoveTipBody' },
-  { value: 6, tab: TabType.Bookmarks, targetId: 'bookmarks-clear-all', titleKey: 'bookmarkClearTipTitle', bodyKey: 'bookmarkClearTipBody' },
-  { value: 7, tab: TabType.Settings, targetId: 'nav-SETTINGS', bodyKey: 'settingsCardBody' },
-  { value: 10, tab: TabType.Settings, targetId: 'settings-author', titleKey: 'settingsAuthorTipTitle', bodyKey: 'settingsAuthorTipBody' },
-  { value: 12, tab: TabType.Settings, targetId: 'settings-color-scheme', titleKey: 'settingsColorTipTitle', bodyKey: 'settingsColorTipBody' },
-  { value: 14, tab: TabType.Settings, targetId: 'settings-font-size', titleKey: 'settingsSizeTipTitle', bodyKey: 'settingsSizeTipBody' },
-  { value: 18, tab: TabType.Settings, targetId: 'settings-language-display', titleKey: 'settingsLanguageTipTitle', bodyKey: 'settingsLanguageTipBody' },
-  { value: 21, tab: TabType.Settings, targetId: 'settings-reset-data', titleKey: 'settingsResetTipTitle', bodyKey: 'settingsResetTipBody' },
-] as const;
-
 export default function TabNavigator({ onNativeKuralPress }: TabNavigatorProps) {
   const { componentStyles, theme } = useTheme();
   const { t } = useTranslation('uiChrome', 'navigation');
@@ -66,6 +48,7 @@ export default function TabNavigator({ onNativeKuralPress }: TabNavigatorProps) 
   const [coachTargetRect, setCoachTargetRectState] =
     React.useState<CoachTargetRect | null>(null);
   const [coachTooltipHeight, setCoachTooltipHeight] = React.useState(0);
+  const [tutorialBookmarkId, setTutorialBookmarkId] = React.useState<number | null>(null);
   const setCoachTargetRect = React.useCallback((nextRect: CoachTargetRect | null) => {
     setCoachTargetRectState((currentRect) => {
       if (!currentRect || !nextRect) return nextRect;
@@ -121,10 +104,10 @@ export default function TabNavigator({ onNativeKuralPress }: TabNavigatorProps) 
     routeState.kind === 'tab' ? routeState.tabId : null,
   );
   const coachStep = settings.onboardingStep;
-  const coachIndex = COACH_STEPS.findIndex((step) => step.value === coachStep);
+  const coachIndex = TUTORIAL_STEPS.findIndex((step) => step.value === coachStep);
   const coach =
     settings.onboardingStatus === 'completed' && coachIndex >= 0
-      ? COACH_STEPS[coachIndex]
+      ? TUTORIAL_STEPS[coachIndex]
       : undefined;
 
   React.useEffect(() => {
@@ -168,6 +151,7 @@ export default function TabNavigator({ onNativeKuralPress }: TabNavigatorProps) 
             <KuralOfTheDayView
               highlightBookmark={coach?.targetId === 'home-bookmark'}
               addTutorialBookmark={coach?.targetId === 'home-bookmark'}
+              onTutorialBookmarkCreated={setTutorialBookmarkId}
             />
           </View>
         );
@@ -228,11 +212,18 @@ export default function TabNavigator({ onNativeKuralPress }: TabNavigatorProps) 
 
   const moveCoachStep = React.useCallback(
     (direction: -1 | 1) => {
+      if (
+        direction === 1 &&
+        coach?.targetId === 'bookmarks-remove-one' &&
+        tutorialBookmarkId !== null
+      ) {
+        void setKuralBookmarkStatus(tutorialBookmarkId, false);
+      }
       const nextIndex = coachIndex + direction;
-      if (nextIndex < 0 || nextIndex >= COACH_STEPS.length) return;
-      updateSettings({ onboardingStep: COACH_STEPS[nextIndex].value });
+      if (nextIndex < 0 || nextIndex >= TUTORIAL_STEPS.length) return;
+      updateSettings({ onboardingStep: TUTORIAL_STEPS[nextIndex].value });
     },
-    [coachIndex, updateSettings],
+    [coach, coachIndex, tutorialBookmarkId, updateSettings],
   );
 
   const coachPanResponder = React.useMemo(
@@ -370,7 +361,7 @@ export default function TabNavigator({ onNativeKuralPress }: TabNavigatorProps) 
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={tOnboarding('tipDismiss')}
-              onPress={() => updateSettings({ onboardingStep: COACH_DONE_STEP })}
+              onPress={() => updateSettings({ onboardingStep: TUTORIAL_DONE_STEP })}
               style={{
                 position: 'absolute',
                 right: 8,
@@ -408,13 +399,13 @@ export default function TabNavigator({ onNativeKuralPress }: TabNavigatorProps) 
               ) : null}
               <KuralButton
                 title={
-                  coachIndex === COACH_STEPS.length - 1
+                  coachIndex === TUTORIAL_STEPS.length - 1
                     ? tOnboarding('tipDone')
                     : tOnboarding('tipNext')
                 }
                 onPress={() =>
-                  coachIndex === COACH_STEPS.length - 1
-                    ? updateSettings({ onboardingStep: COACH_DONE_STEP })
+                  coachIndex === TUTORIAL_STEPS.length - 1
+                    ? updateSettings({ onboardingStep: TUTORIAL_DONE_STEP })
                     : moveCoachStep(1)
                 }
               />
@@ -470,7 +461,7 @@ function NavTabButton({
   };
 
   return (
-    <CoachTarget id={`nav-${tab.id}`} style={{ flex: 1, position: 'relative' }}>
+    <View style={{ flex: 1, position: 'relative' }}>
       {showTooltip ? (
         <View
           pointerEvents="none"
@@ -494,37 +485,39 @@ function NavTabButton({
         </View>
       ) : null}
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={tab.accessibilityLabel}
-        accessibilityState={{ selected: tab.isActive }}
-        onPress={onPress}
-        onHoverIn={Platform.OS === 'web' ? () => setIsHovered(true) : undefined}
-        onHoverOut={Platform.OS === 'web' ? () => setIsHovered(false) : undefined}
-        style={({ pressed }) => [
-          componentStyles.navTabButton,
-          tab.isActive && componentStyles.navTabButtonActive,
-          coachActive && {
-            backgroundColor: theme.colors.accent,
-            borderColor: theme.colors.primary,
-            borderWidth: 2,
-          },
-          pressed && { opacity: 0.9 },
-        ]}
-      >
-        <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-          {iconByTab[tab.id]}
-          {hasLabel ? (
-            <KuralText
-              variant="caption"
-              isTamil={tab.isTamilLabel}
-              style={[componentStyles.navTabText, tab.isActive && componentStyles.navTabTextActive]}
-            >
-              {tab.label}
-            </KuralText>
-          ) : null}
-        </View>
-      </Pressable>
-    </CoachTarget>
+      <CoachTarget id={`nav-${tab.id}`}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={tab.accessibilityLabel}
+          accessibilityState={{ selected: tab.isActive }}
+          onPress={onPress}
+          onHoverIn={Platform.OS === 'web' ? () => setIsHovered(true) : undefined}
+          onHoverOut={Platform.OS === 'web' ? () => setIsHovered(false) : undefined}
+          style={({ pressed }) => [
+            componentStyles.navTabButton,
+            tab.isActive && componentStyles.navTabButtonActive,
+            coachActive && {
+              backgroundColor: theme.colors.accent,
+              borderColor: theme.colors.primary,
+              borderWidth: 2,
+            },
+            pressed && { opacity: 0.9 },
+          ]}
+        >
+          <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+            {iconByTab[tab.id]}
+            {hasLabel ? (
+              <KuralText
+                variant="caption"
+                isTamil={tab.isTamilLabel}
+                style={[componentStyles.navTabText, tab.isActive && componentStyles.navTabTextActive]}
+              >
+                {tab.label}
+              </KuralText>
+            ) : null}
+          </View>
+        </Pressable>
+      </CoachTarget>
+    </View>
   );
 }

@@ -70,18 +70,25 @@ export function CoachTarget({ id, scrollRef, children, onLayout, style, ...props
     measure();
   }, [active, measure, scrollRef]);
 
-  return (
-    <View
-      ref={ref}
-      collapsable={false}
-      onLayout={(event) => {
-        onLayout?.(event);
-        if (active) measure();
-      }}
-      style={style}
-      {...props}
-    >
-      {children}
-    </View>
-  );
+  const handleLayout = (event: Parameters<NonNullable<ViewProps['onLayout']>>[0]) => {
+    onLayout?.(event);
+    if (active) measure();
+  };
+  const child = React.Children.count(children) === 1 ? React.Children.only(children) : null;
+
+  if (React.isValidElement(child)) {
+    const element = child as React.ReactElement<any>;
+    return React.cloneElement(element, {
+      ...props,
+      ...(style ? { style: [element.props.style, style] } : {}),
+      ref,
+      collapsable: false,
+      onLayout: (event: Parameters<NonNullable<ViewProps['onLayout']>>[0]) => {
+        element.props.onLayout?.(event);
+        handleLayout(event);
+      },
+    });
+  }
+
+  return <>{children}</>;
 }
