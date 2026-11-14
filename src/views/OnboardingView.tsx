@@ -30,8 +30,6 @@ export default function OnboardingView() {
         <OnboardingSetupPage
           title={tOnboarding('welcomeTitle')}
           body={tOnboarding('setupBody')}
-          setupTitle={tOnboarding('setupTitle')}
-          setupBody={tOnboarding('preferencesBody')}
           languageLabel={tOnboardingSingle('languageLabel', flow.settings.language)}
           languageHelper={tSettings('languageHelp')}
           nameLabel={tOnboarding('nameLabel')}

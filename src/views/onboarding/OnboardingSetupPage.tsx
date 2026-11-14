@@ -2,7 +2,6 @@ import React from 'react';
 import { TextInput, View } from 'react-native';
 
 import { KuralSegmentedOption } from 'src/components/common/KuralSegmentedControl';
-import { KuralText } from 'src/components/common/KuralText';
 import { InputItem } from 'src/components/common/InputItem';
 import { AppearanceInput } from 'src/components/inputs/AppearanceInput';
 import { AuthorInput } from 'src/components/inputs/AuthorInput';
@@ -23,8 +22,6 @@ import { OnboardingPageFrame } from 'src/views/onboarding/OnboardingPageFrame';
 type OnboardingSetupPageProps = {
   title: string;
   body: string;
-  setupTitle: string;
-  setupBody: string;
   languageLabel: string;
   languageHelper: string;
   nameLabel: string;
@@ -62,8 +59,6 @@ type OnboardingSetupPageProps = {
 export function OnboardingSetupPage({
   title,
   body,
-  setupTitle,
-  setupBody,
   languageLabel,
   languageHelper,
   nameLabel,
@@ -111,19 +106,6 @@ export function OnboardingSetupPage({
           },
         ]}
       >
-        <KuralText
-          variant="caption"
-          style={{ color: theme.colors.textSecondary, textAlign: 'center' }}
-        >
-          {setupTitle}
-        </KuralText>
-        <KuralText
-          variant="bodyNormal"
-          style={{ color: theme.colors.textSecondary, textAlign: 'center' }}
-        >
-          {setupBody}
-        </KuralText>
-
         <LanguageInput
           label={languageLabel}
           helperText={languageHelper}
@@ -177,6 +159,14 @@ export function OnboardingSetupPage({
           />
         ) : null}
 
+        <AppearanceInput
+          label={appearanceLabel}
+          helperText={appearanceHelper}
+          options={appearanceOptions}
+          selected={settings.themeMode}
+          onSelect={onAppearanceChange}
+        />
+
         <ColorSchemeInput
           label={themeLabel}
           helperText={themeHelper}
@@ -184,14 +174,6 @@ export function OnboardingSetupPage({
           selected={settings.colorScheme}
           onSelect={onThemeChange}
           accessibilityLabel={themeLabel}
-        />
-
-        <AppearanceInput
-          label={appearanceLabel}
-          helperText={appearanceHelper}
-          options={appearanceOptions}
-          selected={settings.themeMode}
-          onSelect={onAppearanceChange}
         />
       </View>
     </OnboardingPageFrame>
