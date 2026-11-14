@@ -12,20 +12,12 @@ export const useKuralOfTheDay = () => {
   // Calculates the target ID based on calendar rules
   const kuralIdForTheDay = useMemo(() => {
     const now = new Date();
-
-    // 1. Force calculations based on local calendar dates to avoid midnight shifts
     const year = now.getFullYear();
-
-    // 2. Compute the precise Day of the Year
     const startOfYear = new Date(year, 0, 0);
     const diff = now.getTime() - startOfYear.getTime();
     const oneDay = 1000 * 60 * 60 * 24;
     const dayOfYear = Math.floor(diff / oneDay);
-
-    // 3. Apply your preferred pseudo-random formula
-    const targetId = ((dayOfYear * year) % 1330) + 1;
-
-    return targetId;
+    return ((dayOfYear * year) % 1330) + 1;
   }, []); // Keeps it static during the active app session context
 
   useEffect(() => {
