@@ -119,7 +119,7 @@ export default function BookmarksView({
   const { columns, wrapperStyle } = gridConfig;
 
   useEffect(() => {
-    if (!totalRecords) {
+    if (totalRecords <= 10) {
       setLimitOptions([]);
       return;
     }
@@ -243,7 +243,7 @@ export default function BookmarksView({
           contentContainerStyle={componentStyles.kuralListPadding}
         />
       )}
-      {totalRecords > 0 && !useInfiniteScroll && (
+      {totalRecords > bookmarkLimit && !useInfiniteScroll && (
         <KuralPaginationBar
           page={page}
           totalPages={totalPages}

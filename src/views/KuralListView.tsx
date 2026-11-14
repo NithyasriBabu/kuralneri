@@ -119,7 +119,7 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
   };
 
   useEffect(() => {
-    if (!totalRecords || totalRecords == 0) {
+    if (totalRecords <= 10) {
       setLimitOptions([]);
     } else {
       setLimitOptions(DEFAULT_LIMIT_OPTIONS.filter((opt) => opt <= totalRecords));
@@ -190,7 +190,7 @@ export default function KuralListView({ onKuralPress }: KuralListViewProps) {
           contentContainerStyle={componentStyles.kuralListPadding}
         />
       )}
-      {totalRecords > 0 && !useInfiniteScroll && (
+      {totalRecords > kuralsPerPage && !useInfiniteScroll && (
         <KuralPaginationBar
           page={page}
           totalPages={totalPages}

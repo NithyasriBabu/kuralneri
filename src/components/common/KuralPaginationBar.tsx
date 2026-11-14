@@ -39,6 +39,8 @@ export function KuralPaginationBar({
   const screenWidth = theme.layout.screenWidth;
   const isCompactPagination = screenWidth < COMPACT_NAV_BREAKPOINT;
   const { t, pair, formatPageStatus, formatRangeStatus } = useTranslation('uiChrome', 'pagination');
+  const showPrevious = page > 1;
+  const showNext = hasMore && page < totalPages;
   const visiblePageNumbers = useMemo(() => {
     const pages: number[] = [];
     const maxVisible = screenWidth > 1024 ? 7 : screenWidth > 600 ? 5 : 3;
@@ -57,38 +59,52 @@ export function KuralPaginationBar({
     return pages;
   }, [page, totalPages, screenWidth]);
 
+  if (totalPages <= 1) return null;
+
   if (isCompactPagination) {
     return (
       <View style={componentStyles.kuralListCompactPagination}>
-        <TouchableOpacity
-          style={componentStyles.kuralListCompactPageButton}
-          onPress={() => onPageJump(page - 1)}
-          disabled={page === 1 || loading}
-          accessibilityRole="button"
-          accessibilityLabel={pair('previousPage').visible}
-          accessibilityState={{ disabled: page === 1 || loading }}
+        <View
+          style={{ opacity: showPrevious ? 1 : 0 }}
+          pointerEvents={showPrevious ? 'auto' : 'none'}
+          accessibilityElementsHidden={!showPrevious}
+          importantForAccessibility={showPrevious ? 'auto' : 'no-hide-descendants'}
         >
-          <ChevronLeft
-            size={20}
-            color={page === 1 || loading ? theme.colors.disabledText : theme.colors.primary}
-          />
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={componentStyles.kuralListCompactPageButton}
+            onPress={() => onPageJump(page - 1)}
+            disabled={loading}
+            accessibilityRole="button"
+            accessibilityLabel={pair('previousPage').visible}
+          >
+            <ChevronLeft
+              size={20}
+              color={loading ? theme.colors.disabledText : theme.colors.primary}
+            />
+          </TouchableOpacity>
+        </View>
         <KuralText style={componentStyles.kuralListCompactPageStatus}>
           {page} / {totalPages}
         </KuralText>
-        <TouchableOpacity
-          style={componentStyles.kuralListCompactPageButton}
-          onPress={() => onPageJump(page + 1)}
-          disabled={!hasMore || loading}
-          accessibilityRole="button"
-          accessibilityLabel={pair('nextPage').visible}
-          accessibilityState={{ disabled: !hasMore || loading }}
+        <View
+          style={{ opacity: showNext ? 1 : 0 }}
+          pointerEvents={showNext ? 'auto' : 'none'}
+          accessibilityElementsHidden={!showNext}
+          importantForAccessibility={showNext ? 'auto' : 'no-hide-descendants'}
         >
-          <ChevronRight
-            size={20}
-            color={!hasMore || loading ? theme.colors.disabledText : theme.colors.primary}
-          />
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={componentStyles.kuralListCompactPageButton}
+            onPress={() => onPageJump(page + 1)}
+            disabled={loading}
+            accessibilityRole="button"
+            accessibilityLabel={pair('nextPage').visible}
+          >
+            <ChevronRight
+              size={20}
+              color={loading ? theme.colors.disabledText : theme.colors.primary}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
@@ -96,15 +112,22 @@ export function KuralPaginationBar({
   return (
     <View style={componentStyles.kuralListPaginationContainer}>
       <View style={componentStyles.kuralListRibbonRow}>
-        <KuralIconButton
-          icon={<ChevronLeft />}
-          label={pair('previousPage').visible}
-          tooltip={pair('previousPage').hover}
-          onPress={() => onPageJump(page - 1)}
-          disabled={page === 1 || loading}
-          size="sm"
-          showLabel={!isCompactPagination}
-        />
+        <View
+          style={{ opacity: showPrevious ? 1 : 0 }}
+          pointerEvents={showPrevious ? 'auto' : 'none'}
+          accessibilityElementsHidden={!showPrevious}
+          importantForAccessibility={showPrevious ? 'auto' : 'no-hide-descendants'}
+        >
+          <KuralIconButton
+            icon={<ChevronLeft />}
+            label={pair('previousPage').visible}
+            tooltip={pair('previousPage').hover}
+            onPress={() => onPageJump(page - 1)}
+            disabled={loading}
+            size="sm"
+            showLabel={!isCompactPagination}
+          />
+        </View>
 
         <ScrollView
           horizontal
@@ -134,15 +157,22 @@ export function KuralPaginationBar({
           ))}
         </ScrollView>
 
-        <KuralIconButton
-          icon={<ChevronRight />}
-          label={pair('nextPage').visible}
-          tooltip={pair('nextPage').hover}
-          onPress={() => onPageJump(page + 1)}
-          disabled={!hasMore || loading}
-          size="sm"
-          showLabel={!isCompactPagination}
-        />
+        <View
+          style={{ opacity: showNext ? 1 : 0 }}
+          pointerEvents={showNext ? 'auto' : 'none'}
+          accessibilityElementsHidden={!showNext}
+          importantForAccessibility={showNext ? 'auto' : 'no-hide-descendants'}
+        >
+          <KuralIconButton
+            icon={<ChevronRight />}
+            label={pair('nextPage').visible}
+            tooltip={pair('nextPage').hover}
+            onPress={() => onPageJump(page + 1)}
+            disabled={loading}
+            size="sm"
+            showLabel={!isCompactPagination}
+          />
+        </View>
       </View>
 
       <View
