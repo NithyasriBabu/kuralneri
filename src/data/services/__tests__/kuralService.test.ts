@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 import {
   deleteUserNote,
   getPaginatedKurals,
+  notifyAllBookmarksCleared,
   saveUserNote,
   setKuralBookmarkStatus,
   subscribeToBookmarkChanges,
@@ -99,6 +100,16 @@ it('publishes successful bookmark changes to active feeds', async () => {
 
   expect(listener).toHaveBeenCalledTimes(1);
   expect(listener).toHaveBeenCalledWith({ kuralId: 423, isBookmarked: true });
+});
+
+it('publishes a bulk bookmark clear to active feeds', () => {
+  const listener = jest.fn();
+  const unsubscribe = subscribeToBookmarkChanges(listener);
+
+  notifyAllBookmarksCleared();
+  unsubscribe();
+
+  expect(listener).toHaveBeenCalledWith({ kuralId: null, isBookmarked: false });
 });
 
 it('builds a safe prefix query for multiple full-text terms', async () => {

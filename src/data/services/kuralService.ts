@@ -247,7 +247,7 @@ export async function isKuralBookmarked(id: number): Promise<boolean> {
 }
 
 export interface BookmarkChange {
-  kuralId: number;
+  kuralId: number | null;
   isBookmarked: boolean;
 }
 
@@ -256,6 +256,10 @@ const bookmarkListeners = new Set<(change: BookmarkChange) => void>();
 export function subscribeToBookmarkChanges(listener: (change: BookmarkChange) => void): () => void {
   bookmarkListeners.add(listener);
   return () => bookmarkListeners.delete(listener);
+}
+
+export function notifyAllBookmarksCleared(): void {
+  bookmarkListeners.forEach((listener) => listener({ kuralId: null, isBookmarked: false }));
 }
 
 export async function setKuralBookmarkStatus(id: number, bookmarked: boolean): Promise<boolean> {

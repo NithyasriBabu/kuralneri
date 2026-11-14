@@ -3,6 +3,7 @@ import * as SQLite from 'expo-sqlite';
 
 import { db } from 'src/data/database';
 import { runWebDbTask } from 'src/data/webDbQueue';
+import { notifyAllBookmarksCleared } from 'src/data/services/kuralService';
 import {
   APP_SETTINGS_LANG_TOGGLE_KEYS,
   APP_SETTINGS_SCALAR_KEYS,
@@ -368,6 +369,7 @@ export async function saveLangToggle(key: LangToggleKey, value: LangToggle): Pro
 export async function resetAllSettings(): Promise<void> {
   return withSettingsDb(async (targetDb) => {
     await clearBookmarkRows(targetDb);
+    notifyAllBookmarksCleared();
     await clearSettingsRows(targetDb);
     await persistScalarPatch(targetDb, DEFAULT_SCALAR_SETTINGS);
     for (const key of APP_SETTINGS_LANG_TOGGLE_KEYS) {
@@ -380,5 +382,8 @@ export async function resetAllSettings(): Promise<void> {
  * Wipe bookmarks from the kurals. Called from the Reset section.
  */
 export async function clearAllBookmarks(): Promise<void> {
-  return withSettingsDb(clearBookmarkRows);
+  return withSettingsDb(async (targetDb) => {
+    await clearBookmarkRows(targetDb);
+    notifyAllBookmarksCleared();
+  });
 }

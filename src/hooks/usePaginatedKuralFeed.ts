@@ -289,6 +289,17 @@ export function usePaginatedKuralFeed(userLimit: number = 30, isBookmarkedOnly: 
 
   useEffect(() => {
     return subscribeToBookmarkChanges(({ kuralId, isBookmarked }) => {
+      if (kuralId === null) {
+        if (isBookmarkedOnly) {
+          void fetchPageData(1);
+        } else {
+          setKurals((current) =>
+            current.map((kural) => ({ ...kural, is_bookmarked: false })),
+          );
+        }
+        return;
+      }
+
       if (isBookmarkedOnly && isBookmarked) {
         void fetchPageData(1);
         return;
