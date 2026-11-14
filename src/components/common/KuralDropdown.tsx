@@ -28,7 +28,7 @@ interface DropdownAnchor {
 }
 
 interface KuralDropdownProps {
-  label?: string;
+  accessibilityLabel?: string;
   items: DropdownItem[];
   selectedValue: string | number;
   onValueChange: (itemValue: string | number, itemIndex: number) => void;
@@ -45,7 +45,7 @@ const MAX_MENU_HEIGHT = 320;
 const OPTION_HEIGHT = 48;
 
 export const KuralDropdown: React.FC<KuralDropdownProps> = ({
-  label,
+  accessibilityLabel,
   items,
   selectedValue,
   onValueChange,
@@ -153,21 +153,12 @@ export const KuralDropdown: React.FC<KuralDropdownProps> = ({
 
   return (
     <View style={containerStyle}>
-      {label ? (
-        <KuralText
-          variant="caption"
-          style={[globalStyles.fieldLabel, disabled && globalStyles.disabledLabel]}
-        >
-          {label}
-        </KuralText>
-      ) : null}
-
       <View ref={fieldRef} collapsable={false}>
         <Pressable
           onPress={isOpen ? closeDropdown : openDropdown}
           disabled={disabled}
           accessibilityRole="button"
-          accessibilityLabel={label}
+          accessibilityLabel={accessibilityLabel}
           accessibilityState={{ disabled, expanded: isOpen }}
           style={({ pressed }) => [
             globalStyles.dropdownField,

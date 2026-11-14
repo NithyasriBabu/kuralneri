@@ -10,6 +10,7 @@ import { KuralInput } from 'src/components/common/KuralInput';
 import { KuralDropdown } from 'src/components/common/KuralDropdown';
 import { useTranslation } from 'src/content/translation';
 import { CoachTarget } from 'src/context/CoachMarkContext';
+import { InputItem } from 'src/components/common/InputItem';
 
 interface FilterHeaderProps {
   searchQuery: string;
@@ -98,16 +99,18 @@ export function FilterHeader({
           </KuralText>
         </View>
         <CoachTarget id="explore-search">
-          <View style={componentStyles.filterSearchShell}>
-            <Search size={18} color={theme.colors.textSecondary} />
-            <KuralInput
-              accessibilityLabel={tChrome('search')}
-              placeholder={tChrome('searchPlaceholder')}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              containerStyle={componentStyles.filterSearchInput}
-            />
-          </View>
+          <InputItem label={tChrome('search')} style={{ flex: 1, minWidth: 0, paddingVertical: 0 }}>
+            <View style={componentStyles.filterSearchShell}>
+              <Search size={18} color={theme.colors.textSecondary} />
+              <KuralInput
+                accessibilityLabel={tChrome('search')}
+                placeholder={tChrome('searchPlaceholder')}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                containerStyle={componentStyles.filterSearchInput}
+              />
+            </View>
+          </InputItem>
         </CoachTarget>
         <CoachTarget id="explore-filters">
           <Pressable
@@ -166,43 +169,49 @@ export function FilterHeader({
             ]}
           >
             {/* Tier 1: Section Selector (Paal) */}
-            <KuralDropdown
+            <InputItem
               label={tFilter('section')}
-              placeholder={tFilter('allSections')}
-              placeholderValue={0}
-              items={mappedPaalOptions}
-              selectedValue={selectedPaal}
-              onValueChange={(val) => selectPaal(val, 0)}
-              containerStyle={
-                isWidescreen ? globalStyles.flexItem : componentStyles.filterDropdown
-              }
-            />
+              style={isWidescreen ? globalStyles.flexItem : componentStyles.filterDropdown}
+            >
+              <KuralDropdown
+                accessibilityLabel={tFilter('section')}
+                placeholder={tFilter('allSections')}
+                placeholderValue={0}
+                items={mappedPaalOptions}
+                selectedValue={selectedPaal}
+                onValueChange={(val) => selectPaal(val, 0)}
+              />
+            </InputItem>
 
             {/* Tier 2: Sub-section Selector (Iyal) */}
-            <KuralDropdown
+            <InputItem
               label={tFilter('subsection')}
-              placeholder={tFilter('allSubsections')}
-              placeholderValue={0}
-              items={mappedIyalOptions}
-              selectedValue={selectedIyal}
-              onValueChange={(val) => selectIyal(val, 0)}
-              containerStyle={
-                isWidescreen ? globalStyles.flexItem : componentStyles.filterDropdown
-              }
-            />
+              style={isWidescreen ? globalStyles.flexItem : componentStyles.filterDropdown}
+            >
+              <KuralDropdown
+                accessibilityLabel={tFilter('subsection')}
+                placeholder={tFilter('allSubsections')}
+                placeholderValue={0}
+                items={mappedIyalOptions}
+                selectedValue={selectedIyal}
+                onValueChange={(val) => selectIyal(val, 0)}
+              />
+            </InputItem>
 
             {/* Tier 3: Chapter Selector (Adhigaram) */}
-            <KuralDropdown
+            <InputItem
               label={tFilter('chapter')}
-              placeholder={tFilter('allChapters')}
-              placeholderValue={0}
-              items={mappedAdhigaramOptions}
-              selectedValue={selectedAdhigaram}
-              onValueChange={(val) => selectAdhigaram(val, 0)}
-              containerStyle={
-                isWidescreen ? globalStyles.flexItem : componentStyles.filterDropdown
-              }
-            />
+              style={isWidescreen ? globalStyles.flexItem : componentStyles.filterDropdown}
+            >
+              <KuralDropdown
+                accessibilityLabel={tFilter('chapter')}
+                placeholder={tFilter('allChapters')}
+                placeholderValue={0}
+                items={mappedAdhigaramOptions}
+                selectedValue={selectedAdhigaram}
+                onValueChange={(val) => selectAdhigaram(val, 0)}
+              />
+            </InputItem>
           </View>
         </View>
       )}

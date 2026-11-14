@@ -56,7 +56,7 @@ it('shows the selected option and opens from its anchored field', () => {
   act(() => {
     renderer = create(
       <KuralDropdown
-        label="Chapter"
+        accessibilityLabel="Chapter"
         placeholder="All Chapters"
         placeholderValue={0}
         items={[
@@ -82,10 +82,14 @@ it('shows the selected option and opens from its anchored field', () => {
   expect(renderer.root.findAllByType(Text).some((node) => node.props.children === 'Second Chapter'))
     .toBe(true);
 
-  const trigger = renderer.root.findByProps({ accessibilityLabel: 'Chapter' });
+  const trigger = renderer.root.findAll(
+    (node) => node.props.accessibilityLabel === 'Chapter' && typeof node.props.onPress === 'function',
+  )[0];
   act(() => trigger.props.onPress());
   expect(
-    renderer.root.findByProps({ accessibilityLabel: 'Chapter' }).props.accessibilityState,
+    renderer.root.findAll(
+      (node) => node.props.accessibilityLabel === 'Chapter' && typeof node.props.onPress === 'function',
+    )[0].props.accessibilityState,
   ).toEqual({ disabled: false, expanded: true });
   expect(onValueChange).not.toHaveBeenCalled();
 });

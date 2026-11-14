@@ -6,6 +6,7 @@ import {
   DEFAULT_SETTINGS,
   LangToggleKey,
   LangToggles,
+  TranslationLocale,
 } from 'src/types/settings';
 import {
   loadSettings,
@@ -22,6 +23,7 @@ interface SettingsContextType {
   settingsLoadWarning: boolean;
   updateSettings: (patch: Partial<AppSettings>) => void;
   setLangToggle: (key: LangToggleKey, field: 'tamil' | 'english', value: boolean) => void;
+  setLanguage: (language: TranslationLocale) => void;
   resetSettings: () => Promise<void>;
 }
 
@@ -106,6 +108,18 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     [],
   );
 
+  const setLanguage = useCallback((language: TranslationLocale) => {
+    setSettings((prev) => {
+      const nextToggles = { ...prev.langToggles };
+      for (const key of APP_SETTINGS_LANG_TOGGLE_KEYS) {
+        nextToggles[key] = { tamil: language === 'tamil', english: language === 'english' };
+        void saveLangToggle(key, nextToggles[key]);
+      }
+      void saveSettingsPatch({ language });
+      return { ...prev, language, langToggles: nextToggles };
+    });
+  }, []);
+
   const resetSettings = useCallback(async () => {
     await resetAllSettings();
     const fresh = {
@@ -123,9 +137,10 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       settingsLoadWarning,
       updateSettings,
       setLangToggle,
+      setLanguage,
       resetSettings,
     }),
-    [settings, settingsReady, settingsLoadWarning, updateSettings, setLangToggle, resetSettings],
+    [settings, settingsReady, settingsLoadWarning, updateSettings, setLangToggle, setLanguage, resetSettings],
   );
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;

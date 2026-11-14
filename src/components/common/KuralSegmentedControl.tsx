@@ -3,7 +3,6 @@ import { Pressable, View } from 'react-native';
 
 import { useTheme } from 'src/theme/ThemeContextProvider';
 import { KuralText } from 'src/components/common/KuralText';
-import { SettingsItem } from 'src/components/settings/SettingsItem';
 
 export interface KuralSegmentedOption<T extends string> {
   label: string;
@@ -14,8 +13,6 @@ interface KuralSegmentedControlProps<T extends string> {
   options: KuralSegmentedOption<T>[];
   selected: T;
   onSelect: (value: T) => void;
-  label?: string;
-  helperText?: string;
   shrinkToContent?: boolean;
   optionFontSizes?: Partial<Record<T, number>>;
   renderOption?: (option: KuralSegmentedOption<T>, active: boolean) => React.ReactNode;
@@ -25,8 +22,6 @@ export function KuralSegmentedControl<T extends string>({
   options,
   selected,
   onSelect,
-  label,
-  helperText,
   shrinkToContent = false,
   optionFontSizes,
   renderOption,
@@ -98,11 +93,5 @@ export function KuralSegmentedControl<T extends string>({
       </View>
   );
 
-  return label ? (
-    <SettingsItem label={label} helperText={helperText} style={{ marginTop: 8 }}>
-      {control}
-    </SettingsItem>
-  ) : (
-    <View style={{ marginTop: 8, width: '100%', alignSelf: 'stretch' }}>{control}</View>
-  );
+  return control;
 }

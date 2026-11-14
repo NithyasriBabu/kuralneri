@@ -1,17 +1,13 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { KuralButton } from 'src/components/common/KuralButton';
 import { useTranslation } from 'src/content/translation';
 import { useTheme } from 'src/theme/ThemeContextProvider';
-import { KuralSegmentedOption } from 'src/components/common/KuralSegmentedControl';
-import { ColorScheme, FontSizeScale, SetupLanguageChoice, ThemeMode } from 'src/types/settings';
+import { createAppearanceOptions, createAuthorOptions, createColorSchemeOptions, createFontSizeOptions, createLanguageOptions } from 'src/views/settings/settingsOptions';
 
-import { OnboardingPager } from 'src/views/onboarding/OnboardingPager';
-import { OnboardingReviewPage } from 'src/views/onboarding/OnboardingReviewPage';
 import { OnboardingSetupPage } from 'src/views/onboarding/OnboardingSetupPage';
-import { OnboardingTourPage } from 'src/views/onboarding/OnboardingTourPage';
 import { useOnboardingFlow } from 'src/views/onboarding/useOnboardingFlow';
 
 export default function OnboardingView() {
@@ -19,74 +15,12 @@ export default function OnboardingView() {
   const { t: tOnboarding, tSingle: tOnboardingSingle } = useTranslation('uiChrome', 'onboarding');
   const { t: tCommon } = useTranslation('uiChrome', 'common');
   const { t: tSettings, tSingle: tSettingsSingle } = useTranslation('uiChrome', 'settings');
-  const flow = useOnboardingFlow(1);
-
-  const authorOptions = useMemo(
-    () =>
-      [
-        { label: tSettings('allAuthors'), value: '' },
-        { label: tSettings('authorMVaradarajan'), value: 'mv' },
-        { label: tSettings('authorSolomonPappaiah'), value: 'sp' },
-        { label: tSettings('authorMKarunanidhi'), value: 'mk' },
-      ] as KuralSegmentedOption<string>[],
-    [tSettings],
-  );
-
-  const languageOptions = useMemo(
-    () =>
-      [
-        {
-          label: tSettingsSingle('tamilLanguage', 'tamil'),
-          value: 'tamil',
-        },
-        {
-          label: tSettingsSingle('englishLanguage', 'english'),
-          value: 'english',
-        },
-      ] as KuralSegmentedOption<SetupLanguageChoice>[],
-    [tSettingsSingle],
-  );
-
-  const themeOptions = useMemo(
-    () =>
-      [
-        { label: tSettings('earthySage'), value: 'earthySage' },
-        { label: tSettings('sandstone'), value: 'sandstone' },
-        { label: tSettings('forest'), value: 'forest' },
-        { label: tSettings('ocean'), value: 'ocean' },
-        { label: tSettings('plum'), value: 'plum' },
-        { label: tSettings('highContrast'), value: 'highContrast' },
-        { label: tSettings('nightOcean'), value: 'nightOcean' },
-        { label: tSettings('terracotta'), value: 'terracotta' },
-        { label: tSettings('lavender'), value: 'lavender' },
-        { label: tSettings('monochrome'), value: 'monochrome' },
-      ] as KuralSegmentedOption<ColorScheme>[],
-    [tSettings],
-  );
-
-  const appearanceOptions = useMemo(
-    () =>
-      [
-        { label: tCommon('light'), value: 'light' },
-        { label: tCommon('dark'), value: 'dark' },
-        { label: tCommon('system'), value: 'system' },
-      ] as KuralSegmentedOption<ThemeMode>[],
-    [tCommon],
-  );
-
-  const fontSizeOptions = useMemo(
-    () =>
-      [
-        { label: tCommon('small'), value: 'small' },
-        { label: tCommon('medium'), value: 'medium' },
-        { label: tCommon('large'), value: 'large' },
-        { label: tCommon('xlarge'), value: 'xlarge' },
-      ] as KuralSegmentedOption<FontSizeScale>[],
-    [tCommon],
-  );
-
-  const languageChoice: Exclude<SetupLanguageChoice, 'both'> =
-    flow.settings.language === 'tamil' ? 'tamil' : 'english';
+  const flow = useOnboardingFlow();
+  const authorOptions = createAuthorOptions(tSettings);
+  const languageOptions = createLanguageOptions(tSettingsSingle);
+  const themeOptions = createColorSchemeOptions(tSettings);
+  const appearanceOptions = createAppearanceOptions(tCommon);
+  const fontSizeOptions = createFontSizeOptions(tCommon);
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: theme.colors.background }}
@@ -99,36 +33,31 @@ export default function OnboardingView() {
           setupTitle={tOnboarding('setupTitle')}
           setupBody={tOnboarding('preferencesBody')}
           languageLabel={tOnboardingSingle('languageLabel', flow.settings.language)}
+          languageHelper={tSettings('languageHelp')}
           nameLabel={tOnboarding('nameLabel')}
+          nameHelper={tSettings('usedToGreetYou')}
           namePlaceholder={tOnboarding('namePlaceholder')}
           preferredAuthorLabel={tOnboarding('preferredAuthorLabel')}
+          preferredAuthorHelper={tSettings('commentaryShownFirst')}
           themeLabel={tOnboarding('colorSchemeLabel')}
+          themeHelper={tSettings('colorSchemeHelp')}
           appearanceLabel={tOnboarding('appearanceLabel')}
+          appearanceHelper={tSettings('appearanceHelp')}
           fontSizeLabel={tOnboarding('fontSizeLabel')}
+          fontSizeHelper={tSettings('fontSizeHelp')}
           themeOptions={themeOptions}
           appearanceOptions={appearanceOptions}
           languageOptions={languageOptions}
-          languageChoice={languageChoice}
+          languageChoice={flow.settings.language}
           fontSizeOptions={fontSizeOptions}
           authorOptions={authorOptions}
           settings={flow.settings}
           nameInput={flow.nameInput}
           nameInputRef={flow.nameInputRef}
-          isTextEditable
           onNameChange={flow.setNameInput}
           onNameCommit={(value) => flow.updateSettings({ userName: value.trim() })}
           onLanguageChange={(value) => {
-            const showTamil = value === 'tamil';
-            const showEnglish = value !== 'tamil';
-            const language = showTamil ? 'tamil' : 'english';
-            flow.updateSettings({
-              language,
-              langToggles: {
-                ...flow.settings.langToggles,
-                uiChrome: { tamil: showTamil, english: showEnglish },
-                navLabels: { tamil: showTamil, english: showEnglish },
-              },
-            });
+            flow.setLanguage(value);
           }}
           onPreferredAuthorChange={(value) => flow.updateSettings({ preferredAuthorCode: value })}
           onThemeChange={(value) => flow.updateSettings({ colorScheme: value })}

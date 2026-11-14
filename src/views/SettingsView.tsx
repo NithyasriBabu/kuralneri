@@ -4,28 +4,34 @@ import { PanelLeftClose, PanelLeftOpen, RefreshCcw, Sparkles } from 'lucide-reac
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useTheme } from 'src/theme/ThemeContextProvider';
-import { getColorSchemeSwatches } from 'src/theme/styles';
 import { useSettings } from 'src/context/SettingsContext';
 import { KuralText } from 'src/components/common/KuralText';
 import { KuralButton } from 'src/components/common/KuralButton';
 import { KuralIconButton } from 'src/components/common/KuralIconButton';
 import { KuralSegmentedControl } from 'src/components/common/KuralSegmentedControl';
-import { KuralDropdown } from 'src/components/common/KuralDropdown';
-import { SettingsItem } from 'src/components/settings/SettingsItem';
+import { InputItem } from 'src/components/common/InputItem';
+import { AppearanceInput } from 'src/components/inputs/AppearanceInput';
+import { AuthorInput } from 'src/components/inputs/AuthorInput';
+import { ColorSchemeInput } from 'src/components/inputs/ColorSchemeInput';
+import { FontSizeInput } from 'src/components/inputs/FontSizeInput';
+import { LanguageInput } from 'src/components/inputs/LanguageInput';
 import { CoachTarget, useCoachMark } from 'src/context/CoachMarkContext';
 import { useTranslation } from 'src/content/translation';
 import { transliterateEnglishNameToTamil } from 'src/content/transliteration';
 import {
-  LangToggleKey,
   TamilFont,
-  FontSizeScale,
   ColorScheme,
-  ThemeMode,
   EnglishFont,
-  FONT_SIZE_MULTIPLIERS,
   TAMIL_FONT_FAMILIES,
   ENGLISH_FONT_FAMILIES,
 } from 'src/types/settings';
+import {
+  createAppearanceOptions,
+  createAuthorOptions,
+  createColorSchemeOptions,
+  createFontSizeOptions,
+  createLanguageOptions,
+} from 'src/views/settings/settingsOptions';
 
 // ─── sub-components ──────────────────────────────────────────────────────────
 
@@ -50,35 +56,20 @@ function RowLabel({ label, sub }: { label: string; sub?: string }) {
 
 type SettingsSection = 'personal' | 'display' | 'language' | 'reset';
 
-const LANG_TOGGLE_KEYS: LangToggleKey[] = [
-  'kuralCard',
-  'navLabels',
-  'uiChrome',
-];
-
 // ─── language table ──────────────────────────────────────────────────
 
 function LanguageTable() {
-  const { settings, updateSettings, setLangToggle } = useSettings();
+  const { settings, setLanguage } = useSettings();
   const { t, tSingle } = useTranslation('uiChrome', 'settings');
   const selected = settings.language;
 
   return (
-    <KuralSegmentedControl
+    <LanguageInput
       label={tSingle('language', settings.language)}
       helperText={t('languageHelp')}
+      options={createLanguageOptions(tSingle)}
       selected={selected}
-      options={[
-        { label: tSingle('tamilLanguage', 'tamil'), value: 'tamil' },
-        { label: tSingle('englishLanguage', 'english'), value: 'english' },
-      ]}
-      onSelect={(language) => {
-        updateSettings({ language });
-        LANG_TOGGLE_KEYS.forEach((key) => {
-          setLangToggle(key, 'tamil', language === 'tamil');
-          setLangToggle(key, 'english', language === 'english');
-        });
-      }}
+      onSelect={setLanguage}
     />
   );
 }
@@ -131,38 +122,10 @@ export default function SettingsView() {
 
   const showSection = (section: SettingsSection) => activeSection === section;
 
-  const AUTHORS = [
-    { label: tSettings('allAuthors'), value: '' },
-    { label: `${tSettings('authorMVaradarajan')} (mv)`, value: 'mv' },
-    { label: `${tSettings('authorSolomonPappaiah')} (sp)`, value: 'sp' },
-    { label: `${tSettings('authorMKarunanidhi')} (mk)`, value: 'mk' },
-  ];
-
-  const COLOR_SCHEME_OPTIONS: { label: string; value: ColorScheme }[] = [
-    { label: tSettings('earthySage'), value: 'earthySage' },
-    { label: tSettings('sandstone'), value: 'sandstone' },
-    { label: tSettings('forest'), value: 'forest' },
-    { label: tSettings('ocean'), value: 'ocean' },
-    { label: tSettings('plum'), value: 'plum' },
-    { label: tSettings('highContrast'), value: 'highContrast' },
-    { label: tSettings('nightOcean'), value: 'nightOcean' },
-    { label: tSettings('terracotta'), value: 'terracotta' },
-    { label: tSettings('lavender'), value: 'lavender' },
-    { label: tSettings('monochrome'), value: 'monochrome' },
-  ];
-
-  const APPEARANCE_OPTIONS: { label: string; value: ThemeMode }[] = [
-    { label: `☀ ${tSettings('light')}`, value: 'light' },
-    { label: `☾ ${tSettings('dark')}`, value: 'dark' },
-    { label: `⚙ ${tSettings('system')}`, value: 'system' },
-  ];
-
-  const FONT_SIZE_OPTIONS: { label: string; value: FontSizeScale }[] = [
-    { label: tSettings('small'), value: 'small' },
-    { label: tSettings('medium'), value: 'medium' },
-    { label: tSettings('large'), value: 'large' },
-    { label: tSettings('xlarge'), value: 'xlarge' },
-  ];
+  const AUTHORS = createAuthorOptions(tSettings);
+  const COLOR_SCHEME_OPTIONS = createColorSchemeOptions(tSettings);
+  const APPEARANCE_OPTIONS = createAppearanceOptions(tSettings);
+  const FONT_SIZE_OPTIONS = createFontSizeOptions(tSettings);
 
   const TAMIL_FONT_OPTIONS: { label: string; value: TamilFont }[] = [
     { label: 'Mukta Malar', value: 'MuktaMalar' },
@@ -418,11 +381,11 @@ export default function SettingsView() {
 
                 <CoachTarget id="settings-author" scrollRef={scrollRef}>
                   <View style={{ paddingBottom: 10 }}>
-                    <KuralSegmentedControl
-                      options={AUTHORS}
-                      selected={settings.preferredAuthorCode}
+                    <AuthorInput
                       label={tSettings('preferredAuthor')}
                       helperText={tSettings('commentaryShownFirst')}
+                      options={AUTHORS}
+                      selected={settings.preferredAuthorCode}
                       onSelect={(value) => updateSettings({ preferredAuthorCode: value })}
                     />
                   </View>
@@ -449,30 +412,18 @@ export default function SettingsView() {
                 {/* ── 2. Display ──────────────────────────────────────── */}
 
                 <CoachTarget id="settings-color-scheme" scrollRef={scrollRef}>
-                  <View
+                  <ColorSchemeInput
+                    label={tSettings('colorScheme')}
+                    helperText={tSettings('colorSchemeHelp')}
+                    options={COLOR_SCHEME_OPTIONS}
+                    selected={settings.colorScheme}
+                    onSelect={(value) => updateSettings({ colorScheme: value })}
+                    accessibilityLabel={tSettings('colorScheme')}
                     style={{
-                      paddingVertical: 10,
                       borderBottomWidth: 1,
                       borderBottomColor: theme.colors.surface,
                     }}
-                  >
-                    <RowLabel label={tSettings('colorScheme')} sub={tSettings('colorSchemeHelp')} />
-                    <KuralDropdown
-                      items={COLOR_SCHEME_OPTIONS.map((option) => ({
-                        ...option,
-                        swatchColors: getColorSchemeSwatches(
-                          option.value,
-                          theme.dark ? 'dark' : 'light',
-                        ),
-                      }))}
-                      selectedValue={settings.colorScheme}
-                      onValueChange={(value) =>
-                        updateSettings({ colorScheme: value as ColorScheme })
-                      }
-                      containerStyle={{ marginTop: 8 }}
-                      showItemLabels={false}
-                    />
-                  </View>
+                  />
                 </CoachTarget>
 
                 <CoachTarget id="settings-appearance" scrollRef={scrollRef}>
@@ -483,11 +434,11 @@ export default function SettingsView() {
                       borderBottomColor: theme.colors.surface,
                     }}
                   >
-                    <KuralSegmentedControl
-                      options={APPEARANCE_OPTIONS}
-                      selected={settings.themeMode}
+                    <AppearanceInput
                       label={tSettings('appearance')}
                       helperText={tSettings('appearanceHelp')}
+                      options={APPEARANCE_OPTIONS}
+                      selected={settings.themeMode}
                       onSelect={(value) => updateSettings({ themeMode: value })}
                     />
                   </View>
@@ -501,18 +452,12 @@ export default function SettingsView() {
                       borderBottomColor: theme.colors.surface,
                     }}
                   >
-                    <KuralSegmentedControl
+                    <FontSizeInput
+                      label={tSettings('fontSize')}
+                      helperText={tSettings('fontSizeHelp')}
                       options={FONT_SIZE_OPTIONS}
                       selected={settings.fontSizeScale}
-                      label={tSettings('fontSize')}
-                      onSelect={(v) => updateSettings({ fontSizeScale: v })}
-                      shrinkToContent
-                      optionFontSizes={{
-                        small: Math.round(12 * FONT_SIZE_MULTIPLIERS.small),
-                        medium: Math.round(12 * FONT_SIZE_MULTIPLIERS.medium),
-                        large: Math.round(12 * FONT_SIZE_MULTIPLIERS.large),
-                        xlarge: Math.round(12 * FONT_SIZE_MULTIPLIERS.xlarge),
-                      }}
+                      onSelect={(value) => updateSettings({ fontSizeScale: value })}
                     />
                   </View>
                 </CoachTarget>
@@ -526,13 +471,15 @@ export default function SettingsView() {
                         borderBottomColor: theme.colors.surface,
                       }}
                     >
-                      <KuralSegmentedControl
-                        options={TAMIL_FONT_OPTIONS}
-                        selected={settings.tamilFont}
+                      <InputItem
                         label={tSettings('tamilFont')}
                         helperText={tSettings('affectsTamilRendering')}
-                        onSelect={(value) => updateSettings({ tamilFont: value })}
-                        renderOption={(option, active) => (
+                      >
+                        <KuralSegmentedControl
+                          options={TAMIL_FONT_OPTIONS}
+                          selected={settings.tamilFont}
+                          onSelect={(value) => updateSettings({ tamilFont: value })}
+                          renderOption={(option, active) => (
                           <View style={{ width: '100%', gap: 4 }}>
                             <KuralText
                               variant="caption"
@@ -556,8 +503,9 @@ export default function SettingsView() {
                               {tSettings('fontPreviewTamil')}
                             </KuralText>
                           </View>
-                        )}
-                      />
+                          )}
+                        />
+                      </InputItem>
                     </View>
                   </CoachTarget>
                 ) : (
@@ -569,13 +517,15 @@ export default function SettingsView() {
                         borderBottomColor: theme.colors.surface,
                       }}
                     >
-                      <KuralSegmentedControl
-                        options={ENGLISH_FONT_OPTIONS}
-                        selected={settings.englishFont}
+                      <InputItem
                         label={tSettings('englishFont')}
                         helperText={tSettings('affectsEnglishRendering')}
-                        onSelect={(value) => updateSettings({ englishFont: value })}
-                        renderOption={(option, active) => (
+                      >
+                        <KuralSegmentedControl
+                          options={ENGLISH_FONT_OPTIONS}
+                          selected={settings.englishFont}
+                          onSelect={(value) => updateSettings({ englishFont: value })}
+                          renderOption={(option, active) => (
                           <View style={{ width: '100%', gap: 4 }}>
                             <KuralText
                               variant="caption"
@@ -598,8 +548,9 @@ export default function SettingsView() {
                               {tSettings('fontPreviewEnglish')}
                             </KuralText>
                           </View>
-                        )}
-                      />
+                          )}
+                        />
+                      </InputItem>
                     </View>
                   </CoachTarget>
                 )}
@@ -702,7 +653,7 @@ export default function SettingsView() {
                 )}
 
                 <CoachTarget id="settings-reset-data" scrollRef={scrollRef}>
-                  <SettingsItem
+                  <InputItem
                     label={pair('resetAllSettings').visible}
                     helperText={tSettings('resetAllSettingsHelp')}
                   >
@@ -713,7 +664,7 @@ export default function SettingsView() {
                       onPress={handleConfirmReset}
                       style={{ alignSelf: 'flex-start' }}
                     />
-                  </SettingsItem>
+                  </InputItem>
                 </CoachTarget>
               </>
             ) : null}

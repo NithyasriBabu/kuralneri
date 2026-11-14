@@ -4,13 +4,13 @@ import { View, ViewProps } from 'react-native';
 import { KuralText } from 'src/components/common/KuralText';
 import { useTheme } from 'src/theme/ThemeContextProvider';
 
-interface SettingsItemProps extends ViewProps {
+interface InputItemProps extends ViewProps {
   label: string;
   helperText?: string;
   children: React.ReactNode;
 }
 
-export function SettingsItem({ label, helperText, children, style, ...props }: SettingsItemProps) {
+export function InputItem({ label, helperText, children, style, ...props }: InputItemProps) {
   const { theme } = useTheme();
   return (
     <View

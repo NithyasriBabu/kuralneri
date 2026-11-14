@@ -136,6 +136,7 @@
     "lavender": "Lavender",
     "monochrome": "Monochrome",
     "fontSize": "Font size",
+    "fontSizeHelp": "Adjust the size of text throughout the app.",
     "showTransliteration": "Show transliteration",
     "showTransliterationHelp": "Show the Tamil verse written in Latin letters on Kural cards.",
     "mobileKuralView": "Kural list view",

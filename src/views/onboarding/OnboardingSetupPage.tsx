@@ -1,19 +1,18 @@
 import React from 'react';
 import { TextInput, View } from 'react-native';
 
-import {
-  KuralSegmentedControl,
-  KuralSegmentedOption,
-} from 'src/components/common/KuralSegmentedControl';
-import { KuralDropdown } from 'src/components/common/KuralDropdown';
+import { KuralSegmentedOption } from 'src/components/common/KuralSegmentedControl';
 import { KuralText } from 'src/components/common/KuralText';
+import { InputItem } from 'src/components/common/InputItem';
+import { AppearanceInput } from 'src/components/inputs/AppearanceInput';
+import { AuthorInput } from 'src/components/inputs/AuthorInput';
+import { ColorSchemeInput } from 'src/components/inputs/ColorSchemeInput';
+import { FontSizeInput } from 'src/components/inputs/FontSizeInput';
+import { LanguageInput } from 'src/components/inputs/LanguageInput';
 import { useTheme } from 'src/theme/ThemeContextProvider';
-import { FONT_SIZE_MULTIPLIERS } from 'src/types/settings';
-import { getColorSchemeSwatches } from 'src/theme/styles';
 import {
   AppSettings,
   FontSizeScale,
-  SetupLanguageChoice,
   ColorScheme,
   TranslationLocale,
   ThemeMode,
@@ -27,17 +26,22 @@ type OnboardingSetupPageProps = {
   setupTitle: string;
   setupBody: string;
   languageLabel: string;
+  languageHelper: string;
   nameLabel: string;
+  nameHelper: string;
   namePlaceholder: string;
   preferredAuthorLabel: string;
-  preferredAuthorHelper?: string;
+  preferredAuthorHelper: string;
   themeLabel: string;
+  themeHelper?: string;
   appearanceLabel: string;
+  appearanceHelper: string;
   fontSizeLabel: string;
+  fontSizeHelper: string;
   themeOptions: KuralSegmentedOption<ColorScheme>[];
   appearanceOptions: KuralSegmentedOption<ThemeMode>[];
-  languageOptions: KuralSegmentedOption<SetupLanguageChoice>[];
-  languageChoice: SetupLanguageChoice;
+  languageOptions: KuralSegmentedOption<TranslationLocale>[];
+  languageChoice: TranslationLocale;
   fontSizeOptions: KuralSegmentedOption<FontSizeScale>[];
   authorOptions: KuralSegmentedOption<string>[];
   settings: Pick<
@@ -46,10 +50,9 @@ type OnboardingSetupPageProps = {
   >;
   nameInput: string;
   nameInputRef: React.RefObject<React.ElementRef<typeof TextInput> | null>;
-  isTextEditable: boolean;
   onNameChange: (value: string) => void;
   onNameCommit: (value: string) => void;
-  onLanguageChange: (value: SetupLanguageChoice) => void;
+  onLanguageChange: (value: TranslationLocale) => void;
   onPreferredAuthorChange: (value: string) => void;
   onThemeChange: (value: ColorScheme) => void;
   onAppearanceChange: (value: ThemeMode) => void;
@@ -62,13 +65,18 @@ export function OnboardingSetupPage({
   setupTitle,
   setupBody,
   languageLabel,
+  languageHelper,
   nameLabel,
+  nameHelper,
   namePlaceholder,
   preferredAuthorLabel,
   preferredAuthorHelper,
+  themeHelper,
   themeLabel,
   appearanceLabel,
+  appearanceHelper,
   fontSizeLabel,
+  fontSizeHelper,
   themeOptions,
   appearanceOptions,
   languageOptions,
@@ -78,7 +86,6 @@ export function OnboardingSetupPage({
   settings,
   nameInput,
   nameInputRef,
-  isTextEditable,
   onNameChange,
   onNameCommit,
   onLanguageChange,
@@ -117,39 +124,31 @@ export function OnboardingSetupPage({
           {setupBody}
         </KuralText>
 
-        <KuralSegmentedControl
+        <LanguageInput
+          label={languageLabel}
+          helperText={languageHelper}
           options={languageOptions}
           selected={languageChoice}
-          label={languageLabel}
           onSelect={onLanguageChange}
         />
 
-        <KuralSegmentedControl
+        <FontSizeInput
+          label={fontSizeLabel}
+          helperText={fontSizeHelper}
           options={fontSizeOptions}
           selected={settings.fontSizeScale}
-          label={fontSizeLabel}
           onSelect={onFontSizeChange}
-          shrinkToContent
-          optionFontSizes={{
-            small: Math.round(12 * FONT_SIZE_MULTIPLIERS.small),
-            medium: Math.round(12 * FONT_SIZE_MULTIPLIERS.medium),
-            large: Math.round(12 * FONT_SIZE_MULTIPLIERS.large),
-            xlarge: Math.round(12 * FONT_SIZE_MULTIPLIERS.xlarge),
-          }}
         />
 
-        <View style={{ gap: 8 }}>
-          <KuralText variant="caption" style={{ color: theme.colors.textSecondary }}>
-            {nameLabel}
-          </KuralText>
+        <InputItem label={nameLabel} helperText={nameHelper}>
           <TextInput
             ref={nameInputRef}
             value={nameInput}
             onChangeText={onNameChange}
             onBlur={() => onNameCommit(nameInput)}
             onSubmitEditing={() => onNameCommit(nameInput)}
-            editable={isTextEditable}
-            showSoftInputOnFocus={isTextEditable}
+            editable
+            showSoftInputOnFocus
             placeholder={namePlaceholder}
             placeholderTextColor={theme.colors.disabledText}
             style={[
@@ -166,31 +165,32 @@ export function OnboardingSetupPage({
               },
             ]}
           />
-        </View>
+        </InputItem>
 
-        <KuralSegmentedControl
-          options={authorOptions}
-          selected={settings.preferredAuthorCode}
-          label={preferredAuthorLabel}
-          helperText={preferredAuthorHelper}
-          onSelect={onPreferredAuthorChange}
-        />
+        {settings.language === 'tamil' ? (
+          <AuthorInput
+            label={preferredAuthorLabel}
+            helperText={preferredAuthorHelper}
+            options={authorOptions}
+            selected={settings.preferredAuthorCode}
+            onSelect={onPreferredAuthorChange}
+          />
+        ) : null}
 
-        <KuralDropdown
+        <ColorSchemeInput
           label={themeLabel}
-          items={themeOptions.map((option) => ({
-            ...option,
-            swatchColors: getColorSchemeSwatches(option.value, theme.dark ? 'dark' : 'light'),
-          }))}
-          selectedValue={settings.colorScheme}
-          onValueChange={(value) => onThemeChange(value as ColorScheme)}
-          showItemLabels={false}
+          helperText={themeHelper}
+          options={themeOptions}
+          selected={settings.colorScheme}
+          onSelect={onThemeChange}
+          accessibilityLabel={themeLabel}
         />
 
-        <KuralSegmentedControl
+        <AppearanceInput
+          label={appearanceLabel}
+          helperText={appearanceHelper}
           options={appearanceOptions}
           selected={settings.themeMode}
-          label={appearanceLabel}
           onSelect={onAppearanceChange}
         />
       </View>
