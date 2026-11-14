@@ -196,7 +196,6 @@ export default function BookmarksView({
         <KuralIconButton
           icon={<Eraser />}
           label={pair('clearAllBookmarks').visible}
-          tooltip={pair('clearAllBookmarks').hover}
           onPress={handleClearBookmarks}
           disabled={totalRecords === 0}
         />
